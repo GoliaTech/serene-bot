@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "resolveJsonModule": true,
+    "outDir": "./dev/",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "alwaysStrict": true,
+    "allowUnreachableCode": false,
+    "skipLibCheck": true,
+    "diagnostics": true,
+    "removeComments": false,
+    "pretty": true,
+    "noImplicitReturns": true,
+    "noEmitOnError": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": [
+    "./src/**/*.ts",
+  ],
+  "exclude": [
+    "./node_modules/",
+    "./templates/",
+    "./prod/",
+		"./dev/"
+  ]
+}
