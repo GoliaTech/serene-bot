@@ -9,16 +9,29 @@ require("dotenv").config();
  */
 async function nodeEnv() {
 	try {
-		const args = process.argv.slice(2);
+		// Put the args into a map. This way we can just use .find() param.
+		const envMap = {
+			"--production": "production",
+			"-P": "production",
+			"--development": "development",
+			"-D": "development"
+		};
+
+		// Slice away unnecessary arguments.
+		const args: string[] = process.argv.slice(2);
 		console.log(args);
-		if (args.find((arg) => arg === "--production")) {
-			process.env.NODE_ENV = "production";
-		} else if (args.find((arg) => arg === "-P")) {
-			process.env.NODE_ENV = "production";
-		} else if (args.find((arg) => arg === "--development")) {
+
+		// If the user did not provide any arguments, set default environment.
+		if (args.length === 0) {
+			console.log("No arguments provided. Setting default environment.");
 			process.env.NODE_ENV = "development";
-		} else if (args.find((arg) => arg === "-D")) {
-			process.env.NODE_ENV = "development";
+			return;
+		}
+
+		// Now handle what the argument has been provided.
+		const arg = args.find((arg) => arg in envMap);
+		if (arg) {
+			process.env.NODE_ENV = envMap[arg as keyof typeof envMap];
 		}
 		return;
 	} catch (e: any) { throw new Error(e.message); }
@@ -31,22 +44,15 @@ async function startBot() {
 	try {
 		// This is the part of the code that handles the shards and sharding events.
 		const shardArgs: string[] = ["--ansi", "--color"];
+
 		// This is the default. It is also default for "development".
 		let execArgv: string[] = ["--inspect=9239", "--trace-warnings"];
 		if (process.env.NODE_ENV === "production") {
 			execArgv = ["--trace-warnings", "--unhandled-rejections=strict"];
 		}
 
-		// We have to create a token checker, in case this is a dev or a production environment.
-		let token: string = "";
-		if (process.env.NODE_ENV === "production") {
-			token = String(process.env.TOKEN_PRODUCTION);
-		} else if (process.env.NODE_ENV === "development") {
-			token = String(process.env.TOKEN_DEVELOPMENT);
-		} else {
-			console.log(process.env.NODE_ENV);
-			throw new Error("How did you manage to break NODE_ENV???");
-		}
+		// I improved the token thing, instead of IF/ELSE, I did this.
+		const token = process.env.NODE_ENV === "production" ? String(process.env.TOKEN_PRODUCTION) : process.env.NODE_ENV === "development" ? String(process.env.TOKEN_DEVELOPMENT) : (() => { throw new Error("How did you manage to break NODE_ENV???"); })();
 
 		// This is a managed that handles the shards and sharding events.
 		const manager: ShardingManager = new ShardingManager(path.join(__dirname, "bot.js"), {
@@ -64,6 +70,7 @@ async function startBot() {
 
 		// This will spawn a new shard, but also will let us add further events.
 		const managedShards: Collection<number, Shard> = await manager.spawn({ amount: "auto", delay: 5000, timeout: 30000 });
+
 		// From here, we can make it watch for other shard events, like disconnect, death, ready, etc.
 		for (const shard of managedShards.values()) {
 			shard.on("death", () => {
@@ -84,10 +91,8 @@ async function startBot() {
 	} catch (e: any) { throw new Error(e.message); }
 }
 
-(async () => {
-	// First handle the environment.
-	await nodeEnv();
+// First handle the environment.
+nodeEnv();
 
-	// Then start the bot.
-	startBot();
-})();
+// Then start the bot.
+startBot();
