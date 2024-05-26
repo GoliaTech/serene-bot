@@ -5,7 +5,8 @@ const shards: Collection<number, Shard> = new Collection();
 require("dotenv").config();
 
 /**
- * This code handles setting the NODE_ENV to the correct one.
+ * This code handles setting the process.env.NODE_ENV to the correct one.
+ * This is necessary as the rest of the program requires a properly functioning process.env.NODE_ENV to work right.
  */
 async function nodeEnv() {
 	try {
@@ -32,21 +33,106 @@ async function nodeEnv() {
 }
 
 /**
+ * These are the shard's execution argument variables. 
+ * You want to keep different execArgv for production and development.
+ * This function handles that separation.
+ * @returns {string[]} - The array of execArgvs to be parsed into shards.
+ */
+function getExecArgv(): string[] {
+	if (process.env.NODE_ENV === "production") {
+		return [
+			"--trace-warnings",
+			"--unhandled-rejections=strict"
+		];
+	}
+	// If it is not production. You can modify this array however you want.
+	return [
+		"--inspect=9239",
+		"--trace-warnings"
+	];
+}
+
+/**
+ * This checks what process.env.NODE_ENV you are running and returns correct bot token.
+ * This is in case you have 2 bots, one for development and one for production.
+ * @returns {string} - The token.
+ */
+function getToken(): string {
+	// return process.env.NODE_ENV === "production" ? String(process.env.TOKEN_PRODUCTION) : process.env.NODE_ENV === "development" ? String(process.env.TOKEN_DEVELOPMENT) : (() => { throw new Error("How did you manage to break NODE_ENV???"); })();
+	if (process.env.NODE_ENV === "production") {
+		return process.env.TOKEN_PRODUCTION || handleTokenError("TOKEN_PRODUCTION");
+	} else if (process.env.NODE_ENV === "development") {
+		return process.env.TOKEN_DEVELOPMENT || handleTokenError("TOKEN_DEVELOPMENT");
+	} else {
+		throw new Error("Invalid NODE_ENV value: expected 'production' or 'development'.");
+	}
+}
+
+/**
+ * Setting this to :never fixes the issue in getToken where it thought it would be returning void.
+ * @param error The error message
+ */
+function handleTokenError(error: string): never {
+	throw new Error(`Environment variable ${error} is not set.`);
+}
+
+/**
+ * This handles the setting up of the shards.
+ * @param manager Parse the manager function here from startBot()
+ */
+function setupShardEvents(manager: ShardingManager) {
+	manager.on("shardCreate", (...args: [shard: Shard]) => {
+		shards.set(args[0].id, args[0]);
+		console.log(`Launched shard ${args[0].id}\n`);
+	});
+}
+
+/**
+ * This handles recurring shard events.
+ * @param managedShards parse managedShards object here from startBot().
+ */
+function watchShardEvents(managedShards: Collection<number, Shard>) {
+	// For each Shard of managed shards.
+	for (const shard of managedShards.values()) {
+		shard.on("death", () => handleShardDeath(shard));
+		shard.on("disconnect", () => console.log(`Shard ${shard.id} disconnected. Reconnecting...`));
+		shard.on("ready", () => console.log(`Shard ${shard.id} is ready.`));
+		shard.on("reconnecting", () => console.log(`Shard ${shard.id} is reconnecting...`));
+		shard.on("spawn", () => console.log(`Shard ${shard.id} spawned.`));
+
+		// this is in case you want to see how many events have been resumed.
+		// We have to apply the shard.on even as any, in order for it to function.
+		(shard.on as any)("resume", (replayed: number) => {
+			console.log(`Shard ${shard.id} resumed. Replayed ${replayed} events.`);
+		});
+	}
+}
+
+/**
+ * This will handle the death of a shard.
+ * @param shard The shard object.
+ */
+function handleShardDeath(shard: Shard) {
+	console.log(`Shard ${shard.id} died. Restarting...`);
+	shards.delete(shard.id);
+}
+
+/**
  * This is the main starting point for the bot.
+ * This will run the program, it will then create shards and parse execArgv into them.
+ * It will have to spawn bots, which require a token.
+ * Getting the token is handled in the getToken() function.
  */
 async function startBot() {
 	try {
 		// This is the part of the code that handles the shards and sharding events.
 		const shardArgs: string[] = ["--ansi", "--color"];
 
-		// This is the default. It is also default for "development".
-		let execArgv: string[] = ["--inspect=9239", "--trace-warnings"];
-		if (process.env.NODE_ENV === "production") {
-			execArgv = ["--trace-warnings", "--unhandled-rejections=strict"];
-		}
+		// Get execution argument variables based on the environment.
+		const execArgv = getExecArgv();
 
 		// I improved the token thing, instead of IF/ELSE, I did this.
-		const token = process.env.NODE_ENV === "production" ? String(process.env.TOKEN_PRODUCTION) : process.env.NODE_ENV === "development" ? String(process.env.TOKEN_DEVELOPMENT) : (() => { throw new Error("How did you manage to break NODE_ENV???"); })();
+		const token = getToken();
 
 		// This is a managed that handles the shards and sharding events.
 		const manager: ShardingManager = new ShardingManager(path.join(__dirname, "bot.js"), {
@@ -56,32 +142,14 @@ async function startBot() {
 			totalShards: "auto"
 		});
 
-		// This is the event that handles shard creation.
-		manager.on("shardCreate", (...args: [shard: Shard]) => {
-			shards.set(args[0].id, args[0]);
-			console.log(`Launched shard ${args[0].id}\n`);
-		});
+		// Start the setup shard events.
+		setupShardEvents(manager);
 
 		// This will spawn a new shard, but also will let us add further events.
 		const managedShards: Collection<number, Shard> = await manager.spawn({ amount: "auto", delay: 5000, timeout: 30000 });
 
-		// From here, we can make it watch for other shard events, like disconnect, death, ready, etc.
-		for (const shard of managedShards.values()) {
-			shard.on("death", () => {
-				console.log(`Shard ${shard.id} died. Restarting...`);
-				shards.delete(shard.id);
-			});
-			shard.on("disconnect", () => console.log(`Shard ${shard.id} disconnected. Reconnecting...`));
-			shard.on("ready", () => console.log(`Shard ${shard.id} is ready.`));
-			shard.on("reconnecting", () => console.log(`Shard ${shard.id} is reconnecting...`));
-			// This does not work.
-			// shard.on("resume", (replayed: number) => { console.log(`Shard ${shard.id} resumed. Replayed ${replayed} events.`); });
-			// This however does.
-			(shard.on as any)("resume", (replayed: number) => {
-				console.log(`Shard ${shard.id} resumed. Replayed ${replayed} events.`);
-			});
-			shard.on("spawn", () => console.log(`Shard ${shard.id} spawned.`));
-		}
+		// Now watch for watch shard events.
+		watchShardEvents(managedShards);
 	} catch (e: any) { throw new Error(e.message); }
 }
 
