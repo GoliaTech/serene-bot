@@ -137,7 +137,8 @@ async function startBot() {
 		const execArgv = getExecArgv();
 
 		// This is a fix to test and run TS code directly:
-		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		// const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		const fileExtension = "js";
 
 		// This is a managed that handles the shards and sharding events.
 		const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot.${fileExtension}`), {

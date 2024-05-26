@@ -62,26 +62,12 @@ async function bot() {
 			]
 		});
 
-		// This is a botEvents placeholder;
-		// const botEvents = [
-		// 	{
-		// 		name: "ready",
-		// 		once: true,
-		// 		execute() {
-		// 			console.log("I am ready");
-		// 		}
-		// 	},
-		// 	{
-		// 		name: "connect",
-		// 		execute() {
-		// 			console.log("We are connecting.");
-		// 		}
-		// 	}
-		// ];
-
 		// This is for testing.
 		const loadedEvents = loadEvents();
 		console.log(loadedEvents);
+
+		// This will test command stuff.
+		const loadedCommands = "ass";
 
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
@@ -108,7 +94,7 @@ async function bot() {
 function loadEvents() {
 	const events = [];
 	const eventFolderPath = path.join(__dirname, "events");
-	const eventFolder = fs.readdirSync(eventFolderPath);
+	const eventFolder = fs.readdirSync(eventFolderPath).filter((file) => file.endsWith(".js"));
 	console.log(eventFolder);
 	for (const file of eventFolder) {
 		const filePath = path.join(eventFolderPath, file);
@@ -122,6 +108,24 @@ function loadEvents() {
 		}
 	}
 	return events;
+}
+
+function loadCommands() {
+	const commands = {
+		commands: new Collection<string, any>(),
+		JSON: [],
+	};
+
+	const commandsFolderPath = path.join(__dirname, "./commands");
+	const commandFolders = fs.readdirSync(commandsFolderPath);
+	for (const folder of commandFolders) {
+		const folderPath = path.join(commandsFolderPath, folder);
+		const files = fs.readdirSync(folderPath).filter((file) => file.endsWith(".js"));
+		for (const file of files) {
+			const filePath = path.join(folderPath, file);
+			const command = require(filePath);
+		}
+	}
 }
 
 // This will run the bot.
