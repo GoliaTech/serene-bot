@@ -28,6 +28,10 @@ async function nodeEnv() {
 		const env = args.find(arg => envMap[arg]) || defaultEnv;
 		process.env.NODE_ENV = envMap[env] || env;
 
+		// Lets handle the token here as well.
+		// This will also set global .env variable: .TOKEN, to be used in other parts of the program.
+		process.env.TOKEN = getToken();
+
 		return;
 	} catch (e: any) { throw new Error(e.message); }
 }
@@ -46,6 +50,7 @@ function getExecArgv(): string[] {
 		];
 	}
 	// If it is not production. You can modify this array however you want.
+	// What --inspect does, is it launches node inspector.
 	return [
 		"--inspect=9239",
 		"--trace-warnings"
@@ -131,12 +136,9 @@ async function startBot() {
 		// Get execution argument variables based on the environment.
 		const execArgv = getExecArgv();
 
-		// I improved the token thing, instead of IF/ELSE, I did this.
-		const token = getToken();
-
 		// This is a managed that handles the shards and sharding events.
 		const manager: ShardingManager = new ShardingManager(path.join(__dirname, "bot.js"), {
-			token: token,
+			token: process.env.TOKEN,
 			execArgv: execArgv,
 			shardArgs: shardArgs,
 			totalShards: "auto"
