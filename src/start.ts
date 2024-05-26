@@ -40,7 +40,7 @@ async function nodeEnv() {
  * These are the shard's execution argument variables. 
  * You want to keep different execArgv for production and development.
  * This function handles that separation.
- * @returns {string[]} - The array of execArgvs to be parsed into shards.
+ * @returns {string[]} - The array of execArgv to be parsed into shards.
  */
 function getExecArgv(): string[] {
 	if (process.env.NODE_ENV === "production") {
@@ -136,8 +136,11 @@ async function startBot() {
 		// Get execution argument variables based on the environment.
 		const execArgv = getExecArgv();
 
+		// This is a fix to test and run TS code directly:
+		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+
 		// This is a managed that handles the shards and sharding events.
-		const manager: ShardingManager = new ShardingManager(path.join(__dirname, "bot.js"), {
+		const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot.${fileExtension}`), {
 			token: process.env.TOKEN,
 			execArgv: execArgv,
 			shardArgs: shardArgs,
