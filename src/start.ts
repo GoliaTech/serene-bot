@@ -5,11 +5,33 @@ const shards: Collection<number, Shard> = new Collection();
 require("dotenv").config();
 
 /**
+ * This code handles setting the NODE_ENV to the correct one.
+ */
+async function nodeEnv() {
+	try {
+		const args = process.argv.slice(2);
+		console.log(args);
+		if (args.find((arg) => arg === "--production")) {
+			process.env.NODE_ENV = "production";
+		} else if (args.find((arg) => arg === "-P")) {
+			process.env.NODE_ENV = "production";
+		} else if (args.find((arg) => arg === "--development")) {
+			process.env.NODE_ENV = "development";
+		} else if (args.find((arg) => arg === "-D")) {
+			process.env.NODE_ENV = "development";
+		}
+		return;
+	} catch (e: any) { throw new Error(e.message); }
+}
+
+/**
  * This is the main starting point for the bot.
  */
 async function startBot() {
 	try {
+		// This is the part of the code that handles the shards and sharding events.
 		const shardArgs: string[] = ["--ansi", "--color"];
+		// This is the default. It is also default for "development".
 		let execArgv: string[] = ["--inspect=9239", "--trace-warnings"];
 		if (process.env.NODE_ENV === "production") {
 			execArgv = ["--trace-warnings", "--unhandled-rejections=strict"];
@@ -22,6 +44,7 @@ async function startBot() {
 		} else if (process.env.NODE_ENV === "development") {
 			token = String(process.env.TOKEN_DEVELOPMENT);
 		} else {
+			console.log(process.env.NODE_ENV);
 			throw new Error("How did you manage to break NODE_ENV???");
 		}
 
@@ -61,4 +84,10 @@ async function startBot() {
 	} catch (e: any) { throw new Error(e.message); }
 }
 
-startBot();
+(async () => {
+	// First handle the environment.
+	await nodeEnv();
+
+	// Then start the bot.
+	startBot();
+})();
