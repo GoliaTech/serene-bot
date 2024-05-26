@@ -9,30 +9,24 @@ require("dotenv").config();
  */
 async function nodeEnv() {
 	try {
-		// Put the args into a map. This way we can just use .find() param.
-		const envMap = {
+		// Default environment.
+		const defaultEnv = "development";
+
+		// Here we will instantly define that the key is a string and the value it holds is also a string.
+		const envMap: { [key: string]: string; } = {
 			"--production": "production",
 			"-P": "production",
-			"--development": "development",
-			"-D": "development"
+			"-D": defaultEnv,
+			"--development": defaultEnv
 		};
 
-		// Slice away unnecessary arguments.
+		// Slice away the unnecessary stuff at the start.
 		const args: string[] = process.argv.slice(2);
-		console.log(args);
 
-		// If the user did not provide any arguments, set default environment.
-		if (args.length === 0) {
-			console.log("No arguments provided. Setting default environment.");
-			process.env.NODE_ENV = "development";
-			return;
-		}
+		// Determine the environment based on the provided arguments.
+		const env = args.find(arg => envMap[arg]) || defaultEnv;
+		process.env.NODE_ENV = envMap[env] || env;
 
-		// Now handle what the argument has been provided.
-		const arg = args.find((arg) => arg in envMap);
-		if (arg) {
-			process.env.NODE_ENV = envMap[arg as keyof typeof envMap];
-		}
 		return;
 	} catch (e: any) { throw new Error(e.message); }
 }
