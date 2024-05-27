@@ -4,23 +4,39 @@ import path from "path";
 import fs from "fs";
 
 /**
- * This is just testing if it possible to have an array of module.exports and have this thing work.
- * @returns 
+ * This was just testing, but it seems to work really well, so I shall keep this.
+ * This loads event files inside ./src/events folder, file by file.
+ * Then, it extracts the events inside each file.
+ * Then it loops through them, adds them into an array and then returns that array of events.
+ * @returns {any[]} - Well I just put ANY for now, but I will have to make an interface for this, or declaration.
  */
 function loadEvents() {
+	// The array with events to be returned.
 	const events = [];
+	// This is the folder PATH where the events are located.
 	const eventFolderPath = path.join(__dirname, "events");
+	// This is to ensure that during development we are using .ts extension.
+	// Because during development we are using tsx.
 	const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+	// This reads the event folder where all the event files are located, it then filters out everything that is not a file with the correct extension.
 	const eventFolder = fs.readdirSync(eventFolderPath).filter((file) => file.endsWith(`.${fileExtension}`));
+
+	// This will then loop through what we got from the eventFolder.
 	for (const file of eventFolder) {
+		// This is the path of the file inside the folder.
 		const filePath = path.join(eventFolderPath, file);
+		// You now have to require the event in order to process it.
 		const event = require(filePath);
+
 		// It is possible to load an array of all the events from a file.
+		// We just have to loop through them like a normal array.
 		for (const e of event) {
-			// We just have to loop through them like a normal array.
+			// So you push each event into the array.
 			events.push(e);
 		}
 	}
+
+	// You then return the array.
 	return events;
 }
 
@@ -34,8 +50,8 @@ function eventHandlers(discordClient: Client, botEvents: any) {
 	// Here, we will have to parse a whole collection of bot events, then loop through them.
 	// This can be achieved in 2 ways: we either do it here, or we separate them into their own files.
 	// It depends on how you like doing things.
-
 	console.log("BOTEVENTS: ", botEvents);
+
 	for (const botEvent of botEvents) {
 		// So this checks if our event has a parameter called .once.
 		// If we do, then we will obviously only run this event once.
@@ -46,6 +62,40 @@ function eventHandlers(discordClient: Client, botEvents: any) {
 			discordClient.on(botEvent.name, async (...args) => await botEvent.execute(...args));
 		}
 	}
+}
+
+/**
+ * This is still testing...
+ * What this will do, it will loop through the ./src/commands/ folder.
+ * Then it will loop through sub folders.
+ * Then it will loop through each sub folder, get the files, and finally do something about it.
+ * It should then return the collection of commands.
+ */
+function loadCommands() {
+	// I took ANY, but should actually be a dedicated command interface thing.
+	const commands: Collection<string, any> = new Collection<string, any>();
+
+	// This is the path for the commands folder.
+	const commandsFolderPath = path.join(__dirname, "commands");
+	// The commands folder.
+	const commandFolders = fs.readdirSync(commandsFolderPath);
+
+	// This will loop through all the sub folders inside the commands folder.
+	for (const folder of commandFolders) {
+		// The path for the subfolder.
+		const folderPath = path.join(commandsFolderPath, folder);
+		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		// Filter just the files we care about inside the subfolder.
+		const files = fs.readdirSync(folderPath).filter((file) => file.endsWith(`.${fileExtension}`));
+		// This will loop through --- the --- files, inside---- files???? Eh???
+		for (const file of files) {
+			const filePath = path.join(folderPath, file);
+			const command = require(filePath);
+		}
+	}
+
+	// Return the commands object, with all the commands in it.
+	return commands;
 }
 
 /**
@@ -83,50 +133,21 @@ async function bot() {
 			]
 		});
 
-		console.log("PATH", path.join(__dirname, "events"));
-
 		// This is for testing.
 		const loadedEvents = loadEvents();
-		console.log("Loaded events:", loadedEvents);
 
 		// This will test command stuff.
-		const loadedCommands = "ass";
+		const loadedCommands = loadCommands();
+		console.log(loadedCommands);
 
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
 		eventHandlers(discordClient, loadedEvents);
 
-		// This code will login (aka: launch) the bot.
-		// The token is provided during start.ts, process.env.TOKEN is assigned when checking what environment is being used.
-		const login = false;
-		// This login stuff is just temporary for testing.
-		if (login) {
-			await discordClient.login(process.env.TOKEN)
-				.then(() => console.log(`[${new Date().toUTCString()}] We started the bot!`));
-		} else {
-			process.exit(1);
-		}
+		await discordClient.login(process.env.TOKEN)
+			.then(() => console.log(`[${new Date().toUTCString()}] We started the bot!`));
 	} catch (e: any) { console.error(e); }
-}
-
-// This is a test for now.
-function loadCommands() {
-	const commands = {
-		commands: new Collection<string, any>(),
-		JSON: [],
-	};
-
-	const commandsFolderPath = path.join(__dirname, "commands");
-	const commandFolders = fs.readdirSync(commandsFolderPath);
-	for (const folder of commandFolders) {
-		const folderPath = path.join(commandsFolderPath, folder);
-		const files = fs.readdirSync(folderPath).filter((file) => file.endsWith(".js"));
-		for (const file of files) {
-			const filePath = path.join(folderPath, file);
-			const command = require(filePath);
-		}
-	}
 }
 
 // This will run the bot.
