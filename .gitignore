@@ -1,7 +1,10 @@
-node_modules
-LOGS
-dev
+node_modules/
+LOGS/
+dev/
 .env
-cofnig.json
+config.json
 package-lock.json
 .vscode
+declaration/
+development/
+*.map

@@ -54,8 +54,10 @@ function getExecArgv(): string[] {
 	// If it is not production. You can modify this array however you want.
 	// What --inspect does, is it launches node inspector.
 	return [
-		"--inspect=9239",
-		"--trace-warnings"
+		// "--inspect=9239",
+		"--trace-warnings",
+		"-r",
+		"ts-node/register"
 	];
 }
 
@@ -139,8 +141,8 @@ async function startBot() {
 		const execArgv = getExecArgv();
 
 		// This is a fix to test and run TS code directly:
-		// const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
-		const fileExtension = "js";
+		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		// const fileExtension = "js";
 
 		// This is a managed that handles the shards and sharding events.
 		const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot.${fileExtension}`), {

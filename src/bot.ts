@@ -4,6 +4,27 @@ import path from "path";
 import fs from "fs";
 
 /**
+ * This is just testing if it possible to have an array of module.exports and have this thing work.
+ * @returns 
+ */
+function loadEvents() {
+	const events = [];
+	const eventFolderPath = path.join(__dirname, "events");
+	const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+	const eventFolder = fs.readdirSync(eventFolderPath).filter((file) => file.endsWith(`.${fileExtension}`));
+	for (const file of eventFolder) {
+		const filePath = path.join(eventFolderPath, file);
+		const event = require(filePath);
+		// It is possible to load an array of all the events from a file.
+		for (const e of event) {
+			// We just have to loop through them like a normal array.
+			events.push(e);
+		}
+	}
+	return events;
+}
+
+/**
  * This will register events that the client will have to handle.
  * Like for example: ready, banAdd, banRemove, etc.
  * @param discordClient Just parse discordClient here.
@@ -62,9 +83,11 @@ async function bot() {
 			]
 		});
 
+		console.log("PATH", path.join(__dirname, "events"));
+
 		// This is for testing.
 		const loadedEvents = loadEvents();
-		console.log(loadedEvents);
+		console.log("Loaded events:", loadedEvents);
 
 		// This will test command stuff.
 		const loadedCommands = "ass";
@@ -82,41 +105,19 @@ async function bot() {
 			await discordClient.login(process.env.TOKEN)
 				.then(() => console.log(`[${new Date().toUTCString()}] We started the bot!`));
 		} else {
-			return;
+			process.exit(1);
 		}
 	} catch (e: any) { console.error(e); }
 }
 
-/**
- * This is just testing if it possible to have an array of module.exports and have this thing work.
- * @returns 
- */
-function loadEvents() {
-	const events = [];
-	const eventFolderPath = path.join(__dirname, "events");
-	const eventFolder = fs.readdirSync(eventFolderPath).filter((file) => file.endsWith(".js"));
-	console.log(eventFolder);
-	for (const file of eventFolder) {
-		const filePath = path.join(eventFolderPath, file);
-		const event = require(filePath);
-		// It is possible to load an array of all the events from a file.
-		console.log(event);
-		for (const e of event) {
-			// We just have to loop through them like a normal array.
-			console.log(e);
-			events.push(e);
-		}
-	}
-	return events;
-}
-
+// This is a test for now.
 function loadCommands() {
 	const commands = {
 		commands: new Collection<string, any>(),
 		JSON: [],
 	};
 
-	const commandsFolderPath = path.join(__dirname, "./commands");
+	const commandsFolderPath = path.join(__dirname, "commands");
 	const commandFolders = fs.readdirSync(commandsFolderPath);
 	for (const folder of commandFolders) {
 		const folderPath = path.join(commandsFolderPath, folder);

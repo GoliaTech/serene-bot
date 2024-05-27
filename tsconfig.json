@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "node",
-    "rootDir": "./src",
-    "outDir": "./dev",
+    "rootDir": "src",
+    "outDir": "development",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -14,22 +14,23 @@
     "allowUnreachableCode": false,
     "skipLibCheck": true,
     "diagnostics": true,
-    "removeComments": false,
+    "removeComments": true,
     "pretty": true,
     "noImplicitReturns": true,
     "noEmitOnError": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
-    "allowJs": true,
-    "checkJs": true
+    "sourceMap": true,
+    "sourceRoot": "src",
+    "mapRoot": "map",
+    "declaration": true,
+    "declarationDir": "declaration",
   },
-  "include": [
-    "./src/",
-  ],
   "exclude": [
-    "./node_modules/",
-    "./templates/",
-    "./prod/",
-    "./dev/"
-  ]
+    "node_modules",
+    "templates",
+    "production"
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true,
+  }
 }
