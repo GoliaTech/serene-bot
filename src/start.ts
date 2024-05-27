@@ -168,3 +168,5 @@ nodeEnv();
 
 // Then start the bot.
 startBot();
+
+// We need to process signals and handling process events here.
