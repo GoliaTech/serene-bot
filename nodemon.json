@@ -1,6 +1,6 @@
 {
-	"watch": ["./dev/"],
-	"ext": "js",
+	"watch": ["./src/"],
+	"ext": "ts",
 	"ignore": ["*.test.ts"],
-	"exec": "node ./dev/start.js"
+	"exec": "ts-node ./src/start.ts"
 }

@@ -1,8 +1,10 @@
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
+// import { config } from "dotenv";
+// config();
+require("dotenv").config();
 
 const shards: Collection<number, Shard> = new Collection();
-require("dotenv").config();
 
 /**
  * This code handles setting the process.env.NODE_ENV to the correct one.

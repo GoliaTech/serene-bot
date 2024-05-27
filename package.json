@@ -2,7 +2,7 @@
   "name": "serene-bot",
   "version": "1.0.0",
   "description": "This a blank readme for now.",
-  "main": "index.js",
+  "main": "src/start.ts",
   "scripts": {
     "test": "jest"
   },

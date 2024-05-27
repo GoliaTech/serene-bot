@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "rootDir": "./src",
+    "outDir": "./dev",
     "resolveJsonModule": true,
-    "outDir": "./dev/",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
