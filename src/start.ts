@@ -145,7 +145,7 @@ async function startBot() {
 		// const fileExtension = "js";
 
 		// This is a managed that handles the shards and sharding events.
-		const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot.${fileExtension}`), {
+		const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot/bot.${fileExtension}`), {
 			token: process.env.TOKEN,
 			execArgv: execArgv,
 			shardArgs: shardArgs,
@@ -169,4 +169,35 @@ nodeEnv();
 // Then start the bot.
 startBot();
 
+/**
+ * This will kill shard by shard.
+ */
+async function killShards() {
+	for (const shard of shards) {
+		try {
+			console.log(`Killing shard ${shard[1].id}`);
+			shard[1].kill();
+		} catch (e) {
+			console.error("Unabel to kill shard " + shard[1].id + "/n", e);
+		}
+	}
+}
+
 // We need to process signals and handling process events here.
+process.on("exit", async () => {
+	console.log("Got exit signal, quitting...");
+	await killShards();
+	process.exit(1);
+});
+
+process.on("SIGTERM", async () => {
+	console.log("Got SIGTERM signal, quitting...");
+	await killShards();
+	process.exit(1);
+});
+
+process.on("SIGKILL", async () => {
+	console.log("Got SIGKILL signal, quitting...");
+	await killShards();
+	process.exit(1);
+});

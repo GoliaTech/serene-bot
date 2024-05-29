@@ -55,12 +55,9 @@ function eventHandlers(discordClient: Client, botEvents: any) {
 	for (const botEvent of botEvents) {
 		// So this checks if our event has a parameter called .once.
 		// If we do, then we will obviously only run this event once.
-		if (botEvent.once) {
-			// (...args) means we are passing any and all arguments into the .execute() function in the event file.
-			discordClient.once(botEvent.name, async (...args) => await botEvent.execute(...args));
-		} else {
-			discordClient.on(botEvent.name, async (...args) => await botEvent.execute(...args));
-		}
+		// (...args) means we are passing any and all arguments into the .execute() function in the event file.
+		if (botEvent.once) discordClient.once(botEvent.name, async (...args) => await botEvent.execute(...args));
+		else discordClient.on(botEvent.name, async (...args) => await botEvent.execute(...args));
 	}
 }
 
@@ -91,6 +88,7 @@ function loadCommands() {
 		for (const file of files) {
 			const filePath = path.join(folderPath, file);
 			const command = require(filePath);
+			console.log(command);
 		}
 	}
 
@@ -120,6 +118,7 @@ async function bot() {
 				GatewayIntentBits.GuildModeration,
 				// This lets your bot interact with typing events.
 				GatewayIntentBits.GuildMessageTyping,
+
 				// Private messages.
 				// This lets your bot directly message users.
 				GatewayIntentBits.DirectMessages,
@@ -127,6 +126,7 @@ async function bot() {
 				GatewayIntentBits.DirectMessageReactions,
 				// This lets your bot interact with typing events in a private message.
 				GatewayIntentBits.DirectMessageTyping,
+
 				// Others.
 				// This will let your bot see the content of messages. Useful if you want more/different commands than what the applicationCommands provides.
 				GatewayIntentBits.MessageContent
@@ -145,8 +145,11 @@ async function bot() {
 		// There probably is a better way to do this however.
 		eventHandlers(discordClient, loadedEvents);
 
-		await discordClient.login(process.env.TOKEN)
-			.then(() => console.log(`[${new Date().toUTCString()}] We started the bot!`));
+		// I don't think we need a try here, but it is probably a smart idea to do it anyway.
+		try {
+			await discordClient.login(process.env.TOKEN);
+			console.log(`[${new Date().toUTCString()}] We started the bot!`);
+		} catch (err) { console.error("unable to login to client!!!", err); }
 	} catch (e: any) { console.error(e); }
 }
 
