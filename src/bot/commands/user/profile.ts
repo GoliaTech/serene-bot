@@ -1,5 +1,6 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { commandBuilder } from "../../misc/commandBuilder";
+import { getUser } from "../../../database/dao/user";
 
 const command = commandBuilder(
 	"profile",
@@ -11,10 +12,8 @@ const command = commandBuilder(
 const user = {
 	data: command,
 	async execute(interaction: ChatInputCommandInteraction) {
-		// Your code here
-		interaction.reply({
-			content: "This is a skeleton command."
-		});
+		const user = await getUser(interaction.user.id);
+		interaction.reply({ content: String(`This is a skeleton command.\n${user?.model}`) });
 	}
 };
 

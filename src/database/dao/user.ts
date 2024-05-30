@@ -10,7 +10,7 @@ import { models, seql } from "../models";
  * @param userToFind Parse the ID or UUID into here. I'm not sure yet if I have to define a type for UUID, i think it's just a string, so...
  * @returns 
  */
-async function getUser(userToFind: string) {
+export async function getUser(userToFind: string) {
 	let transaction;
 	try {
 		transaction = await seql.transaction();
@@ -40,7 +40,3 @@ async function getUser(userToFind: string) {
 		return null;
 	}
 }
-
-export = [
-	getUser,
-];
