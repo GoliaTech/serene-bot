@@ -145,11 +145,17 @@ async function bot() {
 		// There probably is a better way to do this however.
 		eventHandlers(discordClient, loadedEvents);
 
+		const login: boolean = false;
+
 		// I don't think we need a try here, but it is probably a smart idea to do it anyway.
-		try {
-			await discordClient.login(process.env.TOKEN);
-			console.log(`[${new Date().toUTCString()}] We started the bot!`);
-		} catch (err) { console.error("unable to login to client!!!", err); }
+		if (login) {
+			try {
+				await discordClient.login(process.env.TOKEN);
+				console.log(`[${new Date().toUTCString()}] We started the bot!`);
+			} catch (err) { console.error("unable to login to client!!!", err); }
+		} else {
+			process.exit(1);
+		}
 	} catch (e: any) { console.error(e); }
 }
 

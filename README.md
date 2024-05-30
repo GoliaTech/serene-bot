@@ -1,10 +1,7 @@
-Why not use ts-jest?
+# Serene Bot!
 
-Well, because when you try importing anything from discord.js in bot.ts,  the program thinks You're trying to import something from discord.js FILE, rather than NPM package.
+### What is this?
 
-I've been trying to solve it, for a while, but I can't.
+Well it's a simple bot, that you can just simply download and run `npm i` to install all required dependencies and -- have it function.
 
-I will fix it, so we won't have to build the program just to test it.
-
-UPDATE
-Even tsx doesnt seem to solve this issue... gosh.
+Usually for most functions, you won't need a database, the idea is to make the commands work despite that, but warn the bot owner that a database has not been set up, so advanced functions won't work.

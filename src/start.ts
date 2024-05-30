@@ -178,7 +178,7 @@ async function killShards() {
 			console.log(`Killing shard ${shard[1].id}`);
 			shard[1].kill();
 		} catch (e) {
-			console.error("Unabel to kill shard " + shard[1].id + "/n", e);
+			console.error("Unable to kill shard " + shard[1].id + "\n", e);
 		}
 	}
 }
