@@ -1,32 +1,21 @@
-import { Model, Sequelize, DataTypes as DataTypesType } from "sequelize";
+import { Model, Sequelize, DataTypes as DataTypesType, UUIDV4 } from "sequelize";
 import { defaults as pgDefaults } from "pg";
 
 pgDefaults.parseInt8 = true;
 
-/**
- * This is the schema for core.
- * @param sequelize
- * @param DataTypes
- * @returns the finished schema
- */
 function schema(sequelize: Sequelize, DataTypes: typeof DataTypesType) {
 	const newSchema: string = "user_core";
 	class Schema extends Model {
-		/**
-		 * Helper method for defining associations.
-		 * This method is not a part of Sequelize lifecycle.
-		 * The `models/index` file will call this method automatically.
-		 */
+		// Should be :SpecificModelType, but...
 		static associate(models: any) {
 			// Define association here
 		}
 	}
 	Schema.init(
 		{
-			// This is the user's uuid.
 			user_uuid: {
-				type: DataTypes.STRING,
-				defaultValue: "",
+				type: DataTypes.UUID,
+				defaultValue: UUIDV4,
 				allowNull: false,
 				primaryKey: true,
 				unique: true,
@@ -36,6 +25,9 @@ function schema(sequelize: Sequelize, DataTypes: typeof DataTypesType) {
 				defaultValue: "",
 				allowNull: false,
 				unique: true,
+				validate: {
+					is: /^[0-9]{17,18,19}$/ // Discord ID format validation. 17,18,19 defines length and future proofs.
+				},
 			},
 			daily_streak: {
 				type: DataTypes.INTEGER,
@@ -44,15 +36,15 @@ function schema(sequelize: Sequelize, DataTypes: typeof DataTypesType) {
 			},
 		},
 		{
-			sequelize,
-			modelName: newSchema,
-			tableName: newSchema,
-			freezeTableName: true,
-			timestamps: false,
-			indexes: [
+			sequelize, 							// The Sequelize instance.
+			modelName: newSchema, 	// The model name.
+			tableName: newSchema, 	// The table name.
+			freezeTableName: true, 	// Freeze the table name.
+			timestamps: false, 			// Disable timestamps.
+			indexes: [ 							// Define indexes.
 				{
-					unique: true,
-					fields: ["user_uuid", "discord_id"],
+					unique: true, 												// Ensure uniqueness.
+					fields: ["user_uuid", "discord_id"], 	// Index fields.
 				},
 			],
 		}
