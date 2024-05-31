@@ -1,42 +1,12 @@
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
+import { getToken, nodeEnv } from "./utilities/utilities";
 // import { config } from "dotenv";
 // config();
 require("dotenv").config();
 
+// Initialize shards collection.
 const shards: Collection<number, Shard> = new Collection();
-
-/**
- * This code handles setting the process.env.NODE_ENV to the correct one.
- * This is necessary as the rest of the program requires a properly functioning process.env.NODE_ENV to work right.
- */
-async function nodeEnv() {
-	try {
-		// Default environment.
-		const defaultEnv = "development";
-
-		// Here we will instantly define that the key is a string and the value it holds is also a string.
-		const envMap: { [key: string]: string; } = {
-			"--production": "production",
-			"-P": "production",
-			"-D": defaultEnv,
-			"--development": defaultEnv
-		};
-
-		// Slice away the unnecessary stuff at the start.
-		const args: string[] = process.argv.slice(2);
-
-		// Determine the environment based on the provided arguments.
-		const env = args.find(arg => envMap[arg]) || defaultEnv;
-		process.env.NODE_ENV = envMap[env] || env;
-
-		// Lets handle the token here as well.
-		// This will also set global .env variable: .TOKEN, to be used in other parts of the program.
-		process.env.TOKEN = getToken();
-
-		return;
-	} catch (e: any) { throw new Error(e.message); }
-}
 
 /**
  * These are the shard's execution argument variables. 
@@ -59,30 +29,6 @@ function getExecArgv(): string[] {
 		"-r",
 		"ts-node/register"
 	];
-}
-
-/**
- * This checks what process.env.NODE_ENV you are running and returns correct bot token.
- * This is in case you have 2 bots, one for development and one for production.
- * @returns {string} - The token.
- */
-function getToken(): string {
-	// return process.env.NODE_ENV === "production" ? String(process.env.TOKEN_PRODUCTION) : process.env.NODE_ENV === "development" ? String(process.env.TOKEN_DEVELOPMENT) : (() => { throw new Error("How did you manage to break NODE_ENV???"); })();
-	if (process.env.NODE_ENV === "production") {
-		return process.env.TOKEN_PRODUCTION || handleTokenError("TOKEN_PRODUCTION");
-	} else if (process.env.NODE_ENV === "development") {
-		return process.env.TOKEN_DEVELOPMENT || handleTokenError("TOKEN_DEVELOPMENT");
-	} else {
-		throw new Error("Invalid NODE_ENV value: expected 'production' or 'development'.");
-	}
-}
-
-/**
- * Setting this to :never fixes the issue in getToken where it thought it would be returning void.
- * @param error The error message
- */
-function handleTokenError(error: string): never {
-	throw new Error(`Environment variable ${error} is not set.`);
 }
 
 /**
@@ -134,6 +80,9 @@ function handleShardDeath(shard: Shard) {
  */
 async function startBot() {
 	try {
+		// This will also set global .env variable: .TOKEN, to be used in other parts of the program.
+		process.env.TOKEN = getToken();
+
 		// This is the part of the code that handles the shards and sharding events.
 		const shardArgs: string[] = ["--ansi", "--color"];
 
@@ -164,7 +113,7 @@ async function startBot() {
 }
 
 // First handle the environment.
-nodeEnv();
+process.env.NODE_ENV = nodeEnv();
 
 // Then start the bot.
 startBot();

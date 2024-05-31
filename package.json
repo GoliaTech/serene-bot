@@ -5,9 +5,11 @@
   "main": "src/start.ts",
   "scripts": {
     "start": "nodemon",
-    "dev": "nodemon",
+    "dev": "nodemon src/start.ts",
     "build": "tsup src/start.ts --minify",
-    "test": "ts-jest"
+    "test": "ts-jest",
+    "databasedevinitforce": "nodemon src/database/init.ts -f --development",
+    "databasedevinit": "ts-node src/database/init.ts"
   },
   "keywords": [],
   "author": "GoliaTech",

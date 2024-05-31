@@ -2,6 +2,7 @@ import { readdirSync } from "fs";
 import path from "path";
 import { Sequelize, DataTypes } from "sequelize";
 import { defaults as pgDefaults } from "pg";
+import { nodeEnv } from "../../utilities/utilities";
 require("dotenv").config();
 
 // This is to handle BIGINT.
@@ -14,12 +15,18 @@ const db: any = {};
  * This will process the .NODE_ENV, see if it is == "development". 
  * If it is, it will use development variables, otherwise production variables.
  */
-function processDatabaseConnectionVariables(): { name: string, host: string, user: string, pass: string; } {
+function processDatabaseConnectionVariables() {
+	process.env.NODE_ENV = nodeEnv();
+
+	// Apparently we have to do this env. stuff here...
 	const name = process.env.NODE_ENV == "development" ? process.env.DB_DEV_NAME : process.env.DB_PROD_NAME;
 	const host = process.env.NODE_ENV == "development" ? process.env.DB_DEV_HOST : process.env.DB_PROD_HOST;
 	const user = process.env.NODE_ENV == "development" ? process.env.DB_DEV_USER : process.env.DB_PROD_USER;
 	const pass = process.env.NODE_ENV == "development" ? process.env.DB_DEV_PASS : process.env.DB_PROD_PASS;
 
+	console.log(process.env.NODE_ENV);
+
+	console.log(name, host, user, pass);
 	// Make sure we are not returning an empty or undefined thing.
 	if (!name || !host || !user || !pass) {
 		throw new Error("Name, host, user, or pass, (or all) is empty! Please fix!");
@@ -41,7 +48,6 @@ const database = processDatabaseConnectionVariables();
 // Initialize the connection with Sequelize.
 // Sequelize will handle translating whatever we do in schema and all that, so it can be used with all databases.
 // I however use postgres. If you use something else, exchange dialect "postgres" to whatever you see fit.
-console.log(`DATABASE: ${database.name}`);
 const sequelize = new Sequelize(database.name, database.user, database.pass, {
 	dialect: "postgres",
 	// The IP to the database.
