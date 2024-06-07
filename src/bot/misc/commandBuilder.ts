@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "discord.js";
-import { Localization } from "../../utilities/interface";
+import { Localization, LocalizationNameDescription } from "../../utilities/interface";
 
 /**
  * This creates a basic command, converts name to lowercases,
@@ -32,8 +32,6 @@ export function commandBuilder(name: string, description: string,
 		// Set description.
 		.setDescription(description);
 
-	// Check if we are providing the builder some options.
-	console.log("DM");
 	// We don't need to check if(nsfw) and so on, because we are already doing it in one line.
 	command
 		// Check if DM is provided and if it is, set DMs value, otherwise default to false.
@@ -45,6 +43,28 @@ export function commandBuilder(name: string, description: string,
 	// I have to remake the entire localization system.
 	// We will have to do the following:
 	// If we are providing localization, check if we are providing localization.name and/or localization.description
+	if (localization) {
+
+
+		// it still doesnt work right....
+		// Loop through the localization for the name
+		if (localization.name) {
+			Object.entries(localization.name).forEach(([locale, localizedName]) => {
+				console.log(locale, localizedName);
+				console.log(typeof locale, typeof localizedName);
+				command.setNameLocalization(`${(locale as keyof LocalizationNameDescription)}`, String(localizedName));
+			});
+		}
+
+		// Loop through the localization for the description
+		if (localization.description) {
+			Object.entries(localization.description).forEach(([locale, localizedDescription]) => {
+				console.log(locale, localizedDescription);
+				console.log(typeof locale, typeof localizedDescription);
+				// command.setDescriptionLocalization(locale as keyof LocalizationNameDescription, localizedDescription);
+			});
+		}
+	}
 
 	// Finally return the built command to be used by commands.
 	return command;

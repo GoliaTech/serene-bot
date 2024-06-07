@@ -43,3 +43,16 @@ describe('commandBuilder', () => {
 		expect(command.nsfw).toBe(false);
 	});
 });
+
+console.log(commandBuilder('name', 'description', { dm: true, nsfw: true },
+	{
+		name: {
+			"en-GB": "Name",
+			fr: "nom"
+		},
+		description: {
+			"en-GB": "description",
+			fr: "descripciomn"
+		}
+	}
+).toJSON());
