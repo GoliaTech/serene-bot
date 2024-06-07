@@ -3,6 +3,9 @@ import { Client, Collection, GatewayIntentBits } from "discord.js";
 import path from "path";
 import fs from "fs";
 
+// Define commands here.
+const commands: Collection<string, any> = new Collection<string, any>();
+
 /**
  * This was just testing, but it seems to work really well, so I shall keep this.
  * This loads event files inside ./src/events folder, file by file.
@@ -70,7 +73,7 @@ function eventHandlers(discordClient: Client, botEvents: any) {
  */
 function loadCommands() {
 	// I took ANY, but should actually be a dedicated command interface thing.
-	const commands: Collection<string, any> = new Collection<string, any>();
+	// const commands: Collection<string, any> = new Collection<string, any>();
 
 	// This is the path for the commands folder.
 	const commandsFolderPath = path.join(__dirname, "commands");
@@ -89,6 +92,7 @@ function loadCommands() {
 			const filePath = path.join(folderPath, file);
 			const command = require(filePath);
 			console.log(command);
+			commands.set(command.data.name, command);
 		}
 	}
 
@@ -145,7 +149,10 @@ async function bot() {
 		// There probably is a better way to do this however.
 		eventHandlers(discordClient, loadedEvents);
 
+		// For quick testing if commands or events load. I don't want to login every time you see.
 		const login: boolean = false;
+
+		console.log(process.env.TOKEN);
 
 		// I don't think we need a try here, but it is probably a smart idea to do it anyway.
 		if (login) {

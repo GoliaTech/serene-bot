@@ -6,7 +6,6 @@ import { getUser } from "../../../database/dao/user";
 // We could totally just do export, but I want to prepare for possible additional stuff.
 const user = {
 	data: commandBuilder(
-		__filename,
 		"profile",
 		"Get the profile of a user.",
 		{

@@ -4,33 +4,25 @@
  */
 export function nodeEnv() {
 	try {
-		console.log("WE ARE TRYIN TO GET NODENV");
+		console.log("WE ARE TRYING TO GET NODENV");
 		// As this function is going to be reused, I want to make sure we are not overwriting previously set NODE_ENV in other parts of the code.
-		if (process.env.NODE_ENV != "") {
+		if (process.env.NODE_ENV != "" && process.env.NODE_ENV != undefined) {
 			console.log("NODE_ENV is already set to", process.env.NODE_ENV);
 			return process.env.NODE_ENV;
 		}
 
-		// Default environment.
-		const defaultEnv = "development";
-
-		// Here we will instantly define that the key is a string and the value it holds is also a string.
-		const envMap: { [key: string]: string; } = {
-			"--production": "production",
-			"-P": "production",
-			"-D": defaultEnv,
-			"--development": defaultEnv
-		};
-
-		// Slice away the unnecessary stuff at the start.
 		const args: string[] = process.argv.slice(2);
 
-		// Determine the environment based on the provided arguments.
-		// What this does, is it tries to find a match between the arg, and envMap[arg].
-		// If there is no match, run default.
-		const env = args.find(arg => envMap[arg]) || defaultEnv;
+		// I was tired of it, so I made it simpler.
+		let env: string = "development";
 
-		return envMap[env];
+		if (args.includes("-P")) {
+			env = "production";
+		} else if (args.includes("-D")) {
+			env = "development";
+		}
+
+		return env;
 	} catch (e: any) { throw new Error(e.message); }
 }
 
@@ -41,8 +33,11 @@ export function nodeEnv() {
  * @returns {string} - The token.
  */
 export function getToken() {
-	if (process.env.TOKEN != "") { return process.env.TOKEN; }
-	let token;
+	// This skips getting the token if it is already set.
+	if (process.env.TOKEN != "" && process.env.TOKEN != undefined) { return process.env.TOKEN; }
+
+	// We can either set it with ="" or we can tell TS that there is supposed to be something here with !.
+	let token: string = "";
 	if (process.env.NODE_ENV === "production") {
 		token = process.env.TOKEN_PRODUCTION || handleTokenError("TOKEN_PRODUCTION");
 	} else if (process.env.NODE_ENV === "development") {
@@ -61,4 +56,27 @@ export function getToken() {
  */
 function handleTokenError(error: string): never {
 	throw new Error(`Environment variable ${error} is not set.`);
+}
+
+/**
+ * These are the shard's execution argument variables. 
+ * You want to keep different execArgv for production and development.
+ * This function handles that separation.
+ * @returns {string[]} - The array of execArgv to be parsed into shards.
+ */
+export function getExecArgv(): string[] {
+	if (process.env.NODE_ENV === "production") {
+		return [
+			"--trace-warnings",
+			"--unhandled-rejections=strict"
+		];
+	}
+	// If it is not production. You can modify this array however you want.
+	// What --inspect does, is it launches node inspector.
+	return [
+		// "--inspect=9239",
+		"--trace-warnings",
+		"-r",
+		"ts-node/register"
+	];
 }

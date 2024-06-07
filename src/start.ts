@@ -1,35 +1,10 @@
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
-import { getToken, nodeEnv } from "./utilities/utilities";
-// import { config } from "dotenv";
-// config();
+import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
 require("dotenv").config();
 
 // Initialize shards collection.
 const shards: Collection<number, Shard> = new Collection();
-
-/**
- * These are the shard's execution argument variables. 
- * You want to keep different execArgv for production and development.
- * This function handles that separation.
- * @returns {string[]} - The array of execArgv to be parsed into shards.
- */
-function getExecArgv(): string[] {
-	if (process.env.NODE_ENV === "production") {
-		return [
-			"--trace-warnings",
-			"--unhandled-rejections=strict"
-		];
-	}
-	// If it is not production. You can modify this array however you want.
-	// What --inspect does, is it launches node inspector.
-	return [
-		// "--inspect=9239",
-		"--trace-warnings",
-		"-r",
-		"ts-node/register"
-	];
-}
 
 /**
  * This handles the setting up of the shards.
@@ -80,6 +55,9 @@ function handleShardDeath(shard: Shard) {
  */
 async function startBot() {
 	try {
+		// First handle the environment.
+		process.env.NODE_ENV = nodeEnv();
+
 		// This will also set global .env variable: .TOKEN, to be used in other parts of the program.
 		process.env.TOKEN = getToken();
 
@@ -91,7 +69,6 @@ async function startBot() {
 
 		// This is a fix to test and run TS code directly:
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
-		// const fileExtension = "js";
 
 		// This is a managed that handles the shards and sharding events.
 		const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot/bot.${fileExtension}`), {
@@ -111,9 +88,6 @@ async function startBot() {
 		watchShardEvents(managedShards);
 	} catch (e: any) { throw new Error(e.message); }
 }
-
-// First handle the environment.
-process.env.NODE_ENV = nodeEnv();
 
 // Then start the bot.
 startBot();

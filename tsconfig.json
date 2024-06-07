@@ -3,8 +3,8 @@
     "target": "ESNext",
     "module": "CommonJS",
     "moduleResolution": "node",
-    "rootDir": "src",
-    "outDir": "development",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -18,19 +18,18 @@
     "pretty": true,
     "noImplicitReturns": true,
     "noEmitOnError": true,
-    "sourceMap": true,
-    "sourceRoot": "src",
-    "mapRoot": "map",
-    "declaration": true,
-    "declarationDir": "declaration",
+    "sourceMap": false,
+    "declaration": false
   },
   "exclude": [
     "node_modules",
-    "templates",
-    "production"
+    "dist",
+  ],
+  "include": [
+    "./src"
   ],
   "ts-node": {
     "transpileOnly": true,
     "files": true,
-  }
+  },
 }
