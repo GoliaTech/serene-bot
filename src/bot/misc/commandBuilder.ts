@@ -46,18 +46,22 @@ export function commandBuilder(name: string, description: string,
 		// Loop through the localization for the name
 		if (localization.name) {
 			Object.entries(localization.name).forEach(([locale, localizedName]) => {
-				if (!localizedName) {
-					console.log("Name localization is missing!", locale, "Skipping...");
-					return;
-				}
-				if (localizedName.length < 3 || localizedName.length > 32) {
+				// Basically, I tested this a few times and this should never happen.
+				// If you manage to have it happen, do let me know.
+				// if (!localizedName) {
+				// 	console.log(`Name localization is missing! ${locale} | Skipping...`);
+				// 	return;
+				// }
+
+				// We use ! because we expect it to have a value due to previously stated finding.
+				if (localizedName!.length < 3 || localizedName!.length > 32) {
 					throw new Error(`${locale} localized name must be between 3 and 32 characters long!`);
 				}
 				// SO...
 				// I am UNBELIAVEBLY angry right now.
 				// THE WHOLE TIME, the name had to be lowercase and without spaces.
 				// WHY IS IT NOT WRITTEN ANYWHERE?! EXCUSE ME THE F???
-				localizedName = localizedName.replace(/\s/g, "_").toLowerCase();
+				localizedName = localizedName!.replace(/\s/g, "_").toLowerCase();
 				for (const dupa in Locale) {
 					if (locale === Locale[dupa as keyof typeof Locale]) {
 						command.setNameLocalization(Locale[dupa as keyof typeof Locale], localizedName);
@@ -68,11 +72,11 @@ export function commandBuilder(name: string, description: string,
 
 		if (localization.description) {
 			Object.entries(localization.description).forEach(([locale, localizedName]) => {
-				if (!localizedName) {
-					console.log("Name localization is missing!", locale, "Skipping...");
-					return;
-				}
-				if (localizedName.length < 3 || localizedName.length > 100) {
+				// if (!localizedName) {
+				// 	console.log("Name localization is missing!", locale, "Skipping...");
+				// 	return;
+				// }
+				if (localizedName!.length < 3 || localizedName!.length > 100) {
 					throw new Error(`${locale} localized description must be between 3 and 100 characters long!`);
 				}
 				for (const dupa in Locale) {

@@ -4,12 +4,15 @@
   "description": "This a blank readme for now.",
   "main": "src/start.ts",
   "scripts": {
-    "start": "nodemon",
-    "dev": "nodemon src/start.ts",
-    "build": "tsup src/start.ts --minify",
-    "test": "jest",
-    "databasedevinitforce": "nodemon src/database/init.ts -f --development",
-    "databasedevinit": "ts-node src/database/init.ts"
+    "start": "nodemon dist/start.js -P",
+    "dev": "nodemon src/start.ts -D",
+    "build": "tsup src",
+    "devbuild": "tsc",
+    "devtest": "jest tests --watch",
+    "devbuildtest": "npm run devbuild && jest tests",
+    "devbuildwatch": "tsc --watch",
+    "devdatabaseinitforce": "nodemon src/database/init.ts -f -D",
+    "devdatabaseinit": "ts-node src/database/init.ts"
   },
   "keywords": [],
   "author": "GoliaTech",

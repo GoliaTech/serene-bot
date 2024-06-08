@@ -16,9 +16,10 @@ export function nodeEnv() {
 		// I was tired of it, so I made it simpler.
 		let env: string = "development";
 
+		// We must check if we provide an argument.
 		if (args.includes("-P")) {
 			env = "production";
-		} else if (args.includes("-D")) {
+		} else if (args.includes("-D") || args.length == 0) {
 			env = "development";
 		}
 

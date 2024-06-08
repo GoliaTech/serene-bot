@@ -1,5 +1,5 @@
-import { Locale } from "discord.js";
-import { commandBuilder } from "../bot/misc/commandBuilder";
+const { Locale } = require("discord.js");
+const { commandBuilder } = require("../.dev/bot/misc/commandBuilder");
 
 describe("commandBuilder", () => {
 	it("should throw an error if the name is too short", () => {
