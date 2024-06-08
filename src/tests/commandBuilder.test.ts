@@ -44,10 +44,13 @@ import { commandBuilder } from "../bot/misc/commandBuilder";
 // 	});
 // });
 
-console.log(commandBuilder('name', 'description', { dm: true, nsfw: true },
+console.log(commandBuilder(
+	'name',
+	'description',
+	{ dm: true, nsfw: true },
 	{
 		name: {
-			"en-GB": "Asspooper",
+			"en-GB": "English name",
 			fr: "Nome"
 		},
 		description: {

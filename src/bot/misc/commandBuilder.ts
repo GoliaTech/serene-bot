@@ -4,12 +4,13 @@ import { Locale, LocaleString, LocalizationMap, SlashCommandBuilder } from "disc
  * This creates a basic command, converts name to lowercases,
  * then also checks if you have the right length.
  * This is for the core of the command, do not use for sub commands or anything like that.
- * @param {string} name - The command's name.
- * @param {string} description - The command's description.
- * @param {object} options - The command's options.
- * @param {boolean} options.dm - Whether the command can be used in DMs or not. Defaults to false.
- * @param {boolean} options.nsfw - Whether the command is NSFW or not. Defaults to false.
- * @param {Localization} localization - The command's localization.
+ * @param name - The command's name.
+ * @param description - The command's description.
+ * @param options - The command's options.
+ * @param options.dm - Whether the command can be used in DMs or not. Defaults to false.
+ * @param options.nsfw - Whether the command is NSFW or not. Defaults to false.
+ * @param localization - The command's localization.
+ * 
  */
 export function commandBuilder(name: string, description: string,
 	options?: { dm?: boolean; nsfw?: boolean, },
@@ -41,10 +42,6 @@ export function commandBuilder(name: string, description: string,
 		// Same as DM.
 		.setNSFW(options?.nsfw ? options.nsfw : false);
 
-	// Screw it, the simplest solution is always the best...
-	// First we loop through each entry. We could just use values instead, but heck it.
-	// Then we check if they are Okie-dokie, if not, throw error.
-	// THEN finally, we just apply ALL of them at once...
 	if (localization) {
 		// Loop through the localization for the name
 		if (localization.name) {
@@ -56,44 +53,35 @@ export function commandBuilder(name: string, description: string,
 				if (localizedName.length < 3 || localizedName.length > 32) {
 					throw new Error(`${locale} localized name must be between 3 and 32 characters long!`);
 				}
-				console.log(locale as Locale);
+				// SO...
+				// I am UNBELIAVEBLY angry right now.
+				// THE WHOLE TIME, the name had to be lowercase and without spaces.
+				// WHY IS IT NOT WRITTEN ANYWHERE?! EXCUSE ME THE F???
+				localizedName = localizedName.replace(/\s/g, "_").toLowerCase();
+				for (const dupa in Locale) {
+					if (locale === Locale[dupa as keyof typeof Locale]) {
+						command.setNameLocalization(Locale[dupa as keyof typeof Locale], localizedName);
+					}
+				}
 			});
 		}
-		command.setNameLocalization(Locale.Bulgarian, localization.name["bg"] ? localization.name["bg"] : null);
-		// command.setNameLocalizations({
-		// 	bg: localization.name["bg"] ? localization.name["bg"] : null,
-		// 	cs: "czech",
-		// 	de: "german",
-		// 	el: "greek",
-		// 	fi: "finnish",
-		// 	fr: "french",
-		// 	hi: "hindi",
-		// 	hr: "croatian",
-		// 	hu: "hungarian",
-		// 	it: "italian",
-		// 	ja: "japanese",
-		// 	ko: "korean",
-		// 	"sv-SE": "swedish",
-		// 	"zh-CN": "chinese",
-		// 	"zh-TW": "chinese",
-		// 	"es-419": "spanish",
-		// 	"es-ES": "spanish",
-		// 	"en-GB": "english",
-		// 	"en-US": "english",
-		// 	"pt-BR": "portuguese",
-		// 	ru: "russian",
-		// 	tr: "turkish",
-		// 	uk: "ukrainian",
-		// 	da: "danish",
-		// 	id: "indonesian",
-		// 	no: "norwegian",
-		// 	pl: "polish",
-		// 	ro: "romanian",
-		// 	th: "thai",
-		// 	vi: "vietnamese",
-		// 	lt: "lithuanian",
-		// 	nl: "dutch",
-		// });
+
+		if (localization.description) {
+			Object.entries(localization.description).forEach(([locale, localizedName]) => {
+				if (!localizedName) {
+					console.log("Name localization is missing!", locale, "Skipping...");
+					return;
+				}
+				if (localizedName.length < 3 || localizedName.length > 100) {
+					throw new Error(`${locale} localized name must be between 3 and 32 characters long!`);
+				}
+				for (const dupa in Locale) {
+					if (locale === Locale[dupa as keyof typeof Locale]) {
+						command.setDescriptionLocalization(Locale[dupa as keyof typeof Locale], localizedName);
+					}
+				}
+			});
+		}
 	}
 
 	// Finally return the built command to be used by commands.
