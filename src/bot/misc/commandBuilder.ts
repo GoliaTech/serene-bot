@@ -1,7 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
-import { Localization } from "../../utilities/interface";
-
-
+import { Locale, LocaleString, LocalizationMap, SlashCommandBuilder } from "discord.js";
 
 /**
  * This creates a basic command, converts name to lowercases,
@@ -15,8 +12,11 @@ import { Localization } from "../../utilities/interface";
  * @param {Localization} localization - The command's localization.
  */
 export function commandBuilder(name: string, description: string,
-	options?: { dm?: boolean, nsfw?: boolean, },
-	localization?: Localization
+	options?: { dm?: boolean; nsfw?: boolean, },
+	localization?: {
+		name: LocalizationMap;
+		description: LocalizationMap;
+	},
 ) {
 	// We will have to check if the user provided right amount of string length, as well as other info.
 	if (name.length < 3 || name.length > 32) {
@@ -49,36 +49,53 @@ export function commandBuilder(name: string, description: string,
 		// Loop through the localization for the name
 		if (localization.name) {
 			Object.entries(localization.name).forEach(([locale, localizedName]) => {
+				if (!localizedName) {
+					console.log("Name localization is missing!", locale, "Skipping...");
+					return;
+				}
 				if (localizedName.length < 3 || localizedName.length > 32) {
 					throw new Error(`${locale} localized name must be between 3 and 32 characters long!`);
 				}
+				console.log(locale as Locale);
 			});
 		}
-
-		// Loop through the localization for the description
-		if (localization.description) {
-			Object.entries(localization.description).forEach(([locale, localizedDescription]) => {
-				if (localizedDescription.length < 3 || localizedDescription.length > 100) {
-					throw new Error(`${locale} localized description must be between 3 and 100 characters long!`);
-				}
-			});
-		}
-
-		// Now put the available localized names and descriptions into the command.
-		// Have to think of a better way to do this...
-		command
-			.setNameLocalizations({
-				"en-GB": localization.name["en-GB"] ? localization.name["en-GB"] : undefined,
-				"en-US": localization.name["en-US"] ? localization.name["en-US"] : undefined,
-			});
+		command.setNameLocalization(Locale.Bulgarian, localization.name["bg"] ? localization.name["bg"] : null);
+		// command.setNameLocalizations({
+		// 	bg: localization.name["bg"] ? localization.name["bg"] : null,
+		// 	cs: "czech",
+		// 	de: "german",
+		// 	el: "greek",
+		// 	fi: "finnish",
+		// 	fr: "french",
+		// 	hi: "hindi",
+		// 	hr: "croatian",
+		// 	hu: "hungarian",
+		// 	it: "italian",
+		// 	ja: "japanese",
+		// 	ko: "korean",
+		// 	"sv-SE": "swedish",
+		// 	"zh-CN": "chinese",
+		// 	"zh-TW": "chinese",
+		// 	"es-419": "spanish",
+		// 	"es-ES": "spanish",
+		// 	"en-GB": "english",
+		// 	"en-US": "english",
+		// 	"pt-BR": "portuguese",
+		// 	ru: "russian",
+		// 	tr: "turkish",
+		// 	uk: "ukrainian",
+		// 	da: "danish",
+		// 	id: "indonesian",
+		// 	no: "norwegian",
+		// 	pl: "polish",
+		// 	ro: "romanian",
+		// 	th: "thai",
+		// 	vi: "vietnamese",
+		// 	lt: "lithuanian",
+		// 	nl: "dutch",
+		// });
 	}
 
 	// Finally return the built command to be used by commands.
 	return command;
 };
-
-function checkStringLength(string: string, min: number, max: number) {
-	if (string.length < min || string.length > max) {
-		throw new Error(`String must be between ${min} and ${max} characters long!`);
-	}
-}
