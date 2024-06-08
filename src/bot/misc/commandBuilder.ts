@@ -1,4 +1,4 @@
-import { Locale, LocaleString, LocalizationMap, SlashCommandBuilder } from "discord.js";
+import { Locale, LocalizationMap, SlashCommandBuilder } from "discord.js";
 
 /**
  * This creates a basic command, converts name to lowercases,
@@ -15,8 +15,8 @@ import { Locale, LocaleString, LocalizationMap, SlashCommandBuilder } from "disc
 export function commandBuilder(name: string, description: string,
 	options?: { dm?: boolean; nsfw?: boolean, },
 	localization?: {
-		name: LocalizationMap;
-		description: LocalizationMap;
+		name?: LocalizationMap;
+		description?: LocalizationMap;
 	},
 ) {
 	// We will have to check if the user provided right amount of string length, as well as other info.
@@ -73,7 +73,7 @@ export function commandBuilder(name: string, description: string,
 					return;
 				}
 				if (localizedName.length < 3 || localizedName.length > 100) {
-					throw new Error(`${locale} localized name must be between 3 and 32 characters long!`);
+					throw new Error(`${locale} localized description must be between 3 and 100 characters long!`);
 				}
 				for (const dupa in Locale) {
 					if (locale === Locale[dupa as keyof typeof Locale]) {
