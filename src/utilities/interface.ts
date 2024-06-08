@@ -45,3 +45,8 @@ export interface LocalizationNameDescription {
 	id?: string;
 	hr?: string;
 }
+export interface localizedDescription2 {
+	name: Locale;
+	description: Locale;
+}
+type Locale = "en-GB" | "en-US" | "es-ES" | "es-419" | "pt-BR" | "zh-CN" | "zh-TW" | "sv-SE" | "bg" | "cs" | "da" | "de" | "el" | "fi" | "fr" | "hu" | "it" | "ja" | "ko" | "nl" | "no" | "pl" | "ro" | "ru" | "tr" | "uk" | "vi" | "hi" | "id" | "hr";

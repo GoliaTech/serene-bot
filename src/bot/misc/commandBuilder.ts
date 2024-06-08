@@ -1,5 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
-import { Localization, LocalizationNameDescription } from "../../utilities/interface";
+import { Localization } from "../../utilities/interface";
+
+
 
 /**
  * This creates a basic command, converts name to lowercases,
@@ -39,33 +41,44 @@ export function commandBuilder(name: string, description: string,
 		// Same as DM.
 		.setNSFW(options?.nsfw ? options.nsfw : false);
 
-	// Localization still under testing.
-	// I have to remake the entire localization system.
-	// We will have to do the following:
-	// If we are providing localization, check if we are providing localization.name and/or localization.description
+	// Screw it, the simplest solution is always the best...
+	// First we loop through each entry. We could just use values instead, but heck it.
+	// Then we check if they are Okie-dokie, if not, throw error.
+	// THEN finally, we just apply ALL of them at once...
 	if (localization) {
-
-
-		// it still doesnt work right....
 		// Loop through the localization for the name
 		if (localization.name) {
 			Object.entries(localization.name).forEach(([locale, localizedName]) => {
-				console.log(locale, localizedName);
-				console.log(typeof locale, typeof localizedName);
-				command.setNameLocalization(`${(locale as keyof LocalizationNameDescription)}`, String(localizedName));
+				if (localizedName.length < 3 || localizedName.length > 32) {
+					throw new Error(`${locale} localized name must be between 3 and 32 characters long!`);
+				}
 			});
 		}
 
 		// Loop through the localization for the description
 		if (localization.description) {
 			Object.entries(localization.description).forEach(([locale, localizedDescription]) => {
-				console.log(locale, localizedDescription);
-				console.log(typeof locale, typeof localizedDescription);
-				// command.setDescriptionLocalization(locale as keyof LocalizationNameDescription, localizedDescription);
+				if (localizedDescription.length < 3 || localizedDescription.length > 100) {
+					throw new Error(`${locale} localized description must be between 3 and 100 characters long!`);
+				}
 			});
 		}
+
+		// Now put the available localized names and descriptions into the command.
+		// Have to think of a better way to do this...
+		command
+			.setNameLocalizations({
+				"en-GB": localization.name["en-GB"] ? localization.name["en-GB"] : undefined,
+				"en-US": localization.name["en-US"] ? localization.name["en-US"] : undefined,
+			});
 	}
 
 	// Finally return the built command to be used by commands.
 	return command;
 };
+
+function checkStringLength(string: string, min: number, max: number) {
+	if (string.length < min || string.length > max) {
+		throw new Error(`String must be between ${min} and ${max} characters long!`);
+	}
+}
