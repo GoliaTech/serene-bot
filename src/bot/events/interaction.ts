@@ -1,10 +1,10 @@
 import { Events } from "discord.js";
-import { CommandInteractionExtended } from "../../utilities/interface";
+import { BotEvent, CommandInteractionExtended } from "../../utilities/interface";
 
 /**
  * This is the main interaction function.
  */
-const interaction = {
+const interaction: BotEvent = {
 	name: Events.InteractionCreate,
 	/**
 	 * This is the execution for the interaction event.

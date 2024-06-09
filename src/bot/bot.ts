@@ -2,7 +2,7 @@
 import { Collection, GatewayIntentBits } from "discord.js";
 import path from "path";
 import fs from "fs";
-import { ClientExtended } from "../utilities/interface";
+import { BotEvent, ClientExtended, Command } from "../utilities/interface";
 
 /**
  * This was just testing, but it seems to work really well, so I shall keep this.
@@ -47,16 +47,17 @@ function loadEvents() {
  * @param discordClient Just parse discordClient here.
  * @param botEvents This is temporarily ANY type, but it will have to be a custom interface.
  */
-function eventHandlers(discordClient: ClientExtended, botEvents: any) {
+function eventHandlers(discordClient: ClientExtended, events: any) {
 	// Here, we will have to parse a whole collection of bot events, then loop through them.
 	// This can be achieved in 2 ways: we either do it here, or we separate them into their own files.
 	// It depends on how you like doing things.
-	for (const botEvent of botEvents) {
+	for (const event of events) {
 		// So this checks if our event has a parameter called .once.
-		// If we do, then we will obviously only run this event once.
+		// If we do, then we will obviously only run this event once.#
+
 		// (...args) means we are passing any and all arguments into the .execute() function in the event file.
-		if (botEvent.once) discordClient.once(botEvent.name, async (...args) => await botEvent.execute(...args));
-		else discordClient.on(botEvent.name, async (...args) => await botEvent.execute(...args));
+		if (event.once) { discordClient.once(event.name, async (...args) => await event.execute(...args)); }
+		else { discordClient.on(event.name, async (...args) => await event.execute(...args)); }
 	}
 }
 
@@ -83,7 +84,7 @@ function loadCommands(discordClient: ClientExtended) {
 		// This will loop through --- the --- files, inside---- files???? Eh???
 		for (const file of files) {
 			const filePath = path.join(folderPath, file);
-			const command = require(filePath);
+			const command: Command[] = require(filePath);
 			// I am so stupid. I forgot that I allowed multiple commands in a single file.
 			// Why? Well because modals or something could perhaps benefit from it, is what I'm thinking.
 			// We can loop through them no problem.

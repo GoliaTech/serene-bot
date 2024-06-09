@@ -23,5 +23,7 @@ export class ClientExtended extends Client {
 }
 
 export interface BotEvent {
-
+	name: string;
+	execute(...args: any[]): any;
+	once?: boolean;
 }

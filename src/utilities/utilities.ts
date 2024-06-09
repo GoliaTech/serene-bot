@@ -19,6 +19,8 @@ export function nodeEnv() {
 			env = "production";
 		} else if (args.includes("-D") || args.length == 0) {
 			env = "development";
+		} else {
+			throw new Error("Invalid argument: expected '-P' or '-D'.");
 		}
 
 		return env;
@@ -42,7 +44,7 @@ export function getToken() {
 	} else if (process.env.NODE_ENV === "development") {
 		token = process.env.TOKEN_DEVELOPMENT || handleTokenError("TOKEN_DEVELOPMENT");
 	} else {
-		throw new Error("Invalid NODE_ENV value: expected 'production' or 'development'.");
+		throw new Error("Invalid NODE_ENV value: expected \"production\" or \"development\".");
 	}
 
 	return token;
@@ -52,8 +54,9 @@ export function getToken() {
 /**
  * Setting this to :never fixes the issue in getToken where it thought it would be returning void.
  * @param error The error message
+ * @throws {Error}
  */
-function handleTokenError(error: string): never {
+export function handleTokenError(error: string): never {
 	throw new Error(`Environment variable ${error} is not set.`);
 }
 

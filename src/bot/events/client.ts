@@ -1,12 +1,14 @@
 import { Events } from "discord.js";
-const ready = {
+import { BotEvent } from "../../utilities/interface";
+
+const ready: BotEvent = {
 	name: Events.ClientReady,
-	once: true,
 	execute() {
 		console.log(`[${new Date().toUTCString()}] - Client ready`);
-	}
+	},
+	once: true,
 };
 
 module.exports = [
 	ready
-]
+];
