@@ -1,11 +1,8 @@
 // This is where the actual bot code lives.
-import { Client, Collection, GatewayIntentBits } from "discord.js";
+import { Collection, GatewayIntentBits } from "discord.js";
 import path from "path";
 import fs from "fs";
-import { ClientExtended, Command } from "../utilities/interface";
-
-// Define commands here.
-const commands: Collection<string, any> = new Collection<string, any>();
+import { ClientExtended } from "../utilities/interface";
 
 /**
  * This was just testing, but it seems to work really well, so I shall keep this.
@@ -50,12 +47,10 @@ function loadEvents() {
  * @param discordClient Just parse discordClient here.
  * @param botEvents This is temporarily ANY type, but it will have to be a custom interface.
  */
-function eventHandlers(discordClient: Client, botEvents: any) {
+function eventHandlers(discordClient: ClientExtended, botEvents: any) {
 	// Here, we will have to parse a whole collection of bot events, then loop through them.
 	// This can be achieved in 2 ways: we either do it here, or we separate them into their own files.
 	// It depends on how you like doing things.
-	console.log("BOTEVENTS: ", botEvents);
-
 	for (const botEvent of botEvents) {
 		// So this checks if our event has a parameter called .once.
 		// If we do, then we will obviously only run this event once.
@@ -73,9 +68,6 @@ function eventHandlers(discordClient: Client, botEvents: any) {
  * It should then return the collection of commands.
  */
 function loadCommands(discordClient: ClientExtended) {
-	// I took ANY, but should actually be a dedicated command interface thing.
-	// const commands: Collection<string, any> = new Collection<string, any>();
-
 	// This is the path for the commands folder.
 	const commandsFolderPath = path.join(__dirname, "commands");
 	// The commands folder.
@@ -94,18 +86,26 @@ function loadCommands(discordClient: ClientExtended) {
 			const command = require(filePath);
 			// I am so stupid. I forgot that I allowed multiple commands in a single file.
 			// Why? Well because modals or something could perhaps benefit from it, is what I'm thinking.
-			try {
-				if (discordClient.commands) {
-					discordClient.commands.set(command[0].data.name, command[0]);
-				} else {
-					console.error("DiscordClient.COmmands not set.");
-				}
-			} catch (problem) { console.error(problem); }
+			// We can loop through them no problem.
+			// Remember: in is for index.
+			for (const cmd of command) {
+				try {
+					discordClient.commands.set(cmd.data.name, cmd);
+				} catch (problem: any) { console.error("There was a problem setting the command: ", problem); return; }
+			}
+
+			// This is for a single command, but we don't know if they have multiple commands or not. WE can check however.
+			// If modals will be processed this way, we will have to make a condition in data or something to handle it...
+			// try {
+			// 	if (discordClient.commands) {
+			// 		discordClient.commands.set(command[0].data.name, command[0]);
+			// 	} else {
+			// 		console.error("DiscordClient.COmmands not set.");
+			// 	}
+			// } catch (problem) { console.error(problem); }
 		}
 	}
-
-	// Return the commands object, with all the commands in it.
-	return commands;
+	return;
 }
 
 /**
@@ -145,25 +145,22 @@ async function bot() {
 			]
 		});
 
-		// This is for testing.
-		const loadedEvents = loadEvents();
-
-		// This will test command stuff.
-		// const loadedCommands = loadCommands();
-		// console.log("Loadedd commands: ", loadedCommands);
-		loadCommands(discordClient);
-
-		console.log("DiscordClient.commands:", discordClient.commands);
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
+		const loadedEvents = loadEvents();
+		if (process.env.NODE_ENV === "development") { console.info(loadedEvents); }
 		eventHandlers(discordClient, loadedEvents);
+
+		// This will test command stuff.
+		loadCommands(discordClient);
+		if (process.env.NODE_ENV === "development") { console.info(discordClient.commands); }
 
 		// For quick testing if commands or events load. I don't want to login every time you see.
 		const login: boolean = false;
 
-		// I don't think we need a try here, but it is probably a smart idea to do it anyway.
 		if (login) {
+			// I don't think we need a try here, but it is probably a smart idea to do it anyway.
 			try {
 				await discordClient.login(process.env.TOKEN);
 				console.log(`[${new Date().toUTCString()}] We started the bot!`);

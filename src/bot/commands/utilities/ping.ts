@@ -17,6 +17,17 @@ const command: Command = {
 	},
 };
 
+const pong: Command = {
+	data: commandBuilder(
+		"pong",
+		"Pong!"
+	),
+	async execute(interaction) {
+		interaction.reply({ content: "I have pinged" });
+	},
+};
+
 module.exports = [
 	command,
+	pong,
 ];

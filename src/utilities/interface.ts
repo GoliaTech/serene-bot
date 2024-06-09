@@ -7,7 +7,7 @@ export interface CommandInteractionExtended extends CommandInteraction {
 }
 
 export interface ClientExtended extends Client {
-	commands?: Collection<string, any>;
+	commands: Collection<string, any>;
 }
 
 export interface Command {
@@ -20,4 +20,8 @@ export class ClientExtended extends Client {
 		super(options);
 		this.commands = new Collection<string, any>();
 	}
+}
+
+export interface BotEvent {
+
 }
