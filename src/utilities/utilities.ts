@@ -4,10 +4,8 @@
  */
 export function nodeEnv() {
 	try {
-		console.log("WE ARE TRYING TO GET NODENV");
 		// As this function is going to be reused, I want to make sure we are not overwriting previously set NODE_ENV in other parts of the code.
 		if (process.env.NODE_ENV != "" && process.env.NODE_ENV != undefined) {
-			console.log("NODE_ENV is already set to", process.env.NODE_ENV);
 			return process.env.NODE_ENV;
 		}
 

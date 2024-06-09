@@ -1,12 +1,10 @@
-/** @returns {Promise<import("jest").Config>} */
-module.exports = async () => {
-  return {
-    verbose: true,
-    testEnvironment: "node",
-    moduleFileExtensions: ["js"],
-    collectCoverage: true,
-    coverageDirectory: "./.coverage",
-    coverageReporters: ["json", "html"],
-  };
+/** @type {import('ts-jest').JestConfigWithTsJest} */
+module.exports = {
+  preset: "ts-jest",
+  verbose: true,
+  testEnvironment: "node",
+  moduleFileExtensions: ["ts", "js"],
+  collectCoverage: true,
+  coverageDirectory: "./.coverage",
+  coverageReporters: ["json", "html"],
 };
-

@@ -1,12 +1,11 @@
 import { ChatInputCommandInteraction, Locale } from "discord.js";
 import { commandBuilder } from "../../misc/commandBuilder";
 import { getUser } from "../../../database/dao/user";
-
-const ass = Locale.Swedish;
+import { Command } from "../../../utilities/interface";
 
 // This is still under testing.
 // We could totally just do export, but I want to prepare for possible additional stuff.
-const user = {
+const user: Command = {
 	data: commandBuilder(
 		"profile",
 		"Get the profile of a user.",

@@ -1,6 +1,17 @@
-import { defineConfig } from "tsup";
+// import { defineConfig } from "tsup";
 
-export default defineConfig({
+// export default defineConfig({
+// 	entry: ["src"],
+// 	splitting: false,
+// 	sourcemap: false,
+// 	clean: true,
+// 	bundle: true,
+// 	minify: true,
+// 	outDir: "dist",
+// 	watch: true,
+// });
+const { defineConfig } = require("tsup");
+module.exports = defineConfig({
 	entry: ["src"],
 	splitting: false,
 	sourcemap: false,
@@ -8,5 +19,5 @@ export default defineConfig({
 	bundle: true,
 	minify: true,
 	outDir: "dist",
-	watch: true,
+	watch: true
 });

@@ -24,9 +24,6 @@ function processDatabaseConnectionVariables() {
 	const user = process.env.NODE_ENV == "development" ? process.env.DB_DEV_USER : process.env.DB_PROD_USER;
 	const pass = process.env.NODE_ENV == "development" ? process.env.DB_DEV_PASS : process.env.DB_PROD_PASS;
 
-	console.log(process.env.NODE_ENV);
-
-	console.log(name, host, user, pass);
 	// Make sure we are not returning an empty or undefined thing.
 	if (!name || !host || !user || !pass) {
 		throw new Error("Name, host, user, or pass, (or all) is empty! Please fix!");

@@ -7,6 +7,20 @@ require("dotenv").config();
 const shards: Collection<number, Shard> = new Collection();
 
 /**
+ * This will kill shard by shard.
+ */
+async function killShards() {
+	for (const shard of shards) {
+		try {
+			console.log(`Killing shard ${shard[1].id}`);
+			shard[1].kill();
+		} catch (e) {
+			console.error("Unable to kill shard " + shard[1].id + "\n", e);
+		}
+	}
+}
+
+/**
  * This handles the setting up of the shards.
  * @param manager Parse the manager function here from startBot()
  */
@@ -30,7 +44,7 @@ function watchShardEvents(managedShards: Collection<number, Shard>) {
 		shard.on("reconnecting", () => console.log(`Shard ${shard.id} is reconnecting...`));
 		shard.on("spawn", () => console.log(`Shard ${shard.id} spawned.`));
 
-		// this is in case you want to see how many events have been resumed.
+		// This is in case you want to see how many events have been resumed.
 		// We have to apply the shard.on even as any, in order for it to function.
 		(shard.on as any)("resume", (replayed: number) => {
 			console.log(`Shard ${shard.id} resumed. Replayed ${replayed} events.`);
@@ -91,20 +105,6 @@ async function startBot() {
 
 // Then start the bot.
 startBot();
-
-/**
- * This will kill shard by shard.
- */
-async function killShards() {
-	for (const shard of shards) {
-		try {
-			console.log(`Killing shard ${shard[1].id}`);
-			shard[1].kill();
-		} catch (e) {
-			console.error("Unable to kill shard " + shard[1].id + "\n", e);
-		}
-	}
-}
 
 // We need to process signals and handling process events here.
 process.on("exit", async () => {

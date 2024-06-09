@@ -2,6 +2,7 @@
 import { Client, Collection, GatewayIntentBits } from "discord.js";
 import path from "path";
 import fs from "fs";
+import { ClientExtended, Command } from "../utilities/interface";
 
 // Define commands here.
 const commands: Collection<string, any> = new Collection<string, any>();
@@ -71,7 +72,7 @@ function eventHandlers(discordClient: Client, botEvents: any) {
  * Then it will loop through each sub folder, get the files, and finally do something about it.
  * It should then return the collection of commands.
  */
-function loadCommands() {
+function loadCommands(discordClient: ClientExtended) {
 	// I took ANY, but should actually be a dedicated command interface thing.
 	// const commands: Collection<string, any> = new Collection<string, any>();
 
@@ -91,8 +92,15 @@ function loadCommands() {
 		for (const file of files) {
 			const filePath = path.join(folderPath, file);
 			const command = require(filePath);
-			console.log(command);
-			commands.set(command.data.name, command);
+			// I am so stupid. I forgot that I allowed multiple commands in a single file.
+			// Why? Well because modals or something could perhaps benefit from it, is what I'm thinking.
+			try {
+				if (discordClient.commands) {
+					discordClient.commands.set(command[0].data.name, command[0]);
+				} else {
+					console.error("DiscordClient.COmmands not set.");
+				}
+			} catch (problem) { console.error(problem); }
 		}
 	}
 
@@ -107,7 +115,7 @@ async function bot() {
 	try {
 		// This creates a new Client, used to tell Discord what do we intend (hence intents) to do with it.
 		// Bits means-- parts of the intent. 
-		const discordClient = new Client({
+		const discordClient = new ClientExtended({
 			intents: [
 				// Guild intents.
 				// This lets you interact with guilds.
@@ -141,9 +149,11 @@ async function bot() {
 		const loadedEvents = loadEvents();
 
 		// This will test command stuff.
-		const loadedCommands = loadCommands();
-		console.log(loadedCommands);
+		// const loadedCommands = loadCommands();
+		// console.log("Loadedd commands: ", loadedCommands);
+		loadCommands(discordClient);
 
+		console.log("DiscordClient.commands:", discordClient.commands);
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
@@ -151,8 +161,6 @@ async function bot() {
 
 		// For quick testing if commands or events load. I don't want to login every time you see.
 		const login: boolean = false;
-
-		console.log(process.env.TOKEN);
 
 		// I don't think we need a try here, but it is probably a smart idea to do it anyway.
 		if (login) {
@@ -163,7 +171,7 @@ async function bot() {
 		} else {
 			process.exit(1);
 		}
-	} catch (e: any) { console.error(e); }
+	} catch (e: any) { console.error(e); process.exit(1); }
 }
 
 // This will run the bot.
