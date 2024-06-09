@@ -1,3 +1,4 @@
+import { UUID } from "crypto";
 import { ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, SlashCommandBuilder } from "discord.js";
 
 export interface CommandInteractionExtended extends CommandInteraction {
@@ -26,4 +27,11 @@ export interface BotEvent {
 	name: string;
 	execute(...args: any[]): any;
 	once?: boolean;
+}
+
+
+export interface UserCoreModel {
+	user_uuid: UUID;
+	discord_id: string;
+	daily_streak: number;
 }

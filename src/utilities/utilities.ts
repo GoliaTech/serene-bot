@@ -27,7 +27,6 @@ export function nodeEnv() {
 	} catch (e: any) { throw new Error(e.message); }
 }
 
-
 /**
  * This checks what process.env.NODE_ENV you are running and returns correct bot token.
  * This is in case you have 2 bots, one for development and one for production.
@@ -49,7 +48,6 @@ export function getToken() {
 
 	return token;
 }
-
 
 /**
  * Setting this to :never fixes the issue in getToken where it thought it would be returning void.

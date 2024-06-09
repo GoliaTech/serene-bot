@@ -1,5 +1,6 @@
-import { Model, Sequelize, DataTypes as DataTypesType, UUIDV4 } from "sequelize";
+import { Model, Sequelize, DataTypes as DataTypesType } from "sequelize";
 import { defaults as pgDefaults } from "pg";
+import { randomUUID } from "crypto";
 
 pgDefaults.parseInt8 = true;
 
@@ -14,8 +15,8 @@ function schema(sequelize: Sequelize, DataTypes: typeof DataTypesType) {
 	Schema.init(
 		{
 			user_uuid: {
-				type: DataTypes.UUID,
-				defaultValue: UUIDV4,
+				type: DataTypes.UUIDV4,
+				defaultValue: randomUUID(),
 				allowNull: false,
 				primaryKey: true,
 				unique: true,

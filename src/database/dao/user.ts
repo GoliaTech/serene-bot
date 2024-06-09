@@ -2,8 +2,10 @@
 // I want to use the good practice of using the DAO, instead of just writing everything all over again in the code.
 // So this file will handle various user interactions between the bot and the database.
 
-import { Op, UUIDV4 } from "sequelize";
+import { Op } from "sequelize";
+import { randomUUID } from "crypto";
 import { models, seql } from "../models";
+import { UserCoreModel } from "../../utilities/interface";
 
 /**
  * This gets an existing user or defines a new one.
@@ -18,7 +20,7 @@ export async function getUser(userToFind: string) {
 		transaction = await seql.transaction();
 		// Create user and created. 
 		// The reason for this is because we findOrCreate throws the model and boolean if a model has been created or not.
-		const [user, created]: [any, boolean] = await models["user_core"].findOrCreate({
+		const [user, created]: [UserCoreModel, boolean] = await models["user_core"].findOrCreate({
 			where: {
 				// Let it look for either UUID or discord id
 				[Op.or]: [
@@ -28,7 +30,7 @@ export async function getUser(userToFind: string) {
 			},
 			// If nothing found, create.
 			defaults: {
-				user_uuid: new UUIDV4,
+				user_uuid: randomUUID(),
 				discord_id: userToFind,
 			},
 			// Append our transaction.

@@ -1,0 +1,1 @@
+// we will have to manage deploying and deleting commands, based on if its distro or dev.

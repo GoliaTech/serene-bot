@@ -15,8 +15,8 @@ const user: Command = {
 	),
 	async execute(interaction: ChatInputCommandInteraction) {
 		const user = await getUser(interaction.user.id);
-		console.log(user?.model);
-		interaction.reply({ content: String("This is a skeleton command.") });
+		if (!user) return interaction.reply({ content: "User not found." });
+		return interaction.reply({ content: "This is a skeleton command." });
 	}
 };
 
