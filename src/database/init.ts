@@ -1,5 +1,5 @@
 // Here we will write initialization code for the database.
-import { models, seql } from "./models/index";
+import { seql } from "./models/index";
 require("dotenv").config();
 
 // As with the models/index, I use this just in case, for the BIGINT values.

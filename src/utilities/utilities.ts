@@ -5,11 +5,12 @@
 export function nodeEnv() {
 	try {
 		// As this function is going to be reused, I want to make sure we are not overwriting previously set NODE_ENV in other parts of the code.
-		if (process.env.NODE_ENV != "" && process.env.NODE_ENV != undefined) {
+		if (process.env.NODE_ENV != "" && process.env.NODE_ENV != undefined && process.env.NODE_ENV != "test") {
 			return process.env.NODE_ENV;
 		}
 
 		const args: string[] = process.argv.slice(2);
+		console.info(args);
 
 		// I was tired of it, so I made it simpler.
 		let env: string = "development";

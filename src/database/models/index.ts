@@ -2,7 +2,7 @@ import { readdirSync } from "fs";
 import path from "path";
 import { Sequelize, DataTypes } from "sequelize";
 import { defaults as pgDefaults } from "pg";
-import { nodeEnv } from "../../utilities/utilities";
+import { processDatabaseConnectionVariables } from "../utilities/misc";
 require("dotenv").config();
 
 // This is to handle BIGINT.
@@ -10,32 +10,6 @@ pgDefaults.parseInt8 = true;
 
 // Initialize the database object.
 const db: any = {};
-
-/**
- * This will process the .NODE_ENV, see if it is == "development". 
- * If it is, it will use development variables, otherwise production variables.
- */
-function processDatabaseConnectionVariables() {
-	process.env.NODE_ENV = nodeEnv();
-
-	// Apparently we have to do this env. stuff here...
-	const name = process.env.NODE_ENV == "development" ? process.env.DB_DEV_NAME : process.env.DB_PROD_NAME;
-	const host = process.env.NODE_ENV == "development" ? process.env.DB_DEV_HOST : process.env.DB_PROD_HOST;
-	const user = process.env.NODE_ENV == "development" ? process.env.DB_DEV_USER : process.env.DB_PROD_USER;
-	const pass = process.env.NODE_ENV == "development" ? process.env.DB_DEV_PASS : process.env.DB_PROD_PASS;
-
-	// Make sure we are not returning an empty or undefined thing.
-	if (!name || !host || !user || !pass) {
-		throw new Error("Name, host, user, or pass, (or all) is empty! Please fix!");
-	}
-
-	return {
-		name: name,
-		host: host,
-		user: user,
-		pass: pass
-	};
-}
 
 // The reason we are doing this, is because if we do processDatabaseConnectionVariables() inside the new Sequelize() function,
 // you are basically re-running this the process function over and over, that's idiotic.
@@ -77,8 +51,13 @@ dirs.forEach((dir) => {
 		// So you will get the model in the database for example: user_profile.
 		const name = `${dir}_${fileName}`;
 		const modelDefiner = require(path.join(schemaDirectory, dir, file));
+
+		// Handle both ES and CommonJS.
+		const schema = modelDefiner.default || modelDefiner;
+
 		// Apply the new model into the database object, based on the defined name.
-		db[name] = modelDefiner.default(sequelize, DataTypes);
+		// This gets the default export.
+		db[name] = schema(sequelize);
 	});
 });
 

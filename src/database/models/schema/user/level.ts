@@ -7,7 +7,6 @@ pgDefaults.parseInt8 = true;
 function schema(sequelize: Sequelize) {
 	const newSchema: string = "user_core";
 	class Schema extends Model {
-		// Should be :SpecificModelType, but...
 		static associate(models: any) {
 			// Define association here
 		}
@@ -21,20 +20,6 @@ function schema(sequelize: Sequelize) {
 				primaryKey: true,
 				unique: true,
 			},
-			discord_id: {
-				type: DataTypes.STRING,
-				defaultValue: "",
-				allowNull: false,
-				unique: true,
-				validate: {
-					is: /^[0-9]{17,18,19}$/ // Discord ID format validation. 17,18,19 defines length and future proofs.
-				},
-			},
-			daily_streak: {
-				type: DataTypes.INTEGER,
-				defaultValue: 0,
-				allowNull: false,
-			},
 		},
 		{
 			sequelize, 							// The Sequelize instance.
@@ -45,7 +30,7 @@ function schema(sequelize: Sequelize) {
 			indexes: [ 							// Define indexes.
 				{
 					unique: true, 												// Ensure uniqueness.
-					fields: ["user_uuid", "discord_id"], 	// Index fields.
+					fields: ["user_uuid"], 	// Index fields.
 				},
 			],
 		}
@@ -53,8 +38,6 @@ function schema(sequelize: Sequelize) {
 	return Schema;
 }
 
-// Define a type alias for the export function.
-// We apparently have to do this now, otherwise TS screams at me.
 type SchemaFunction = (sequelize: Sequelize) => typeof Model;
 
 // Annotate the export function with the type alias.
