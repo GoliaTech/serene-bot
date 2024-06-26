@@ -11,12 +11,13 @@ const user: Command = {
 		"Get the profile of a user.",
 		{
 			dm: true
-		}
+		},
 	),
 	async execute(interaction: ChatInputCommandInteraction) {
 		const user = await getUser(interaction.user.id);
 		if (!user) return interaction.reply({ content: "User not found." });
-		return interaction.reply({ content: "This is a skeleton command." });
+		const content = `UUID: ${user.model.user_uuid} | Discord ID: ${user.model.discord_id}`;
+		return interaction.reply({ content: String(content) });
 	}
 };
 

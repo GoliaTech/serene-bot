@@ -29,6 +29,8 @@ export function commandBuilder(name: string, description: string,
 	}
 	// If the length is correct, we have to then sanitize the string. This means that if a string has whitespace, we have to replace it with _.
 	// We also have to make sure that the string is lowercase, as discord.js requires it.
+	// The name is what the command will be called in discord. We could do some automation, like __dirname + __filename,
+	// but if we are going to have multiple commands in one file, that would be stupid.
 	name = name.replace(/\s/g, "_").toLowerCase();
 	const command = new SlashCommandBuilder()
 		.setName(name)

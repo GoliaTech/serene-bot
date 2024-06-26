@@ -29,9 +29,15 @@ export interface BotEvent {
 	once?: boolean;
 }
 
-
 export interface UserCoreModel {
 	user_uuid: UUID;
 	discord_id: string;
 	daily_streak: number;
 }
+
+export enum nodeEnvEnum {
+	development = "development",
+	production = "production"
+}
+
+export type nodeEnvEnumType = nodeEnvEnum.development | nodeEnvEnum.production;
