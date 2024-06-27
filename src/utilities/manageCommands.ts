@@ -8,6 +8,7 @@ require("dotenv").config();
 /**
  * This will handle deploying the commands to the application (public) and to the development guild (if development)
  * @param development boolean
+ * @returns
  */
 async function deployCommands(development?: boolean) {
 	const commands = loadCommands();
@@ -52,7 +53,9 @@ async function deployCommands(development?: boolean) {
 
 /**
  * This will handle deleting the commands from application (global) and from development guild if development boolean is provided.
- * @param development
+ * Normally, you won't need to ever call it, because .put replaces all commands.
+ * @param development boolean
+ * @returns
  */
 async function deleteCommands(development?: boolean) {
 	const commands = loadCommands();
@@ -69,6 +72,8 @@ async function deleteCommands(development?: boolean) {
 		console.log("Started refreshing application (/) commands.");
 
 		if (development) {
+			// You can't call delete. So you have to put [] empty array to remove all commands.
+			// Normally, uou won't have to ever call it, because .put replaces all commands.
 			await rest.put(
 				DiscordRoutes.applicationGuildCommands(clientID, guildID),
 				{ body: [], },
@@ -92,6 +97,11 @@ async function deleteCommands(development?: boolean) {
 	}
 }
 
+/**
+ * Check what kind of commands are deployed.
+ * @param development boolean
+ * @returns 
+ */
 async function getCommands(development?: boolean) {
 	let commands, guildCommands;
 
