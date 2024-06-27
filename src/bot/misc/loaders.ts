@@ -13,7 +13,7 @@ export function loadCommands(discordClient?: ClientExtended) {
 	const commands = [];
 
 	// This is the path for the commands folder.
-	const commandsFolderPath = path.join(__dirname, "commands");
+	const commandsFolderPath = path.join(__dirname, "../commands");
 	// The commands folder.
 	const commandFolders = fs.readdirSync(commandsFolderPath);
 
@@ -68,7 +68,7 @@ export function loadEvents() {
 	// The array with events to be returned.
 	const events = [];
 	// This is the folder PATH where the events are located.
-	const eventFolderPath = path.join(__dirname, "events");
+	const eventFolderPath = path.join(__dirname, "../events");
 	// This is to ensure that during development we are using .ts extension.
 	// Because during development we are using tsx.
 	const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";

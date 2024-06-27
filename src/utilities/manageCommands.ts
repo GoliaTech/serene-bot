@@ -1,8 +1,9 @@
 import { REST } from '@discordjs/rest';
 import { Routes as DiscordRoutes } from 'discord-api-types/v10';
 import { loadCommands } from '../bot/misc/loaders';
-import { getAppId, getDevGuild, getToken, nodeEnv } from './utilities';
+import { getAppId, getGuildId, getToken, nodeEnv } from './utilities';
 import { nodeEnvEnum } from './interface';
+require("dotenv").config();
 
 /**
  * This will handle deploying the commands to the application (public) and to the development guild (if development)
@@ -13,9 +14,12 @@ async function deployCommands(development?: boolean) {
 	if (!commands) {
 		throw new Error("Failed to load commands. Check 'loadCommands()' function and try again.");
 	}
+
+	const commandsSanitized = commands.map((command) => command.data.toJSON());
+
 	const token = getToken();
 	const clientID = getAppId();
-	const guildID = getDevGuild();
+	const guildID = getGuildId();
 
 	const rest = new REST({ version: '10' }).setToken(token);
 
@@ -25,16 +29,21 @@ async function deployCommands(development?: boolean) {
 		if (development) {
 			await rest.put(
 				DiscordRoutes.applicationGuildCommands(clientID, guildID),
-				{ body: commands },
+				{ body: commandsSanitized },
+			);
+			await rest.put(
+				DiscordRoutes.applicationCommands(clientID),
+				{ body: commandsSanitized },
 			);
 		} else {
 			await rest.put(
 				DiscordRoutes.applicationCommands(clientID),
-				{ body: commands },
+				{ body: commandsSanitized },
 			);
 		}
 
 		console.log("Successfully reloaded application (/) commands.");
+		return;
 	} catch (error) {
 		console.error(error);
 		process.exit(1);
@@ -52,7 +61,7 @@ async function deleteCommands(development?: boolean) {
 	}
 	const token = getToken();
 	const clientID = getAppId();
-	const guildID = getDevGuild();
+	const guildID = getGuildId();
 
 	const rest = new REST({ version: '10' }).setToken(token);
 
@@ -62,16 +71,55 @@ async function deleteCommands(development?: boolean) {
 		if (development) {
 			await rest.put(
 				DiscordRoutes.applicationGuildCommands(clientID, guildID),
-				{ body: commands },
+				{ body: [], },
+			);
+			await rest.put(
+				DiscordRoutes.applicationCommands(clientID),
+				{ body: [], },
 			);
 		} else {
 			await rest.put(
 				DiscordRoutes.applicationCommands(clientID),
-				{ body: commands },
+				{ body: [], },
 			);
 		}
 
 		console.log("Successfully reloaded application (/) commands.");
+		return;
+	} catch (error) {
+		console.error(error);
+		process.exit(1);
+	}
+}
+
+async function getCommands(development?: boolean) {
+	let commands, guildCommands;
+
+	const token = getToken();
+	const clientID = getAppId();
+	const guildID = getGuildId();
+
+	const rest = new REST({ version: '10' }).setToken(token);
+
+	try {
+		console.log("Started refreshing application (/) commands.");
+
+		if (development) {
+			guildCommands = await rest.get(
+				DiscordRoutes.applicationGuildCommands(clientID, guildID),
+			);
+			commands = await rest.get(
+				DiscordRoutes.applicationCommands(clientID),
+			);
+		} else {
+			commands = await rest.get(
+				DiscordRoutes.applicationCommands(clientID),
+			);
+		}
+
+		console.log("COMMANDS:", commands);
+		console.log("GUILD COMMANDS:", guildCommands);
+		return;
 	} catch (error) {
 		console.error(error);
 		process.exit(1);
@@ -90,7 +138,7 @@ async function handleUserInput() {
 		process.exit(1);
 	}
 
-	const possibleArgs = ["-D", "--deploy", "-P", "--delete"];
+	const possibleArgs = ["-D", "-P", "--deploy", "--delete", "--get"];
 
 	// Check if the args provided match any valid args.
 	if (!args.find(arg => possibleArgs.includes(arg))) {
@@ -105,8 +153,10 @@ async function handleUserInput() {
 			await deployCommands(true);
 		} else if (args.includes("--delete")) {
 			await deleteCommands(true);
+		} else if (args.includes("--get")) {
+			await getCommands(true);
 		} else {
-			console.error("You most likely provided both '--deploy' and '--delete'. Try again.");
+			console.error(`You most likely provided too many argunents. Try again using ${possibleArgs.join(", ")}`);
 			process.exit(0);
 		}
 	}
@@ -114,11 +164,13 @@ async function handleUserInput() {
 	else if (args.includes("-P")) {
 		process.env.NODE_ENV = nodeEnv(nodeEnvEnum.production);
 		if (args.includes("--deploy")) {
-			await deployCommands(true);
+			await deployCommands(false);
 		} else if (args.includes("--delete")) {
-			await deleteCommands(true);
+			await deleteCommands(false);
+		} else if (args.includes("--get")) {
+			await getCommands(true);
 		} else {
-			console.error("You most likely provided both '--deploy' and '--delete'. Try again.");
+			console.error(`You most likely provided too many argunents. Try again using ${possibleArgs.join(", ")}`);
 			process.exit(0);
 		}
 	}
@@ -127,6 +179,7 @@ async function handleUserInput() {
 		console.error("You most likely provided both '-D' and '-P'. Try again.");
 		process.exit(0);
 	}
+	process.exit(0);
 }
 
 handleUserInput();

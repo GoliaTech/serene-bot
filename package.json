@@ -12,7 +12,10 @@
     "devbuildtest": "npm run devbuild && jest tests",
     "devbuildwatch": "tsc --watch",
     "devdatabaseinitforce": "nodemon src/database/init.ts -f -D",
-    "devdatabaseinit": "ts-node src/database/init.ts"
+    "devdatabaseinit": "ts-node src/database/init.ts",
+    "getdeployedcommandsdev": "ts-node src/utilities/manageCommands.ts -D --get",
+    "deletedeployedcommandsdev": "ts-node src/utilities/manageCommands.ts -D --delete",
+    "putdeployedcommandsdev": "ts-node src/utilities/manageCommands.ts -D --deploy"
   },
   "keywords": [],
   "author": "GoliaTech",

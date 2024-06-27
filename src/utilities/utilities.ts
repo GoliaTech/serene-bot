@@ -114,7 +114,7 @@ export function getAppId() {
 	return token;
 }
 
-export function getDevGuild() {
+export function getGuildId() {
 	// This skips getting the token if it is already set.
 	if (process.env.GUILDID != "" && process.env.GUILDID != undefined) {
 		return process.env.GUILDID;
