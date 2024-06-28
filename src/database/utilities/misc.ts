@@ -1,4 +1,6 @@
+import { Model, Sequelize } from "sequelize";
 import { nodeEnv } from "../../utilities/utilities";
+import path from "path";
 
 /**
  * This will process the .NODE_ENV, see if it is == "development". 
@@ -29,4 +31,12 @@ export function processDatabaseConnectionVariables() {
 	};
 }
 
-// I just moved it here.
+// Dynamic name handling.
+export function schemaName(dirname: any, filename: any) {
+	const name = `${path.basename(dirname)}_${path.basename(filename, path.extname(filename))}`;
+	return name;
+}
+
+// Define a type alias for the export function.
+// We apparently have to do this now, otherwise TS screams at me.
+export type SchemaFunction = (sequelize: Sequelize) => typeof Model;

@@ -5,7 +5,8 @@ import { SchemaFunction, schemaName } from "../../../utilities/misc";
 
 pgDefaults.parseInt8 = true;
 
-function schema(sequelize: Sequelize) {
+// Annotate the export function with the type alias.
+const schemaFunction: SchemaFunction = (sequelize: Sequelize) => {
 	const newSchema: string = schemaName(__dirname, __filename);
 	class Schema extends Model {
 		static associate(models: any) {
@@ -65,10 +66,6 @@ function schema(sequelize: Sequelize) {
 		}
 	);
 	return Schema;
-}
-
-const schemaFunction: SchemaFunction = (sequelize: Sequelize) => {
-	return schema(sequelize);
 };
 
 // Finally export the schema.

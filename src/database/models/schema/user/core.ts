@@ -1,11 +1,12 @@
 import { Model, Sequelize, DataTypes } from "sequelize";
 import { defaults as pgDefaults } from "pg";
 import { randomUUID } from "crypto";
+import { SchemaFunction, schemaName } from "../../../utilities/misc";
 
 pgDefaults.parseInt8 = true;
 
 function schema(sequelize: Sequelize) {
-	const newSchema: string = "user_core";
+	const newSchema: string = schemaName(__dirname, __filename);
 	class Schema extends Model {
 		// Should be :SpecificModelType, but...
 		static associate(models: any) {
@@ -52,10 +53,6 @@ function schema(sequelize: Sequelize) {
 	);
 	return Schema;
 }
-
-// Define a type alias for the export function.
-// We apparently have to do this now, otherwise TS screams at me.
-type SchemaFunction = (sequelize: Sequelize) => typeof Model;
 
 // Annotate the export function with the type alias.
 const schemaFunction: SchemaFunction = (sequelize: Sequelize) => {
