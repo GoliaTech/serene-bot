@@ -17,17 +17,19 @@ const command: Command = {
 	},
 };
 
-const pong: Command = {
-	data: commandBuilder(
-		"pong",
-		"Pong!"
-	),
-	async execute(interaction) {
-		interaction.reply({ content: "I have pinged" });
-	},
-};
+// This was just a test.
+// It works having 2 commands in one file!
+// const pong: Command = {
+// 	data: commandBuilder(
+// 		"pong",
+// 		"Pong!"
+// 	),
+// 	async execute(interaction) {
+// 		interaction.reply({ content: "I have pinged" });
+// 	},
+// };
 
 module.exports = [
 	command,
-	pong,
+	// pong,
 ];
