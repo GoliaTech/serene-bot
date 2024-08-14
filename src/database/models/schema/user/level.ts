@@ -10,13 +10,13 @@ function schema(sequelize: Sequelize) {
 	class Schema extends Model {
 		static associate(models: any) {
 			// Define association here
+			this.belongsTo(models["user_core"], { foreignKey: "uuid" });
 		}
 	}
 	Schema.init(
 		{
-			user_uuid: {
+			uuid: {
 				type: DataTypes.UUID,
-				defaultValue: randomUUID(),
 				allowNull: false,
 				primaryKey: true,
 				unique: true,
@@ -25,29 +25,21 @@ function schema(sequelize: Sequelize) {
 				type: DataTypes.INTEGER,
 				defaultValue: 1,
 				allowNull: false,
-				primaryKey: false,
-				unique: false,
 			},
 			prestige: {
 				type: DataTypes.INTEGER,
-				defaultValue: 1,
+				defaultValue: 0,
 				allowNull: false,
-				primaryKey: false,
-				unique: false,
 			},
 			xp: {
 				type: DataTypes.INTEGER,
-				defaultValue: 1,
+				defaultValue: 0,
 				allowNull: false,
-				primaryKey: false,
-				unique: false,
 			},
-			max_xp: {
+			xp_to_level: {
 				type: DataTypes.INTEGER,
-				defaultValue: 1,
+				defaultValue: 100,
 				allowNull: false,
-				primaryKey: false,
-				unique: false,
 			},
 		},
 		{
@@ -59,7 +51,7 @@ function schema(sequelize: Sequelize) {
 			indexes: [ 							// Define indexes.
 				{
 					unique: true, 												// Ensure uniqueness.
-					fields: ["user_uuid"], 	// Index fields.
+					fields: ["uuid"], 	// Index fields.
 				},
 			],
 		}

@@ -1,6 +1,7 @@
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
 import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
+import { loadCommands } from "./bot/misc/loaders";
 require("dotenv").config();
 
 // Initialize shards collection.
@@ -91,6 +92,9 @@ async function startBot() {
 			shardArgs: shardArgs,
 			totalShards: "auto"
 		});
+
+		// Load commands for all bots to use.
+		loadCommands();
 
 		// Start the setup shard events.
 		setupShardEvents(manager);

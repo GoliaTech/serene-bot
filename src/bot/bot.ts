@@ -1,5 +1,5 @@
 // This is where the actual bot code lives.
-import { GatewayIntentBits } from "discord.js";
+import { GatewayIntentBits, Collection } from "discord.js";
 import { ClientExtended } from "../utilities/interface";
 import { loadCommands, loadEvents } from "./misc/loaders";
 
@@ -60,6 +60,10 @@ async function bot() {
 			]
 		});
 
+		// This will test command stuff.
+		const loadedCommands = loadCommands();
+		if (process.env.NODE_ENV === "development") { console.info(discordClient.commands); }
+
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
@@ -67,12 +71,8 @@ async function bot() {
 		if (process.env.NODE_ENV === "development") { console.info(loadedEvents); }
 		eventHandlers(discordClient, loadedEvents);
 
-		// This will test command stuff.
-		loadCommands(discordClient);
-		if (process.env.NODE_ENV === "development") { console.info(discordClient.commands); }
-
 		// For quick testing if commands or events load. I don't want to login every time you see.
-		const login: boolean = false;
+		const login: boolean = true;
 
 		if (login) {
 			// I don't think we need a try here, but it is probably a smart idea to do it anyway.

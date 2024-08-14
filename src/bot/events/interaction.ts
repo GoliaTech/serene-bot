@@ -1,6 +1,6 @@
 import { Events } from "discord.js";
 import { BotEvent, CommandInteractionExtended } from "../../utilities/interface";
-
+import { commands } from "../misc/loaders";
 /**
  * This is the main interaction function.
  */
@@ -20,14 +20,17 @@ const interaction: BotEvent = {
 		}
 
 		// Now check if the command provided is correct.
-		// const command = interaction.client.commands.get(interaction.commandName);
-		// if (!command) {
-		// 	// If the command doesn't exist, return.
-		// 	console.log("Command not found");
-		// 	return;
-		// }
+		const command = commands.get(interaction.commandName);
+		if (!command) {
+			// If the command doesn't exist, return.
+			interaction.reply({ content: "Command not found" });
+			return;
+		}
 		// If everything is fine, continue with the logic.
-		console.log("Command was correct.");
+		// console.log("Command was correct.");
+
+		console.info(command);
+		interaction.reply({ content: "testing" });
 	}
 };
 

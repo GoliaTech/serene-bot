@@ -11,16 +11,21 @@ function schema(sequelize: Sequelize) {
 		// Should be :SpecificModelType, but...
 		static associate(models: any) {
 			// Define association here
+			this.hasOne(models["user_level"], { foreignKey: "uuid" });
+			this.hasOne(models["user_currency"], { foreignKey: "uuid" });
 		}
 	}
 	Schema.init(
 		{
-			user_uuid: {
+			uuid: {
 				type: DataTypes.UUID,
 				defaultValue: randomUUID(),
 				allowNull: false,
 				primaryKey: true,
-				unique: true,
+			},
+			display_name: {
+				type: DataTypes.STRING,
+				defaultValue: null,
 			},
 			discord_id: {
 				type: DataTypes.STRING,
@@ -31,11 +36,10 @@ function schema(sequelize: Sequelize) {
 					is: /^[0-9]{17,18,19}$/ // Discord ID format validation. 17,18,19 defines length and future proofs.
 				},
 			},
-			daily_streak: {
-				type: DataTypes.INTEGER,
-				defaultValue: 0,
-				allowNull: false,
-			},
+			joined_at: {
+				type: DataTypes.DATE,
+				defaultValue: new Date(),
+			}
 		},
 		{
 			sequelize, 							// The Sequelize instance.
@@ -46,7 +50,7 @@ function schema(sequelize: Sequelize) {
 			indexes: [ 							// Define indexes.
 				{
 					unique: true, 												// Ensure uniqueness.
-					fields: ["user_uuid", "discord_id"], 	// Index fields.
+					fields: ["uuid", "discord_id"], 	// Index fields.
 				},
 			],
 		}

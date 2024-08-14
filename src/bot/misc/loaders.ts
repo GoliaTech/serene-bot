@@ -1,6 +1,9 @@
 import path from "path";
 import fs from "fs";
 import { ClientExtended, Command } from "../../utilities/interface";
+import { Collection } from "discord.js";
+
+export const commands = new Collection<string, any>();
 
 /**
  * This is still testing...
@@ -10,8 +13,6 @@ import { ClientExtended, Command } from "../../utilities/interface";
  * It should then return the collection of commands.
  */
 export function loadCommands(discordClient?: ClientExtended) {
-	const commands = [];
-
 	// This is the path for the commands folder.
 	const commandsFolderPath = path.join(__dirname, "../commands");
 	// The commands folder.
@@ -37,9 +38,9 @@ export function loadCommands(discordClient?: ClientExtended) {
 					if (discordClient) {
 						discordClient.commands.set(cmd.data.name, cmd);
 					} else {
-						commands.push(cmd);
+						commands.set(cmd.data.name, cmd);
 					}
-				} catch (problem: any) { console.error("There was a problem setting the command: ", problem); return; }
+				} catch (problem: any) { console.error("There was a problem setting the command: ", problem); throw new Error(problem); }
 			}
 
 			// This is for a single command, but we don't know if they have multiple commands or not. WE can check however.
@@ -53,8 +54,7 @@ export function loadCommands(discordClient?: ClientExtended) {
 			// } catch (problem) { console.error(problem); }
 		}
 	}
-	if (discordClient) { return; }
-	else { return commands; }
+	return commands;
 }
 
 /**
@@ -93,3 +93,4 @@ export function loadEvents() {
 	// You then return the array.
 	return events;
 }
+

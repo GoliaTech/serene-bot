@@ -21,6 +21,7 @@ export class ClientExtended extends Client {
 		super(options);
 		this.commands = new Collection<string, any>();
 	}
+	public commands: Collection<string, any>;
 }
 
 export interface BotEvent {
