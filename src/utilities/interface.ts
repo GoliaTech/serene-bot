@@ -1,5 +1,5 @@
 import { UUID } from "crypto";
-import { ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
 
 export interface CommandInteractionExtended extends CommandInteraction {
 	interaction: {
@@ -12,7 +12,7 @@ export interface ClientExtended extends Client {
 }
 
 export interface Command {
-	data: SlashCommandBuilder;
+	data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
 	execute(interaction: ChatInputCommandInteraction): any;
 }
 
