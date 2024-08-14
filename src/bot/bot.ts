@@ -3,6 +3,10 @@ import { GatewayIntentBits } from "discord.js";
 import { ClientExtended } from "../utilities/interface";
 import { loadCommands, loadEvents } from "./misc/loaders";
 
+
+// For quick testing if commands or events load. I don't want to login every time you see.
+const login: boolean = true;
+
 /**
  * This will register events that the client will have to handle.
  * Like for example: ready, banAdd, banRemove, etc.
@@ -70,9 +74,6 @@ async function bot() {
 		const loadedEvents = loadEvents();
 		if (process.env.NODE_ENV === "development") { console.info(loadedEvents); }
 		eventHandlers(discordClient, loadedEvents);
-
-		// For quick testing if commands or events load. I don't want to login every time you see.
-		const login: boolean = true;
 
 		if (login) {
 			// I don't think we need a try here, but it is probably a smart idea to do it anyway.

@@ -76,6 +76,7 @@ function handleShardDeath(shard: Shard) {
  */
 async function startBot() {
 	try {
+		console.log("We are now starting your bot...");
 		// First handle the environment.
 		process.env.NODE_ENV = nodeEnv();
 
@@ -90,12 +91,6 @@ async function startBot() {
 
 		// This is a fix to test and run TS code directly:
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
-
-		// const usersDiscordIds = ["371573158978912256", "289098255038676992"];
-		// for (const id of usersDiscordIds) {
-		// 	const reply = await performDatabaseStuff(id);
-		// 	console.log("reply", reply);
-		// }
 
 		if (start) {
 			// This is a managed that handles the shards and sharding events.
@@ -144,38 +139,3 @@ process.on("SIGKILL", async () => {
 	await killShards();
 	process.exit(1);
 });
-
-// async function performDatabaseStuff(userToGet: string) {
-// 	try {
-// 		await AppDataSource.initialize();
-// 		let userRepo: any = await AppDataSource.manager.findOne(User.Core, {
-// 			where: {
-// 				discord_id: userToGet
-// 			}
-// 		});
-// 		console.log("before !userRepo", userRepo);
-// 		if (!userRepo) {
-// 			const insertUser = await AppDataSource.manager.insert(User.Core, {
-// 				discord_id: userToGet
-// 			});
-// 			userRepo = insertUser.raw;
-// 			console.log("inside !userRepo", userRepo);
-// 		}
-
-// 		if (userToGet == "371573158978912256") {
-// 			await AppDataSource.manager.remove(userRepo);
-// 		}
-
-// 		await AppDataSource.destroy();
-
-// 		return {
-// 			msg: userRepo,
-// 		};
-// 	} catch (e: any) {
-// 		console.error(e);
-// 		return {
-// 			msg: e.msg,
-// 			error: true
-// 		};
-// 	}
-// }

@@ -1,4 +1,4 @@
-import { Locale, LocalizationMap, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, Locale, LocalizationMap, SlashCommandBuilder } from "discord.js";
 
 /**
  * This creates a basic command, converts name to lowercases,
@@ -93,3 +93,9 @@ export function commandBuilder(name: string, description: string,
 	// Finally return the built command to be used by commands.
 	return command;
 };
+
+
+export function embedBuilder(title: string) {
+	const embed = new EmbedBuilder({ title: title });
+	return embed;
+}
