@@ -1,8 +1,14 @@
+import "reflect-metadata";
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
 import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
 import { loadCommands } from "./bot/misc/loaders";
+import { AppDataSource } from "./database/datasource";
+import { User } from "./database";
 require("dotenv").config();
+
+// whether we should actually start the program.
+const start: boolean = true;
 
 // Initialize shards collection.
 const shards: Collection<number, Shard> = new Collection();
@@ -85,25 +91,35 @@ async function startBot() {
 		// This is a fix to test and run TS code directly:
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 
-		// This is a managed that handles the shards and sharding events.
-		const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot/bot.${fileExtension}`), {
-			token: process.env.TOKEN,
-			execArgv: execArgv,
-			shardArgs: shardArgs,
-			totalShards: "auto"
-		});
+		// const usersDiscordIds = ["371573158978912256", "289098255038676992"];
+		// for (const id of usersDiscordIds) {
+		// 	const reply = await performDatabaseStuff(id);
+		// 	console.log("reply", reply);
+		// }
 
-		// Load commands for all bots to use.
-		loadCommands();
+		if (start) {
+			// This is a managed that handles the shards and sharding events.
+			const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot/bot.${fileExtension}`), {
+				token: process.env.TOKEN,
+				execArgv: execArgv,
+				shardArgs: shardArgs,
+				totalShards: "auto"
+			});
 
-		// Start the setup shard events.
-		setupShardEvents(manager);
+			// Load commands for all bots to use.
+			loadCommands();
 
-		// This will spawn a new shard, but also will let us add further events.
-		const managedShards: Collection<number, Shard> = await manager.spawn({ amount: "auto", delay: 5000, timeout: 30000 });
+			// Start the setup shard events.
+			setupShardEvents(manager);
 
-		// Now watch for watch shard events.
-		watchShardEvents(managedShards);
+			// This will spawn a new shard, but also will let us add further events.
+			const managedShards: Collection<number, Shard> = await manager.spawn({ amount: "auto", delay: 5000, timeout: 30000 });
+
+			// Now watch for watch shard events.
+			watchShardEvents(managedShards);
+		} else {
+			process.exit(1);
+		}
 	} catch (e: any) { throw new Error(e.message); }
 }
 
@@ -128,3 +144,38 @@ process.on("SIGKILL", async () => {
 	await killShards();
 	process.exit(1);
 });
+
+// async function performDatabaseStuff(userToGet: string) {
+// 	try {
+// 		await AppDataSource.initialize();
+// 		let userRepo: any = await AppDataSource.manager.findOne(User.Core, {
+// 			where: {
+// 				discord_id: userToGet
+// 			}
+// 		});
+// 		console.log("before !userRepo", userRepo);
+// 		if (!userRepo) {
+// 			const insertUser = await AppDataSource.manager.insert(User.Core, {
+// 				discord_id: userToGet
+// 			});
+// 			userRepo = insertUser.raw;
+// 			console.log("inside !userRepo", userRepo);
+// 		}
+
+// 		if (userToGet == "371573158978912256") {
+// 			await AppDataSource.manager.remove(userRepo);
+// 		}
+
+// 		await AppDataSource.destroy();
+
+// 		return {
+// 			msg: userRepo,
+// 		};
+// 	} catch (e: any) {
+// 		console.error(e);
+// 		return {
+// 			msg: e.msg,
+// 			error: true
+// 		};
+// 	}
+// }

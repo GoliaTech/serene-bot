@@ -1,5 +1,5 @@
 // This is where the actual bot code lives.
-import { GatewayIntentBits, Collection } from "discord.js";
+import { GatewayIntentBits } from "discord.js";
 import { ClientExtended } from "../utilities/interface";
 import { loadCommands, loadEvents } from "./misc/loaders";
 
