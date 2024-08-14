@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction, Locale } from "discord.js";
 import { commandBuilder } from "../../misc/commandBuilder";
 import { Command } from "../../../utilities/interface";
-import { AppDataSource } from "../../../typeormdb/datasource";
-import { User } from "../../../typeormdb";
+import { AppDataSource } from "../../../database/datasource";
+import { User } from "../../../database";
 
 async function performDatabaseStuff(userToGet: string) {
 	try {

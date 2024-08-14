@@ -3,9 +3,12 @@ import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
 import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
 import { loadCommands } from "./bot/misc/loaders";
-import { AppDataSource } from "./typeormdb/datasource";
-import { User } from "./typeormdb";
+import { AppDataSource } from "./database/datasource";
+import { User } from "./database";
 require("dotenv").config();
+
+// whether we should actually start the program.
+const start: boolean = true;
 
 // Initialize shards collection.
 const shards: Collection<number, Shard> = new Collection();
@@ -88,13 +91,12 @@ async function startBot() {
 		// This is a fix to test and run TS code directly:
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 
-		const usersDiscordIds = ["371573158978912256", "289098255038676992"];
-		for (const id of usersDiscordIds) {
-			const reply = await performDatabaseStuff(id);
-			console.log("reply", reply);
-		}
+		// const usersDiscordIds = ["371573158978912256", "289098255038676992"];
+		// for (const id of usersDiscordIds) {
+		// 	const reply = await performDatabaseStuff(id);
+		// 	console.log("reply", reply);
+		// }
 
-		const start: boolean = false;
 		if (start) {
 			// This is a managed that handles the shards and sharding events.
 			const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot/bot.${fileExtension}`), {
@@ -143,37 +145,37 @@ process.on("SIGKILL", async () => {
 	process.exit(1);
 });
 
-async function performDatabaseStuff(userToGet: string) {
-	try {
-		await AppDataSource.initialize();
-		let userRepo: any = await AppDataSource.manager.findOne(User.Core, {
-			where: {
-				discord_id: userToGet
-			}
-		});
-		console.log("before !userRepo", userRepo);
-		if (!userRepo) {
-			const insertUser = await AppDataSource.manager.insert(User.Core, {
-				discord_id: userToGet
-			});
-			userRepo = insertUser.raw;
-			console.log("inside !userRepo", userRepo);
-		}
+// async function performDatabaseStuff(userToGet: string) {
+// 	try {
+// 		await AppDataSource.initialize();
+// 		let userRepo: any = await AppDataSource.manager.findOne(User.Core, {
+// 			where: {
+// 				discord_id: userToGet
+// 			}
+// 		});
+// 		console.log("before !userRepo", userRepo);
+// 		if (!userRepo) {
+// 			const insertUser = await AppDataSource.manager.insert(User.Core, {
+// 				discord_id: userToGet
+// 			});
+// 			userRepo = insertUser.raw;
+// 			console.log("inside !userRepo", userRepo);
+// 		}
 
-		if (userToGet == "371573158978912256") {
-			await AppDataSource.manager.remove(userRepo);
-		}
+// 		if (userToGet == "371573158978912256") {
+// 			await AppDataSource.manager.remove(userRepo);
+// 		}
 
-		await AppDataSource.destroy();
+// 		await AppDataSource.destroy();
 
-		return {
-			msg: userRepo,
-		};
-	} catch (e: any) {
-		console.error(e);
-		return {
-			msg: e.msg,
-			error: true
-		};
-	}
-}
+// 		return {
+// 			msg: userRepo,
+// 		};
+// 	} catch (e: any) {
+// 		console.error(e);
+// 		return {
+// 			msg: e.msg,
+// 			error: true
+// 		};
+// 	}
+// }
