@@ -18,6 +18,16 @@ async function performDatabaseStuff(userToGet: string) {
 			user.discord_id = userToGet;
 
 			userRepo = await AppDataSource.manager.save(user);
+
+			const userLevel = new User.Level();
+			userLevel.uuid = userRepo.uuid;
+
+			await AppDataSource.manager.save(userLevel);
+
+			const userMoney = new User.Currency();
+			userMoney.uuid = userRepo.uuid;
+
+			await AppDataSource.manager.save(userMoney);
 		}
 
 		await AppDataSource.destroy();
