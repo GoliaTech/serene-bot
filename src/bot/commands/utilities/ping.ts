@@ -1,5 +1,5 @@
 import path from "path";
-import { commandBuilder } from "../../misc/commandBuilder";
+import { commandBuilder } from "../../misc/builders";
 import { Command } from "../../../utilities/interface";
 
 function ping() {

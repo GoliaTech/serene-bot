@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, Locale } from "discord.js";
-import { commandBuilder } from "../../misc/commandBuilder";
+import { commandBuilder, embedBuilder } from "../../misc/builders";
 import { Command } from "../../../utilities/interface";
 import { AppDataSource } from "../../../database/datasource";
 import { User } from "../../../database";
@@ -14,10 +14,20 @@ async function performDatabaseStuff(userToGet: string) {
 			}
 		});
 		if (!userRepo) {
-			const insertUser = await AppDataSource.manager.insert(User.Core, {
-				discord_id: userToGet
-			});
-			userRepo = insertUser.raw;
+			const user = new User.Core();
+			user.discord_id = userToGet;
+
+			userRepo = await AppDataSource.manager.save(user);
+
+			const userLevel = new User.Level();
+			userLevel.uuid = userRepo.uuid;
+
+			await AppDataSource.manager.save(userLevel);
+
+			const userMoney = new User.Currency();
+			userMoney.uuid = userRepo.uuid;
+
+			await AppDataSource.manager.save(userMoney);
 		}
 
 		await AppDataSource.destroy();
@@ -53,6 +63,8 @@ const user: Command = {
 		if (!userToGet) { userToGet = interaction.user.id; }
 
 		const reply = await performDatabaseStuff(userToGet);
+
+		const embed = embedBuilder("Profile");
 		if (reply.error) {
 			console.error(reply.msg);
 			interaction.reply({ content: "We have encountered an error. We are sorry." });
@@ -61,11 +73,12 @@ const user: Command = {
 
 		console.info(reply.msg);
 		interaction.reply({
-			content: `**UUID:** ${reply.msg.uuid}
+			content: `
+**UUID:** ${reply.msg.uuid}
 **Discord ID:** ${reply.msg.discord_id}
 **Display name:** ${reply.msg.display_name}
-**Joined at:** ${reply.msg.joined_at}`
-		});
+**Joined at:** ${reply.msg.joined_at}
+`});
 	}
 };
 

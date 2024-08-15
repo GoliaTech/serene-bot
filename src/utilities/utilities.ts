@@ -7,8 +7,10 @@ import { nodeEnvEnumType } from "./interface";
  */
 export function nodeEnv(overwrite?: nodeEnvEnumType) {
 	try {
+		console.log("Setting NODE_ENV");
 		// As this function is going to be reused, I want to make sure we are not overwriting previously set NODE_ENV in other parts of the code.
 		if (process.env.NODE_ENV != "" && process.env.NODE_ENV != undefined && process.env.NODE_ENV != "test") {
+			console.log("NODE_ENV already set: ", process.env.NODE_ENV);
 			return process.env.NODE_ENV;
 		}
 
@@ -35,6 +37,7 @@ export function nodeEnv(overwrite?: nodeEnvEnumType) {
 			throw new Error("Invalid argument: expected '-P' or '-D'.");
 		}
 
+		console.log("NODE_ENV set to: ", env);
 		return env;
 	} catch (e: any) { throw new Error(e.message); }
 }
