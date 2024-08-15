@@ -32,10 +32,6 @@ async function deployCommands(development?: boolean) {
 				DiscordRoutes.applicationGuildCommands(clientID, guildID),
 				{ body: commandsSanitized },
 			);
-			await rest.put(
-				DiscordRoutes.applicationCommands(clientID),
-				{ body: commandsSanitized },
-			);
 		} else {
 			await rest.put(
 				DiscordRoutes.applicationCommands(clientID),
@@ -117,9 +113,6 @@ async function getCommands(development?: boolean) {
 		if (development) {
 			guildCommands = await rest.get(
 				DiscordRoutes.applicationGuildCommands(clientID, guildID),
-			);
-			commands = await rest.get(
-				DiscordRoutes.applicationCommands(clientID),
 			);
 		} else {
 			commands = await rest.get(

@@ -30,7 +30,11 @@ const interaction: BotEvent = {
 			// If everything is fine, continue with the logic.
 			// console.log("Command was correct.");
 
-			console.info(command);
+			if (process.env.NODE_ENV === "development") {
+				console.info(command);
+			}
+
+			// We need uhhh, what are they called... cooldowns. Because otherwise poeple will spam commands.
 			command.execute(interaction);
 			// interaction.reply({ content: "testing" });]
 		} catch (error) {

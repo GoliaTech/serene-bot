@@ -9,11 +9,12 @@ import { EmbedBuilder, Locale, LocalizationMap, SlashCommandBuilder } from "disc
  * @param options - The command's options.
  * @param options.dm - Whether the command can be used in DMs or not. Defaults to false.
  * @param options.nsfw - Whether the command is NSFW or not. Defaults to false.
+ * @param options.cooldown - The cooldown for the command. Its in seconds.
  * @param localization - The command's localization.
  * 
  */
 export function commandBuilder(name: string, description: string,
-	options?: { dm?: boolean; nsfw?: boolean, },
+	options?: { dm?: boolean; nsfw?: boolean, cooldown?: number, },
 	localization?: {
 		name?: LocalizationMap;
 		description?: LocalizationMap;

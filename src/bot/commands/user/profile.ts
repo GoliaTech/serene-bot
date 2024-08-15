@@ -4,42 +4,80 @@ import { Command } from "../../../utilities/interface";
 import { AppDataSource } from "../../../database/datasource";
 import { User } from "../../../database";
 
+/**
+ * This function performs database operations for a given user.
+ * It initializes the database, finds or creates a user record,
+ * and returns the user record.
+ *
+ * @param {string} userToGet - The Discord ID of the user.
+ * @returns {Promise<{msg: any; error?: boolean}>} - A promise that resolves to an object
+ * containing the user record and an optional error flag.
+ */
 async function performDatabaseStuff(userToGet: string) {
 	try {
+		let reply;
+
+		// Initialize the database connection.
 		await AppDataSource.initialize();
 
-		let userRepo: any = await AppDataSource.manager.findOne(User.Core, {
+		// Find the user record in the database.
+		let userCoreRepo = await AppDataSource.manager.findOne(User.Core, {
 			where: {
-				discord_id: userToGet
-			}
+				discord_id: userToGet,
+			},
 		});
-		if (!userRepo) {
-			const user = new User.Core();
-			user.discord_id = userToGet;
 
-			userRepo = await AppDataSource.manager.save(user);
+		let userLevelRepo, userMoneyRepo;
+
+		// If the user record doesn't exist, create a new one.
+		if (!userCoreRepo) {
+			const userCore = new User.Core();
+			userCore.discord_id = userToGet;
+
+			userCoreRepo = await AppDataSource.manager.save(userCore);
 
 			const userLevel = new User.Level();
-			userLevel.uuid = userRepo.uuid;
+			userLevel.uuid = userCoreRepo.uuid;
 
 			await AppDataSource.manager.save(userLevel);
 
 			const userMoney = new User.Currency();
-			userMoney.uuid = userRepo.uuid;
+			userMoney.uuid = userCoreRepo.uuid;
 
 			await AppDataSource.manager.save(userMoney);
 		}
 
+		// Find the level and currency records for the user.
+		userLevelRepo = await AppDataSource.manager.findOne(User.Level, {
+			where: {
+				uuid: userCoreRepo.uuid,
+			},
+		});
+
+		userMoneyRepo = await AppDataSource.manager.findOne(User.Currency, {
+			where: {
+				uuid: userCoreRepo.uuid,
+			},
+		});
+
+		// Close the database connection.
 		await AppDataSource.destroy();
 
+		// Prepare the reply object.
+		reply = {
+			core: userCoreRepo,
+			level: userLevelRepo,
+			currency: userMoneyRepo,
+		};
+
 		return {
-			msg: userRepo,
+			msg: reply,
 		};
 	} catch (e: any) {
 		console.error(e);
 		return {
 			msg: e.msg,
-			error: true
+			error: true,
 		};
 	}
 }
@@ -72,13 +110,21 @@ const user: Command = {
 		}
 
 		console.info(reply.msg);
+
+		let constructedString: string = "";
+		if (reply.msg.core.display_name) {
+			constructedString += `**Display name:** ${reply.msg.core.display_name}\n`;
+		}
+
+		constructedString += `**Level:** ${reply.msg.level.level}\n`;
+		constructedString += `**Prestige:** ${reply.msg.level.prestige}\n`;
+		constructedString += `**XP:** ${reply.msg.level.xp} | **XP to level:** ${reply.msg.level.xp_to_level}\n`;
+		constructedString += `**Common money:** ${reply.msg.currency.common} | **Premium money:** ${reply.msg.currency.premium}\n`;
+
+		embed.setDescription(String(constructedString));
 		interaction.reply({
-			content: `
-**UUID:** ${reply.msg.uuid}
-**Discord ID:** ${reply.msg.discord_id}
-**Display name:** ${reply.msg.display_name}
-**Joined at:** ${reply.msg.joined_at}
-`});
+			embeds: [embed]
+		});
 	}
 };
 

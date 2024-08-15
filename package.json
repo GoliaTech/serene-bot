@@ -15,7 +15,10 @@
     "devdatabaseinit": "ts-node src/database/init.ts",
     "getdeployedcommandsdev": "ts-node src/utilities/manageCommands.ts -D --get",
     "deletedeployedcommandsdev": "ts-node src/utilities/manageCommands.ts -D --delete",
-    "putdeployedcommandsdev": "ts-node src/utilities/manageCommands.ts -D --deploy"
+    "putdeployedcommandsdev": "ts-node src/utilities/manageCommands.ts -D --deploy",
+    "getdeployedcommands": "ts-node src/utilities/manageCommands.ts -P --get",
+    "deletedeployedcommands": "ts-node src/utilities/manageCommands.ts -P --delete",
+    "putdeployedcommands": "ts-node src/utilities/manageCommands.ts -P --deploy"
   },
   "keywords": [],
   "author": "GoliaTech",

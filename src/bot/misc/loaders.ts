@@ -93,4 +93,3 @@ export function loadEvents() {
 	// You then return the array.
 	return events;
 }
-
