@@ -80,6 +80,10 @@ async function deleteCommands(development?: boolean) {
 			);
 		} else {
 			await rest.put(
+				DiscordRoutes.applicationGuildCommands(clientID, guildID),
+				{ body: [], },
+			);
+			await rest.put(
 				DiscordRoutes.applicationCommands(clientID),
 				{ body: [], },
 			);

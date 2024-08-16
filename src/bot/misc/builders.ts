@@ -1,4 +1,5 @@
 import { EmbedBuilder, Locale, LocalizationMap, SlashCommandBuilder } from "discord.js";
+import { EmbedColors } from "../../utilities/interface";
 
 /**
  * This creates a basic command, converts name to lowercases,
@@ -10,11 +11,20 @@ import { EmbedBuilder, Locale, LocalizationMap, SlashCommandBuilder } from "disc
  * @param options.dm - Whether the command can be used in DMs or not. Defaults to false.
  * @param options.nsfw - Whether the command is NSFW or not. Defaults to false.
  * @param options.cooldown - The cooldown for the command. Its in seconds.
+ * @param options.owner - If the command can be used by everyone else, or just owner.
  * @param localization - The command's localization.
  * 
  */
 export function commandBuilder(name: string, description: string,
-	options?: { dm?: boolean; nsfw?: boolean, cooldown?: number, },
+	options?: {
+		// If command is allowed in DMs.
+		dm?: boolean;
+		// If the command is for NSFW channels only.
+		nsfw?: boolean;
+		cooldown?: number;
+		// If the command is for owner only.
+		owner?: boolean;
+	},
 	localization?: {
 		name?: LocalizationMap;
 		description?: LocalizationMap;
@@ -95,8 +105,19 @@ export function commandBuilder(name: string, description: string,
 	return command;
 };
 
-
-export function embedBuilder(title: string) {
-	const embed = new EmbedBuilder({ title: title });
+/**
+ * This will create an embed, with some default things. 
+ * It is basically just EmbedBuilder just with some default stuff set.
+ * @param title - Title of your embed.
+ * @param color - Color of your embed. Not necessary. Sets to EmbedColors.default if not provided.
+ * @returns 
+ */
+export function embedBuilder(title: string, color?: EmbedColors) {
+	const embed = new EmbedBuilder({ title: title, timestamp: new Date(), footer: { text: "serene-bot" } });
+	if (!color) {
+		embed.setColor(EmbedColors.default);
+	} else {
+		embed.setColor(color);
+	}
 	return embed;
 }

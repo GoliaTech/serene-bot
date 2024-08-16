@@ -1,0 +1,59 @@
+import { ChatInputCommandInteraction } from "discord.js";
+import { commandBuilder, embedBuilder } from "../../misc/builders";
+import { Command } from "../../../utilities/interface";
+import { Card } from "../../../database";
+import { AppDataSource } from "../../../database/datasource";
+
+async function performDatabase() {
+	try {
+		await AppDataSource.initialize();
+		const cardRepo = await AppDataSource.manager.find(Card.Core);
+		const setRepo = await AppDataSource.manager.find(Card.Set);
+		console.info(cardRepo);
+		console.info(setRepo);
+		await AppDataSource.destroy();
+		return {
+			msg: "Worked",
+		};
+	} catch (error: any) {
+		await AppDataSource.destroy();
+		console.error(error);
+		return {
+			msg: "it didn't work, check logs",
+			error: true
+		};
+	}
+}
+
+const allCards: Command = {
+	data: commandBuilder(
+		"cards",
+		"Get all the cards.",
+		{
+			dm: true
+		},
+	),
+	async execute(interaction: ChatInputCommandInteraction) {
+		const embed = embedBuilder("Profile");
+
+		const reply = await performDatabase();
+
+		if (reply.error) {
+			embed.setDescription("oh man, something didn't work.");
+			interaction.reply({
+				embeds: [embed],
+			});
+			return;
+		}
+
+		embed.setDescription(String(reply.msg));
+		interaction.reply({
+			embeds: [embed],
+		});
+		return;
+	}
+};
+
+module.exports = [
+	allCards,
+];

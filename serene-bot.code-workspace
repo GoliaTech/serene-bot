@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 10000,
+		"sql-formatter.dialect": "pl/sql",
+		"sql-formatter.tabWidth": 4,
+		"editor.indentSize": "tabSize",
+		"editor.autoIndent": "full"
+	}
+}
