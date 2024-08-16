@@ -1,4 +1,4 @@
-import { User } from "../index";
+import { User } from "../entity/index";
 import { AppDataSource } from "../datasource";
 
 

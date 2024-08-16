@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { commandBuilder, embedBuilder } from "../../misc/builders";
 import { Command } from "../../../utilities/interface";
-import { Card } from "../../../database";
+import { Card } from "../../../database/entity/index";
 import { AppDataSource } from "../../../database/datasource";
 
 async function performDatabase() {

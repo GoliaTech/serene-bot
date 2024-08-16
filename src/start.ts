@@ -4,11 +4,12 @@ import path from "path";
 import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
 import { loadCommands } from "./bot/misc/loaders";
 import { AppDataSource } from "./database/datasource";
-import { User } from "./database";
+import { User } from "./database/entity/index";
+
 require("dotenv").config();
 
 // whether we should actually start the program.
-const start: boolean = true;
+const start: boolean = false;
 
 // Initialize shards collection.
 const shards: Collection<number, Shard> = new Collection();
@@ -68,6 +69,17 @@ function handleShardDeath(shard: Shard) {
 	shards.delete(shard.id);
 }
 
+async function performDatabaseStuff() {
+	const userId = process.env.OWNER_ID || "289098255038676992";
+	await AppDataSource.initialize();
+	const user = await AppDataSource.getRepository(User.Core)
+		.createQueryBuilder("user_core")
+		.select()
+
+	await AppDataSource.destroy();
+	return user;
+}
+
 /**
  * This is the main starting point for the bot.
  * This will run the program, it will then create shards and parse execArgv into them.
@@ -92,7 +104,10 @@ async function startBot() {
 		// This is a fix to test and run TS code directly:
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 
-		if (start) {
+		if (start == false) {
+			console.info(await performDatabaseStuff());
+		}
+		else if (start) {
 			// This is a managed that handles the shards and sharding events.
 			const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot/bot.${fileExtension}`), {
 				token: process.env.TOKEN,
@@ -115,7 +130,10 @@ async function startBot() {
 		} else {
 			process.exit(1);
 		}
-	} catch (e: any) { throw new Error(e.message); }
+	} catch (e: any) {
+		console.error(e);
+		throw new Error(e.message);
+	}
 }
 
 // Then start the bot.

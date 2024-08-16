@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource, DefaultNamingStrategy, NamingStrategyInterface } from "typeorm";
-import { Card, User } from "./index";
+import { Card, User } from "./entity/index";
 import { nodeEnv } from "../utilities/utilities";
 require("dotenv").config();
 
@@ -31,6 +31,9 @@ if (!database.name || !database.host || !database.pass || !database.user || !dat
 // 	}
 // }
 
+const naminngStrategy = require('typeorm-naming-strategies')
+	.SnakeNamingStrategy;
+
 export const AppDataSource = new DataSource({
 	// This is a TYPE data. So my idea won't work atm, too lazy to fix too. TOO BAD.
 	type: "postgres",
@@ -45,13 +48,15 @@ export const AppDataSource = new DataSource({
 		User.Core,
 		User.Level,
 		User.Currency,
+		User.LevelName,
+		User.PrestigeName,
 		Card.Core,
 		Card.Set,
 		Card.Rewards
 	],
 	subscribers: [],
 	migrations: [],
-	// namingStrategy: new namingStrategy()
+	namingStrategy: new naminngStrategy(),
 });
 
 function snakeCase(propertyName: string): string {

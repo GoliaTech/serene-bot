@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, JoinColumn, OneToOne } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, JoinColumn, OneToOne, CreateDateColumn, Relation } from "typeorm";
+import { UserCurrency } from "./currency";
+import { UserLevel } from "./level";
 
 /**
  * User Core
@@ -6,61 +8,25 @@ import { Column, Entity, PrimaryGeneratedColumn, JoinColumn, OneToOne } from "ty
  * @export
  * @class UserCore
  */
-@Entity({ name: "user_core" })
+@Entity("user_core")
 export class UserCore {
 	@PrimaryGeneratedColumn("uuid")
 	uuid!: string;
+
 	@Column({ type: "varchar", length: 64, nullable: true })
-	display_name: string | undefined;
-	@Column({ type: "text", nullable: false, unique: true })
+	display_name!: string;
+
+	@Column({ type: "text", unique: true })
 	discord_id!: string;
-	@Column({ type: "timestamp without time zone", default: () => "CURRENT_TIMESTAMP" })
+
+	@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
 	joined_at!: Date;
-	@OneToOne(() => UserLevel, (levels) => levels.uuid)
-	levels!: UserLevel[];
-	@OneToOne(() => UserCurrency, (currency) => currency.uuid)
-	currencies!: UserCurrency[];
-};
 
-/**
- * User Currency
- *
- * @export
- * @class UserCurrency
- */
-@Entity({ name: "user_currency" })
-export class UserCurrency {
-	@PrimaryGeneratedColumn("uuid")
-	uuid!: string;
-	@OneToOne(() => UserCore)
-	@JoinColumn({ name: "uuid" })
-	core!: UserCore;
-	@Column({ type: "int", default: 0 })
-	common!: number;
-	@Column({ type: "int", default: 0 })
-	premium!: number;
-};
+	@OneToOne(() => UserLevel, (userLevel) => userLevel.user)
+	@JoinColumn({ name: "uuid" }) // Explicitly join on the uuid column
+	user_level!: Relation<UserLevel>;
 
-/**
- * User Level
- *
- * @export
- * @class UserLevel
- */
-@Entity({ name: "user_level" })
-
-export class UserLevel {
-	@PrimaryGeneratedColumn("uuid")
-	uuid!: string;
-	@OneToOne(() => UserCore)
-	@JoinColumn({ name: "uuid" })
-	core!: UserCore;
-	@Column({ type: "int", nullable: false, default: 1 })
-	level!: number;
-	@Column({ type: "int", nullable: false, default: 0 })
-	xp!: number;
-	@Column({ type: "int", nullable: false, default: 100 })
-	xp_to_level!: number;
-	@Column({ type: "int", nullable: false, default: 0 })
-	prestige!: number;
+	@OneToOne(() => UserCurrency, (userCurrency) => userCurrency.user)
+	@JoinColumn({ name: "uuid" }) // Explicitly join on the uuid column
+	user_currency!: Relation<UserCurrency>;
 };
