@@ -1,6 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, JoinColumn, OneToOne, CreateDateColumn, Relation } from "typeorm";
-import { UserCurrency } from "./currency";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, OneToOne } from "typeorm";
 import { UserLevel } from "./level";
+import { UserCurrency } from "./currency";
 
 /**
  * User Core
@@ -8,25 +8,18 @@ import { UserLevel } from "./level";
  * @export
  * @class UserCore
  */
-@Entity("user_core")
+@Entity({ name: "user_core" })
 export class UserCore {
 	@PrimaryGeneratedColumn("uuid")
 	uuid!: string;
-
 	@Column({ type: "varchar", length: 64, nullable: true })
 	display_name!: string;
-
 	@Column({ type: "text", unique: true })
 	discord_id!: string;
-
-	@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+	@CreateDateColumn({ type: "timestamp" })
 	joined_at!: Date;
-
-	@OneToOne(() => UserLevel, (userLevel) => userLevel.user)
-	@JoinColumn({ name: "uuid" }) // Explicitly join on the uuid column
-	user_level!: Relation<UserLevel>;
-
-	@OneToOne(() => UserCurrency, (userCurrency) => userCurrency.user)
-	@JoinColumn({ name: "uuid" }) // Explicitly join on the uuid column
-	user_currency!: Relation<UserCurrency>;
+	@OneToOne(() => UserLevel, (userLevel) => userLevel.userCore)
+	userLevel!: UserLevel;
+	@OneToOne(() => UserCurrency, (userLevel) => userLevel.userCore)
+	userCurrency!: UserCurrency;
 };

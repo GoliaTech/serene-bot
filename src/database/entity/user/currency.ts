@@ -7,20 +7,15 @@ import { UserCore } from "./core";
  * @export
  * @class UserCurrency
  */
-@Entity("user_currency")
+@Entity({ name: "user_currency" })
 export class UserCurrency {
 	@PrimaryGeneratedColumn("uuid")
 	uuid!: string;
-
 	@Column({ type: "int", default: 0 })
 	common!: number;
-
 	@Column({ type: "int", default: 0 })
 	premium!: number;
-
-	@OneToOne(() => UserCore, (userCore) => userCore.user_currency, {
-		onDelete: "CASCADE",
-	})
-	@JoinColumn({ name: "uuid" }) // Explicitly join on the uuid column
-	user!: UserCore;
+	@OneToOne(() => UserCore, { onDelete: "CASCADE" })
+	@JoinColumn({ name: "uuid" })
+	userCore!: UserCore;
 };

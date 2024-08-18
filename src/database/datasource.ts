@@ -21,16 +21,6 @@ if (!database.name || !database.host || !database.pass || !database.user || !dat
 	throw new Error("Name, host, user, or pass, (or all) is empty! Please fix.");
 }
 
-// class namingStrategy extends DefaultNamingStrategy implements NamingStrategyInterface {
-// 	columnName(propertyName: string, customName: string, embeddedPrefixes: string[]): string {
-// 		return snakeCase(embeddedPrefixes.join("_")) + (customName || snakeCase(propertyName));
-// 	}
-
-// 	relationName(propertyName: string): string {
-// 		return snakeCase(propertyName);
-// 	}
-// }
-
 const naminngStrategy = require('typeorm-naming-strategies')
 	.SnakeNamingStrategy;
 
@@ -58,7 +48,3 @@ export const AppDataSource = new DataSource({
 	migrations: [],
 	namingStrategy: new naminngStrategy(),
 });
-
-function snakeCase(propertyName: string): string {
-	throw new Error("Function not implemented.");
-}

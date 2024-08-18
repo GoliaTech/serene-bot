@@ -10,13 +10,10 @@ import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 export class PrestigeName {
 	@PrimaryGeneratedColumn()
 	id!: number;
-
+	@Column({ type: "int" })
+	min_level!: number;
+	@Column({ type: "int" })
+	max_level!: number;
 	@Column({ type: "varchar", length: 64 })
-	name!: string;
-
-	@Column({ type: "text", nullable: true })
-	prestige_range!: string;
-
-	@Column({ type: "text", nullable: true })
-	emblem!: string;
+	title!: string;
 };

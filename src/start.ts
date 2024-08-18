@@ -5,6 +5,7 @@ import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
 import { loadCommands } from "./bot/misc/loaders";
 import { AppDataSource } from "./database/datasource";
 import { User } from "./database/entity/index";
+import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 
 require("dotenv").config();
 
@@ -72,12 +73,48 @@ function handleShardDeath(shard: Shard) {
 async function performDatabaseStuff() {
 	const userId = process.env.OWNER_ID || "289098255038676992";
 	await AppDataSource.initialize();
-	const user = await AppDataSource.getRepository(User.Core)
-		.createQueryBuilder("user_core")
-		.select()
+
+	const userInfo = await AppDataSource.manager.findOne(User.Core, {
+		where: { discord_id: userId },
+		relations: ["userLevel", "userCurrency"],
+	});
+
+	if (!userInfo) {
+		throw new Error("User not found");
+	}
+
+	const { userLevel } = userInfo;
+	const { userCurrency } = userInfo;
+
+	const levelName = await AppDataSource.manager.findOne(User.LevelName, {
+		where: {
+			min_level: LessThanOrEqual(userLevel.level),
+			max_level: MoreThanOrEqual(userLevel.level)
+		},
+	});
+
+	// if(userLevel)
+	const prestigeName = await AppDataSource.manager.findOne(User.PrestigeName, {
+		where: {
+			min_level: LessThanOrEqual(userLevel.prestige),
+			max_level: MoreThanOrEqual(userLevel.prestige)
+		},
+	});
 
 	await AppDataSource.destroy();
-	return user;
+	return {
+		displayName: userInfo.display_name,
+		discordId: userInfo.discord_id,
+		joinedAt: userInfo.joined_at,
+		common: userCurrency.common,
+		premium: userCurrency.premium,
+		level: userLevel.level,
+		prestige: userLevel.prestige,
+		xp: userLevel.xp,
+		xpToLevel: userLevel.xp_to_level,
+		levelName: levelName ? levelName.title : 'Unknown',
+		prestigeName: prestigeName ? prestigeName.title : 'Unknown',
+	};
 }
 
 /**
