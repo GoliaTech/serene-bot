@@ -15,7 +15,9 @@ import { EmbedColors } from "../../utilities/interface";
  * @param localization - The command's localization.
  * 
  */
-export function commandBuilder(name: string, description: string,
+export function commandBuilder(
+	name: string,
+	description: string,
 	options?: {
 		// If command is allowed in DMs.
 		dm?: boolean;

@@ -1,14 +1,24 @@
 import { User } from "../entity/index";
 import { AppDataSource } from "../datasource";
+import { checkUUID } from "../../utilities/utilities";
+import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 
 
-export interface getUserCoreThings {
-	msg: string,
-	data?: {
-		core: User.Core,
-		level: User.Level,
-		currency: User.Currency;
-	},
+export interface I_findOrCreateUser {
+	data: {
+		uuid: string,
+		displayName: string,
+		discordID: string,
+		joinedAt: Date,
+		common: number,
+		premium: number,
+		level: number,
+		prestige: number,
+		xp: number,
+		xpToLevel: number,
+		levelName: string,
+		prestigeName: string;
+	} | string,
 	error?: boolean;
 }
 
@@ -17,72 +27,72 @@ export interface getUserCoreThings {
  * It initializes the database, finds or creates a user record,
  * and returns the user record.
  *
- * @param {string} userToGet - The Discord ID of the user.
- * containing the user record and an optional error flag.
+ * @param {string} identifier Either a UUID or Discord ID. We have a helper function that will check whether this is a UUID or not.
  */
-export async function getUserCoreThings(userToGet: string): Promise<getUserCoreThings> {
+export async function findOrCreateUser(identifier: string): Promise<I_findOrCreateUser> {
 	try {
-		// Initialize the database connection.
-		await AppDataSource.initialize();
-
-		// Find the user record in the database.
-		let userCoreRepo = await AppDataSource.manager.findOne(User.Core, {
-			where: {
-				discord_id: userToGet,
-			},
+		// Get the user first.
+		let userInfo = await AppDataSource.manager.findOne(User.Core, {
+			where: [{ uuid: identifier }, { discord_id: identifier }],
+			relations: ['userLevel', 'userCurrency'],
 		});
 
-		let userLevelRepo, userMoneyRepo;
+		// If no user was found AND if the identifier is not a UUID, create a new user.
+		if (!userInfo && !checkUUID(identifier)) {
+			userInfo = new User.Core();
+			userInfo.discord_id = identifier;
+			userInfo = await AppDataSource.manager.save(User.Core, userInfo);
 
-		// If the user record doesn't exist, create a new one.
-		if (!userCoreRepo) {
-			const userCore = new User.Core();
-			userCore.discord_id = userToGet;
-			userCoreRepo = await AppDataSource.manager.save(userCore);
-
-			const userLevel = new User.Level();
-			userLevel.uuid = userCoreRepo.uuid;
-			await AppDataSource.manager.save(userLevel);
-
-			const userMoney = new User.Currency();
-			userMoney.uuid = userCoreRepo.uuid;
-			await AppDataSource.manager.save(userMoney);
+			// After saving, the trigger creates Currency and Level entries.
+			// We need to therefore reload the User.Core from the database.
+			userInfo = await AppDataSource.manager.findOne(User.Core, {
+				where: [{ uuid: identifier }, { discord_id: identifier }],
+				relations: ['userLevel', 'userCurrency'],
+			});
 		}
 
-		// Find the level and currency records for the user.
-		userLevelRepo = await AppDataSource.manager.findOne(User.Level, {
+		if (!userInfo) {
+			return {
+				data: "User not found.",
+				error: true,
+			};
+		}
+
+		const { userLevel, userCurrency } = userInfo;
+
+		const levelName = await AppDataSource.manager.findOne(User.LevelName, {
 			where: {
-				uuid: userCoreRepo.uuid,
+				min_level: LessThanOrEqual(userLevel.level),
+				max_level: MoreThanOrEqual(userLevel.level)
 			},
 		});
-		userMoneyRepo = await AppDataSource.manager.findOne(User.Currency, {
+		const prestigeName = await AppDataSource.manager.findOne(User.PrestigeName, {
 			where: {
-				uuid: userCoreRepo.uuid,
+				min_level: LessThanOrEqual(userLevel.prestige),
+				max_level: MoreThanOrEqual(userLevel.prestige)
 			},
 		});
-		// These should never happen, as they literally can't exist wihtout a user, but TS is screaming at me, so.
-		if (!userLevelRepo) {
-			throw new Error("Level not found.");
-		}
-		if (!userMoneyRepo) {
-			throw new Error("Currency not found.");
-		}
-
-		// Close the database connection.
-		await AppDataSource.destroy();
 
 		return {
-			msg: "",	// Temporory until i find better way. Because only catch will send this param.
 			data: {
-				core: userCoreRepo,
-				level: userLevelRepo,
-				currency: userMoneyRepo,
-			}
+				uuid: userInfo.uuid,
+				displayName: userInfo.display_name,
+				discordID: userInfo.discord_id,
+				joinedAt: userInfo.joined_at,
+				common: userCurrency.common,
+				premium: userCurrency.premium,
+				level: userLevel.level,
+				prestige: userLevel.prestige,
+				xp: userLevel.xp,
+				xpToLevel: userLevel.xp_to_level,
+				levelName: levelName ? levelName.title : "Unknown",
+				prestigeName: prestigeName ? prestigeName.title : "Unknown",
+			},
 		};
 	} catch (e: any) {
 		console.error(e);
 		return {
-			msg: "It seems something didn't work out.",
+			data: "It seems something didn't work out.",
 			error: true,
 		};
 	}

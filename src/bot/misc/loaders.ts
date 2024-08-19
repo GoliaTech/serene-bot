@@ -13,6 +13,8 @@ export const commands = new Collection<string, any>();
  * It should then return the collection of commands.
  */
 export function loadCommands(discordClient?: ClientExtended) {
+	// A quick counter.
+	let commandsCounter: number = 0;
 	// This is the path for the commands folder.
 	const commandsFolderPath = path.join(__dirname, "../commands");
 	// The commands folder.
@@ -35,6 +37,7 @@ export function loadCommands(discordClient?: ClientExtended) {
 			// Remember: in is for index.
 			for (const cmd of command) {
 				try {
+					commandsCounter++;
 					if (discordClient) {
 						discordClient.commands.set(cmd.data.name, cmd);
 					} else {
@@ -54,6 +57,7 @@ export function loadCommands(discordClient?: ClientExtended) {
 			// } catch (problem) { console.error(problem); }
 		}
 	}
+	console.log("Commands/limit: ", commandsCounter, "/100");
 	return commands;
 }
 

@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { commandBuilder, embedBuilder } from "../../misc/builders";
 import { Command, EmbedColors } from "../../../utilities/interface";
-import { getUserCoreThings } from "../../../database/dao/user";
+import { findOrCreateUser, I_findOrCreateUser } from "../../../database/dao/user";
 
 // This is still under testing.
 // We could totally just do export, but I want to prepare for possible additional stuff.
@@ -22,22 +22,26 @@ const user: Command = {
 
 		const embed = embedBuilder("Profile");
 
-		const response = await getUserCoreThings(userToGet);
+		const response: I_findOrCreateUser = await findOrCreateUser(userToGet);
 		if (response.error) {
 			embed
 				.setColor(EmbedColors.error)
-				.setDescription(response.msg);
+				.setDescription(String(response.data));
 			interaction.reply({ embeds: [embed] });
 			return;
 		}
 
 		// Sanitize the response.
 		let user = "";
-		if (response.data?.core.display_name) { user = "**Display name:** " + response.data.core.display_name + "\n"; }
-		user += `**Level:** ${response.data?.level.level}\n`;
-		user += `**Prestige:** ${response.data?.level.prestige}\n`;
-		user += `**XP:** ${response.data?.level.xp} | **XP to level:** ${response.data?.level.xp_to_level}\n`;
-		user += `**Common money:** ${response.data?.currency.common} | **Premium money:** ${response.data?.currency.premium}`;
+		if (typeof (response.data) == "object") {
+			if (response.data.displayName) { user = "**Display name:** " + response.data.displayName + "\n"; }
+			user += `**${response.data.levelName}**\n`;
+			user += `**Level:** ${response.data.level}\n`;
+			user += `**${response.data.prestigeName}**\n`;
+			user += `**Prestige:** ${response.data.prestige}\n`;
+			user += `**XP:** ${response.data.xp} | **XP to level:** ${response.data.xpToLevel}\n`;
+			user += `**Common money:** ${response.data.common} | **Premium money:** ${response.data.premium}`;
+		}
 
 		embed
 			.setDescription(user);

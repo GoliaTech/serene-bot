@@ -142,7 +142,7 @@ async function startBot() {
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 
 		if (start == false) {
-			console.info(await performDatabaseStuff());
+			// console.info(await performDatabaseStuff());
 		}
 		else if (start) {
 			// This is a managed that handles the shards and sharding events.

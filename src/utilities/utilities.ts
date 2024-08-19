@@ -3,7 +3,8 @@ import { nodeEnvEnumType } from "./interface";
 /**
  * This code handles setting the process.env.NODE_ENV to the correct one.
  * This is necessary as the rest of the program requires a properly functioning process.env.NODE_ENV to work right.
- * @param overwrite - If you want to overwrite the value.
+ * @param {nodeEnvEnumType}overwrite - If you want to overwrite the value.
+ * @returns {string} Either "development" or "production".
  */
 export function nodeEnv(overwrite?: nodeEnvEnumType) {
 	try {
@@ -68,7 +69,7 @@ export function getToken() {
 
 /**
  * Setting this to :never fixes the issue in getToken where it thought it would be returning void.
- * @param error The error message
+ * @param {string} error The error message
  * @throws {Error}
  */
 export function handleTokenError(error: string): never {
@@ -98,6 +99,10 @@ export function getExecArgv(): string[] {
 	];
 }
 
+/**
+ * This automatically checks whether you should provide the DEV App ID or not.
+ * @returns {string} The correct App ID.
+ */
 export function getAppId() {
 	// This skips getting the token if it is already set.
 	if (process.env.APPID != "" && process.env.APPID != undefined) {
@@ -117,6 +122,10 @@ export function getAppId() {
 	return token;
 }
 
+/**
+ * This checks whether we should use DEV Guild ID or not.
+ * @returns {string} The correct Guild ID
+ */
 export function getGuildId() {
 	// This skips getting the token if it is already set.
 	if (process.env.GUILDID != "" && process.env.GUILDID != undefined) {
@@ -134,4 +143,14 @@ export function getGuildId() {
 	}
 
 	return token;
+}
+
+/**
+ * This will check if the identifier is UUID or Discord ID.
+ * @param {string} identifier Either UUID or Discord ID.
+ * @returns {boolean} True or false, whether the identifier was UUID or not.
+ */
+export function checkUUID(identifier: string): boolean {
+	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+	return uuidRegex.test(identifier);
 }

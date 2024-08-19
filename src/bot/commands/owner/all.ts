@@ -30,7 +30,8 @@ const allCards: Command = {
 		"cards",
 		"Get all the cards.",
 		{
-			dm: true
+			dm: true,
+			owner: true
 		},
 	),
 	async execute(interaction: ChatInputCommandInteraction) {
