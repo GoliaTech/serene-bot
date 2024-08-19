@@ -3,10 +3,8 @@ import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
 import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
 import { loadCommands } from "./bot/misc/loaders";
-import { AppDataSource } from "./database/datasource";
-import { User } from "./database/entity/index";
-import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { findOrCreateUser } from "./database/dao/user";
+import { findAllCharacters } from "./database/dao/character";
 
 require("dotenv").config();
 
@@ -74,11 +72,14 @@ function handleShardDeath(shard: Shard) {
 async function performDatabaseStuff() {
 	const userId = process.env.OWNER_ID || "289098255038676992";
 
-	const response = await findOrCreateUser(userId);
-	if (response.error) {
-		console.log(response.data);
-	}
-	return response.data;
+	// const response = await findOrCreateUser(userId);
+	// if (response.error) {
+	// 	console.log(response.data);
+	// }
+	// return response.data;
+
+	const response = await findAllCharacters();
+	console.log(response);
 }
 
 /**

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource, DefaultNamingStrategy, NamingStrategyInterface } from "typeorm";
-import { Card, User } from "./entity/index";
+import { Card, RPG, User } from "./entity/index";
 import { nodeEnv } from "../utilities/utilities";
 require("dotenv").config();
 
@@ -42,7 +42,10 @@ export const AppDataSource = new DataSource({
 		User.PrestigeName,
 		Card.Core,
 		Card.Set,
-		Card.Rewards
+		Card.Rewards,
+		RPG.CharacterCore,
+		RPG.Class,
+		RPG.Race
 	],
 	subscribers: [],
 	migrations: [],

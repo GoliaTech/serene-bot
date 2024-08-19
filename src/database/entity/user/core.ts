@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, OneToOne } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, OneToOne, OneToMany } from "typeorm";
 import { UserLevel } from "./level";
 import { UserCurrency } from "./currency";
+import { CharacterCore } from "../rpg/characterCore";
 
 /**
  * User Core
@@ -18,8 +19,11 @@ export class UserCore {
 	discord_id!: string;
 	@CreateDateColumn({ type: "timestamp" })
 	joined_at!: Date;
+	// Relations to other tables.
 	@OneToOne(() => UserLevel, (userLevel) => userLevel.userCore)
 	userLevel!: UserLevel;
 	@OneToOne(() => UserCurrency, (userLevel) => userLevel.userCore)
 	userCurrency!: UserCurrency;
+	@OneToMany(() => CharacterCore, (characters) => characters.userCore)
+	characters!: CharacterCore[];
 };

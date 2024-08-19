@@ -1,9 +1,8 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { CharacterCore } from "./characterCore";
 
-
-@Entity({ name: "rpg_race" })
-export class Race {
+@Entity({ name: "rpg_class" })
+export class Class {
 	@PrimaryGeneratedColumn("increment")
 	id!: number;
 	@Column({ type: "varchar", length: 64 })
@@ -30,7 +29,7 @@ export class Race {
 	wisdom!: number;
 	@Column({ type: "int", default: 0 })
 	endurance!: number;
-	// Relations.
+	// Relations
 	@OneToMany(() => CharacterCore, (characterCore) => characterCore.class)
 	characters!: CharacterCore[];
-}
+};

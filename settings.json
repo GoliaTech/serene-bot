@@ -1,0 +1,243 @@
+{
+	"emojis": [
+		{
+			"keywords": [
+				"sugar",
+				"soogar",
+				"soupgar"
+			],
+			"emojis": [
+				"🧋",
+				"🍬",
+				"🍫",
+				"🍭"
+			]
+		},
+		{
+			"keywords": [
+				"sketch"
+			],
+			"emojis": [
+				"🧋",
+				"🍬",
+				"🍫",
+				"🍭"
+			]
+		},
+		{
+			"keywords": [
+				"serene"
+			],
+			"emojis": [
+				"🧋",
+				"🍬",
+				"🍫",
+				"🍭"
+			]
+		},
+		{
+			"keywords": [
+				"speckles"
+			],
+			"emojis": [
+				"🦌"
+			]
+		},
+		{
+			"keywords": [
+				"wat"
+			],
+			"emojis": [
+				"🤨",
+				"🤌"
+			]
+		},
+		{
+			"keywords": [
+				"mamma",
+				"mario"
+			],
+			"emojis": [
+				"🤌"
+			]
+		},
+		{
+			"keywords": [
+				"slep"
+			],
+			"emojis": [
+				"😴"
+			]
+		},
+		{
+			"keywords": [
+				"wheeze",
+				"lmao",
+				"lol",
+				"lul",
+				"lel",
+				"kek"
+			],
+			"emojis": [
+				"🤣"
+			]
+		},
+		{
+			"keywords": [
+				"nom",
+				"noms"
+			],
+			"emojis": [
+				"❤️"
+			]
+		},
+		{
+			"keywords": [
+				"bite"
+			],
+			"emojis": [
+				"😈",
+				"❤️"
+			]
+		},
+		{
+			"keywords": [
+				"lick"
+			],
+			"emojis": [
+				"😛"
+			]
+		},
+		{
+			"keywords": [
+				"butt",
+				"booty"
+			],
+			"emojis": [
+				"❤️"
+			]
+		},
+		{
+			"keywords": [
+				"angery",
+				"amgry"
+			],
+			"emojis": [
+				"😡"
+			]
+		},
+		{
+			"keywords": [
+				"choco",
+				"coco"
+			],
+			"emojis": [
+				"☕"
+			]
+		},
+		{
+			"keywords": [
+				"kiss",
+				"smooch"
+			],
+			"emojis": [
+				"❤️"
+			]
+		},
+		{
+			"keywords": [
+				"morning"
+			],
+			"emojis": [
+				[
+					"❤️",
+					"👋"
+				]
+			]
+		},
+		{
+			"keywords": [
+				"cookie"
+			],
+			"emojis": [
+				"🍪",
+				"🥠"
+			]
+		},
+		{
+			"keywords": [
+				"cake"
+			],
+			"emojis": [
+				"🍰",
+				"🥮",
+				"🍥",
+				"🧁"
+			]
+		},
+		{
+			"keywords": [
+				"cupcake"
+			],
+			"emojis": [
+				"🧁"
+			]
+		},
+		{
+			"keywords": [
+				"muffin"
+			],
+			"emojis": [
+				"🧁"
+			]
+		},
+		{
+			"keywords": [
+				"rich",
+				"money",
+				"moni"
+			],
+			"emojis": [
+				"💸",
+				"💰",
+				"🤑",
+				"💵",
+				"💳",
+				"💎"
+			]
+		},
+		{
+			"keywords": [
+				"coffee",
+				"c0ffee",
+				"c0ffie"
+			],
+			"emojis": [
+				"☕"
+			]
+		},
+		{
+			"keywords": [
+				"pepsi",
+				"isded"
+			],
+			"emojis": [
+				"⚰️",
+				"🪦",
+				"⚱️"
+			]
+		}
+	],
+	"presence": [
+		"Observing peasants.",
+		"Forcing taxes.",
+		"Receiving tithes.",
+		"Creating chaos!",
+		"Making sure frogs are poisonous.",
+		"Creating venomous snakes.",
+		"Using bleach instead of milk.",
+		"I need about tree fiddy. No I'm not loch ness monster.",
+		"Peasants... filthy, yet needed.",
+		"Do you have a pancake for me? I love panned cakes."
+	]
+}

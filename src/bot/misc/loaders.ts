@@ -1,9 +1,9 @@
 import path from "path";
 import fs from "fs";
-import { ClientExtended, I_Command } from "../../utilities/interface";
+import { ClientExtended, I_BotEvent, I_Command } from "../../utilities/interface";
 import { Collection } from "discord.js";
 
-export const commands = new Collection<string, any>();
+export const commands = new Collection<string, I_Command>();
 
 /**
  * This is still testing...
@@ -12,7 +12,7 @@ export const commands = new Collection<string, any>();
  * Then it will loop through each sub folder, get the files, and finally do something about it.
  * It should then return the collection of commands.
  */
-export function loadCommands(discordClient?: ClientExtended) {
+export function loadCommands(discordClient?: ClientExtended): Collection<string, I_Command> {
 	// A quick counter.
 	let commandsCounter: number = 0;
 	// This is the path for the commands folder.
@@ -66,11 +66,11 @@ export function loadCommands(discordClient?: ClientExtended) {
  * This loads event files inside ./src/events folder, file by file.
  * Then, it extracts the events inside each file.
  * Then it loops through them, adds them into an array and then returns that array of events.
- * @returns {any[]} - Well I just put ANY for now, but I will have to make an interface for this, or declaration.
+ * @returns {I_BotEvent[]} - Well I just put ANY for now, but I will have to make an interface for this, or declaration.
  */
 export function loadEvents() {
 	// The array with events to be returned.
-	const events = [];
+	const events: I_BotEvent[] = [];
 	// This is the folder PATH where the events are located.
 	const eventFolderPath = path.join(__dirname, "../events");
 	// This is to ensure that during development we are using .ts extension.
