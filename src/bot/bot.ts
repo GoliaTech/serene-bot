@@ -3,7 +3,6 @@ import { GatewayIntentBits } from "discord.js";
 import { ClientExtended } from "../utilities/interface";
 import { loadCommands, loadEvents } from "./misc/loaders";
 
-
 // For quick testing if commands or events load. I don't want to login every time you see.
 const login: boolean = true;
 

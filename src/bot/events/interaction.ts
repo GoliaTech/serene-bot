@@ -1,12 +1,12 @@
 import { Events } from "discord.js";
-import { BotEvent, CommandInteractionExtended, EmbedColors } from "../../utilities/interface";
+import { I_BotEvent, CommandInteractionExtended, EmbedColors } from "../../utilities/interface";
 import { commands } from "../misc/loaders";
 import { embedBuilder } from "../misc/builders";
 const embed = embedBuilder("Error", EmbedColors.error);
 /**
  * This is the main interaction function.
  */
-const interaction: BotEvent = {
+const interaction: I_BotEvent = {
 	name: Events.InteractionCreate,
 	/**
 	 * This is the execution for the interaction event.

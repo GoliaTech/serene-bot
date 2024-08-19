@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { commandBuilder, embedBuilder } from "../../misc/builders";
-import { Command } from "../../../utilities/interface";
+import { I_Command } from "../../../utilities/interface";
 import { Card } from "../../../database/entity/index";
 import { AppDataSource } from "../../../database/datasource";
 
@@ -25,7 +25,7 @@ async function performDatabase() {
 	}
 }
 
-const allCards: Command = {
+const allCards: I_Command = {
 	data: commandBuilder(
 		"cards",
 		"Get all the cards.",

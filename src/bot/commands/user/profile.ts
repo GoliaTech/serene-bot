@@ -1,11 +1,11 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { commandBuilder, embedBuilder } from "../../misc/builders";
-import { Command, EmbedColors } from "../../../utilities/interface";
+import { I_Command, EmbedColors } from "../../../utilities/interface";
 import { findOrCreateUser, I_findOrCreateUser } from "../../../database/dao/user";
 
 // This is still under testing.
 // We could totally just do export, but I want to prepare for possible additional stuff.
-const user: Command = {
+const user: I_Command = {
 	data: commandBuilder(
 		"profile",
 		"Get the profile of a user.",

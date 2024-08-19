@@ -32,13 +32,22 @@ export interface I_findOrCreateUser {
 export async function findOrCreateUser(identifier: string): Promise<I_findOrCreateUser> {
 	try {
 		// Get the user first.
+		await AppDataSource.initialize();
 		let userInfo = await AppDataSource.manager.findOne(User.Core, {
-			where: [{ uuid: identifier }, { discord_id: identifier }],
-			relations: ['userLevel', 'userCurrency'],
+			where: [{ discord_id: identifier }],
+			relations: ["userLevel", "userCurrency"],
 		});
 
+		// let userInfo = await AppDataSource.getRepository(User.Core)
+		// 	.createQueryBuilder("user")
+		// 	.where("user.uuid = :identifier", { identifier })
+		// 	.orWhere("user.discord_id = :identifier", { identifier })
+		// 	.leftJoinAndSelect("user.userLevel", "userLevel")
+		// 	.leftJoinAndSelect("user.userCurrency", "userCurrency")
+		// 	.getOne();
 		// If no user was found AND if the identifier is not a UUID, create a new user.
 		if (!userInfo && !checkUUID(identifier)) {
+			console.log("User not found. Creating new user.");
 			userInfo = new User.Core();
 			userInfo.discord_id = identifier;
 			userInfo = await AppDataSource.manager.save(User.Core, userInfo);
@@ -46,17 +55,19 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 			// After saving, the trigger creates Currency and Level entries.
 			// We need to therefore reload the User.Core from the database.
 			userInfo = await AppDataSource.manager.findOne(User.Core, {
-				where: [{ uuid: identifier }, { discord_id: identifier }],
-				relations: ['userLevel', 'userCurrency'],
+				where: [{ discord_id: identifier }],
+				relations: ["userLevel", "userCurrency"],
 			});
 		}
-
+		console.log("Identifier was not UUID and user not found.");
 		if (!userInfo) {
 			return {
 				data: "User not found.",
 				error: true,
 			};
 		}
+
+		console.log("user was found");
 
 		const { userLevel, userCurrency } = userInfo;
 
@@ -72,6 +83,8 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 				max_level: MoreThanOrEqual(userLevel.prestige)
 			},
 		});
+
+		await AppDataSource.destroy();
 
 		return {
 			data: {

@@ -6,187 +6,112 @@ import { nodeEnvEnum } from './interface';
 require("dotenv").config();
 
 /**
- * This will handle deploying the commands to the application (public) and to the development guild (if development)
- * @param development boolean
- * @returns
+ * The possible decisions the user can make.
  */
-async function deployCommands(development?: boolean) {
-	const commands = loadCommands();
-	if (!commands) {
-		throw new Error("Failed to load commands. Check 'loadCommands()' function and try again.");
-	}
+enum commandDecision {
+	deploy,
+	delete,
+	get
+}
 
-	const commandsSanitized = commands.map((command) => command.data.toJSON());
-
-	const token = getToken();
-	const clientID = getAppId();
-	const guildID = getGuildId();
-
-	const rest = new REST({ version: '10' }).setToken(token);
-
+/**
+ * This will handle the input of the user and do the correct thing, for the correct app.
+ * @param {string} development Either true or false
+ * @param {string} choice --deploy, --delete, --get
+ * @param {string} clientId Client ID
+ * @param {string} guildId Guild ID
+ * @param {string} rest REST
+ * @returns {Promise<void>} nothing.
+ */
+async function handleCommands(development: string, choice: commandDecision, clientId: string, guildId: string, rest: REST) {
 	try {
-		console.log("Started refreshing application (/) commands.");
-
-		if (development) {
-			await rest.put(
-				DiscordRoutes.applicationGuildCommands(clientID, guildID),
-				{ body: commandsSanitized },
-			);
-		} else {
-			await rest.put(
-				DiscordRoutes.applicationCommands(clientID),
-				{ body: commandsSanitized },
-			);
+		let commands, sanitizedCommands;
+		switch (choice) {
+			case commandDecision.get:
+				if (development == nodeEnvEnum.development) {
+					commands = await rest.get(DiscordRoutes.applicationGuildCommands(clientId, guildId));
+				}
+				else {
+					commands = await rest.get(DiscordRoutes.applicationCommands(clientId));
+				}
+				console.log(commands);
+				return;
+			case commandDecision.deploy:
+				commands = loadCommands();
+				if (!commands) {
+					throw new Error("Failed to load commands. Check 'loadCommands()' function and try again.");
+				}
+				sanitizedCommands = commands.map((command) => command.data.toJSON());
+				if (development == nodeEnvEnum.development) {
+					await rest.put(DiscordRoutes.applicationGuildCommands(clientId, guildId), { body: sanitizedCommands });
+				}
+				else {
+					await rest.put(DiscordRoutes.applicationCommands(clientId), { body: sanitizedCommands });
+				}
+				return;
+			case commandDecision.delete:
+				if (development == nodeEnvEnum.development) {
+					await rest.put(DiscordRoutes.applicationGuildCommands(clientId, guildId), { body: [] });
+					await rest.put(DiscordRoutes.applicationCommands(clientId), { body: [] });
+				}
+				else {
+					await rest.put(DiscordRoutes.applicationCommands(clientId), { body: [] });
+				}
+				return;
+			default:
+				throw new Error("You have provided invalid args. You should try --deploy, --delete or --get");
 		}
-
-		console.log("Successfully reloaded application (/) commands.");
-		return;
-	} catch (error) {
-		console.error(error);
-		process.exit(1);
+	} catch (e: any) {
+		throw new Error(e.message);
 	}
 }
 
 /**
- * This will handle deleting the commands from application (global) and from development guild if development boolean is provided.
- * Normally, you won't need to ever call it, because .put replaces all commands.
- * @param development boolean
- * @returns
- */
-async function deleteCommands(development?: boolean) {
-	const commands = loadCommands();
-	if (!commands) {
-		throw new Error("Failed to load commands. Check 'loadCommands()' function and try again.");
-	}
-	const token = getToken();
-	const clientID = getAppId();
-	const guildID = getGuildId();
-
-	const rest = new REST({ version: '10' }).setToken(token);
-
-	try {
-		console.log("Started refreshing application (/) commands.");
-
-		if (development) {
-			// You can't call delete. So you have to put [] empty array to remove all commands.
-			// Normally, uou won't have to ever call it, because .put replaces all commands.
-			await rest.put(
-				DiscordRoutes.applicationGuildCommands(clientID, guildID),
-				{ body: [], },
-			);
-			await rest.put(
-				DiscordRoutes.applicationCommands(clientID),
-				{ body: [], },
-			);
-		} else {
-			await rest.put(
-				DiscordRoutes.applicationGuildCommands(clientID, guildID),
-				{ body: [], },
-			);
-			await rest.put(
-				DiscordRoutes.applicationCommands(clientID),
-				{ body: [], },
-			);
-		}
-
-		console.log("Successfully reloaded application (/) commands.");
-		return;
-	} catch (error) {
-		console.error(error);
-		process.exit(1);
-	}
-}
-
-/**
- * Check what kind of commands are deployed.
- * @param development boolean
- * @returns 
- */
-async function getCommands(development?: boolean) {
-	let commands, guildCommands;
-
-	const token = getToken();
-	const clientID = getAppId();
-	const guildID = getGuildId();
-
-	const rest = new REST({ version: '10' }).setToken(token);
-
-	try {
-		console.log("Started refreshing application (/) commands.");
-
-		if (development) {
-			guildCommands = await rest.get(
-				DiscordRoutes.applicationGuildCommands(clientID, guildID),
-			);
-		} else {
-			commands = await rest.get(
-				DiscordRoutes.applicationCommands(clientID),
-			);
-		}
-
-		console.log("COMMANDS:", commands);
-		console.log("GUILD COMMANDS:", guildCommands);
-		return;
-	} catch (error) {
-		console.error(error);
-		process.exit(1);
-	}
-}
-
-/**
- * This is the entry to the file, it handles the args provided and calls the right function.
+ * This handles and sanitizes the user input.
  */
 async function handleUserInput() {
+	// Sanitize the args.
 	const args = process.argv.slice(2);
 
 	// Handle if we have provided any args.
 	if (!args) {
-		console.error("You have not provided any args.");
-		process.exit(1);
+		throw new Error("You have not provided any args.");
 	}
 
+	// List all possible arguments that we can parse.
 	const possibleArgs = ["-D", "-P", "--deploy", "--delete", "--get"];
 
 	// Check if the args provided match any valid args.
 	if (!args.find(arg => possibleArgs.includes(arg))) {
-		console.error(`You have provided invalid args. You should try ${possibleArgs.join(", ")}`);
-		process.exit(1);
+		throw new Error(`You have provided invalid args. You should try ${possibleArgs.join(", ")}`);
 	}
 
-	// Development.
-	if (args.includes("-D")) {
-		process.env.NODE_ENV = nodeEnv(nodeEnvEnum.development);
-		if (args.includes("--deploy")) {
-			await deployCommands(true);
-		} else if (args.includes("--delete")) {
-			await deleteCommands(true);
-		} else if (args.includes("--get")) {
-			await getCommands(true);
-		} else {
-			console.error(`You most likely provided too many argunents. Try again using ${possibleArgs.join(", ")}`);
-			process.exit(0);
-		}
+	// Define our little important strings.
+	if (args.includes("-D")) { process.env.NODE_ENV = nodeEnv(nodeEnvEnum.development); }
+	else if (args.includes("-P")) { process.env.NODE_ENV = nodeEnv(nodeEnvEnum.production); }
+	else { throw new Error("You provided both -D and -P. You should only provide one."); }
+	const token = getToken();
+	const clientID = getAppId();
+	const guildID = getGuildId();
+
+	// Define the REST client thingy to be used in the commands. 
+	const rest = new REST({ version: "10" }).setToken(token);
+
+	if (args.includes("--deploy")) {
+		await handleCommands(process.env.NODE_ENV, commandDecision.deploy, clientID, guildID, rest);
+	} else if (args.includes("--delete")) {
+		await handleCommands(process.env.NODE_ENV, commandDecision.delete, clientID, guildID, rest);
+	} else if (args.includes("--get")) {
+		await handleCommands(process.env.NODE_ENV, commandDecision.get, clientID, guildID, rest);
+	} else {
+		throw new Error("You have provided too many args. You should try --deploy, --delete or --get");
 	}
-	// Public.
-	else if (args.includes("-P")) {
-		process.env.NODE_ENV = nodeEnv(nodeEnvEnum.production);
-		if (args.includes("--deploy")) {
-			await deployCommands(false);
-		} else if (args.includes("--delete")) {
-			await deleteCommands(false);
-		} else if (args.includes("--get")) {
-			await getCommands(true);
-		} else {
-			console.error(`You most likely provided too many argunents. Try again using ${possibleArgs.join(", ")}`);
-			process.exit(0);
-		}
-	}
-	// If you provided both.
-	else {
-		console.error("You most likely provided both '-D' and '-P'. Try again.");
-		process.exit(0);
-	}
+
+	// We're done here.
 	process.exit(0);
 }
 
-handleUserInput();
+// Run it as async/await.
+(async () => {
+	await handleUserInput();
+})();

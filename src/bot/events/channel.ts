@@ -1,7 +1,7 @@
 import { Events, Channel } from "discord.js";
-import { BotEvent } from "../../utilities/interface";
+import { I_BotEvent } from "../../utilities/interface";
 
-const channelCreate: BotEvent = {
+const channelCreate: I_BotEvent = {
 	name: Events.ChannelCreate,
 	execute(channel: Channel) {
 		console.log(`[${new Date().toUTCString()}] - Channel ${channel.id} created`);

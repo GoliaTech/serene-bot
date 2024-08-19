@@ -22,4 +22,7 @@ export class UserLevel {
   @OneToOne(() => UserCore, { onDelete: "CASCADE" })
   @JoinColumn({ name: "uuid" })
   userCore!: UserCore;
+  // @OneToOne(() => UserCore, (userCore) => userCore.userLevel, { onDelete: "CASCADE" })
+  // @JoinColumn({ name: "uuid" })
+  // userCore!: UserCore;
 };

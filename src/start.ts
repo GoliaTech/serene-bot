@@ -6,11 +6,12 @@ import { loadCommands } from "./bot/misc/loaders";
 import { AppDataSource } from "./database/datasource";
 import { User } from "./database/entity/index";
 import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
+import { findOrCreateUser } from "./database/dao/user";
 
 require("dotenv").config();
 
 // whether we should actually start the program.
-const start: boolean = false;
+const start: boolean = true;
 
 // Initialize shards collection.
 const shards: Collection<number, Shard> = new Collection();
@@ -31,7 +32,7 @@ async function killShards() {
 
 /**
  * This handles the setting up of the shards.
- * @param manager Parse the manager function here from startBot()
+ * @param {ShardingManager} manager Parse the manager function here from startBot()
  */
 function setupShardEvents(manager: ShardingManager) {
 	manager.on("shardCreate", (...args: [shard: Shard]) => {
@@ -42,7 +43,7 @@ function setupShardEvents(manager: ShardingManager) {
 
 /**
  * This handles recurring shard events.
- * @param managedShards parse managedShards object here from startBot().
+ * @param {Collection<number, Shard>} managedShards parse managedShards object here from startBot().
  */
 function watchShardEvents(managedShards: Collection<number, Shard>) {
 	// For each Shard of managed shards.
@@ -63,7 +64,7 @@ function watchShardEvents(managedShards: Collection<number, Shard>) {
 
 /**
  * This will handle the death of a shard.
- * @param shard The shard object.
+ * @param {Shard} shard The shard object.
  */
 function handleShardDeath(shard: Shard) {
 	console.log(`Shard ${shard.id} died. Restarting...`);
@@ -72,49 +73,12 @@ function handleShardDeath(shard: Shard) {
 
 async function performDatabaseStuff() {
 	const userId = process.env.OWNER_ID || "289098255038676992";
-	await AppDataSource.initialize();
 
-	const userInfo = await AppDataSource.manager.findOne(User.Core, {
-		where: { discord_id: userId },
-		relations: ["userLevel", "userCurrency"],
-	});
-
-	if (!userInfo) {
-		throw new Error("User not found");
+	const response = await findOrCreateUser(userId);
+	if (response.error) {
+		console.log(response.data);
 	}
-
-	const { userLevel } = userInfo;
-	const { userCurrency } = userInfo;
-
-	const levelName = await AppDataSource.manager.findOne(User.LevelName, {
-		where: {
-			min_level: LessThanOrEqual(userLevel.level),
-			max_level: MoreThanOrEqual(userLevel.level)
-		},
-	});
-
-	// if(userLevel)
-	const prestigeName = await AppDataSource.manager.findOne(User.PrestigeName, {
-		where: {
-			min_level: LessThanOrEqual(userLevel.prestige),
-			max_level: MoreThanOrEqual(userLevel.prestige)
-		},
-	});
-
-	await AppDataSource.destroy();
-	return {
-		displayName: userInfo.display_name,
-		discordId: userInfo.discord_id,
-		joinedAt: userInfo.joined_at,
-		common: userCurrency.common,
-		premium: userCurrency.premium,
-		level: userLevel.level,
-		prestige: userLevel.prestige,
-		xp: userLevel.xp,
-		xpToLevel: userLevel.xp_to_level,
-		levelName: levelName ? levelName.title : 'Unknown',
-		prestigeName: prestigeName ? prestigeName.title : 'Unknown',
-	};
+	return response.data;
 }
 
 /**
@@ -142,7 +106,7 @@ async function startBot() {
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 
 		if (start == false) {
-			// console.info(await performDatabaseStuff());
+			console.info(await performDatabaseStuff());
 		}
 		else if (start) {
 			// This is a managed that handles the shards and sharding events.

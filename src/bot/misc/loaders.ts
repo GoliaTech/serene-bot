@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { ClientExtended, Command } from "../../utilities/interface";
+import { ClientExtended, I_Command } from "../../utilities/interface";
 import { Collection } from "discord.js";
 
 export const commands = new Collection<string, any>();
@@ -30,7 +30,7 @@ export function loadCommands(discordClient?: ClientExtended) {
 		// This will loop through --- the --- files, inside---- files???? Eh???
 		for (const file of files) {
 			const filePath = path.join(folderPath, file);
-			const command: Command[] = require(filePath);
+			const command: I_Command[] = require(filePath);
 			// I am so stupid. I forgot that I allowed multiple commands in a single file.
 			// Why? Well because modals or something could perhaps benefit from it, is what I'm thinking.
 			// We can loop through them no problem.

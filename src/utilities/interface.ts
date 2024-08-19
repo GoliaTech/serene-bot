@@ -30,7 +30,7 @@ export interface ClientExtended extends Client {
 /**
  * This is a Command interface, how it should look like. 
  */
-export interface Command {
+export interface I_Command {
 	data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
 	execute(interaction: ChatInputCommandInteraction): any;
 };
@@ -49,7 +49,7 @@ export class ClientExtended extends Client {
 /**
  * BotEvent interface. Handles how an event should look like.
  */
-export interface BotEvent {
+export interface I_BotEvent {
 	name: string;
 	execute(...args: any[]): any;
 	once?: boolean;
@@ -100,79 +100,3 @@ export enum CardRewardType {
 	"avatar" = "avatar",
 	"banner" = "banner"
 };
-
-/**
- * The set of a cards interface.
- */
-export interface CardSet {
-	id: number;
-	name: string;
-	tagline: string;
-	lore: string;
-	rarity: CardRarity;
-	border_image: string;
-	cover_image: string;
-	cards: CardCore[];
-	rewards: CardRewards[];
-};
-
-/**
- * This is how a core of the card looks like.
- */
-export interface CardCore {
-	id: number;
-	name: string;
-	tagline: string;
-	lore: string;
-	set: CardSet;
-	release_date: Date;
-	rarity: CardRarity;
-	border_image: string;
-	image_path: string;
-	artist_name: string;
-	artist_link: string;
-	value: number;
-	value_type: CardValueType;
-};
-
-/**
- * The card rewards interface.
- */
-export interface CardRewards {
-	reward_id: number;
-	set: CardSet;
-	reward_type: CardRewardType;
-	reward_value: number;
-};
-
-/**
- * This is how a UserCore looks like.
- */
-export interface UserCore {
-	uuid: string;
-	display_name: string | undefined;
-	discord_id: string;
-	joined_at: Date;
-};
-
-/**
- * This is how a UserCurrency looks like.
- */
-export interface UserCurrency {
-	uuid: string;
-	core: UserCore;
-	common: number;
-	premium: number;
-}
-
-/**
- * This is how a UserLevel looks like.
- */
-export interface UserLevel {
-	uuid: string;
-	core: UserCore;
-	level: number;
-	xp: number;
-	xp_to_level: number;
-	prestige: number;
-}

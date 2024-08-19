@@ -1,7 +1,7 @@
-import { Command } from "../../../utilities/interface";
+import { I_Command } from "../../../utilities/interface";
 import { commandBuilder } from "../../misc/builders";
 
-const characterCreation: Command = {
+const characterCreation: I_Command = {
 	data: commandBuilder(
 		"createcharacter",
 		"Create a new character. (WIP)",
@@ -17,3 +17,5 @@ const characterCreation: Command = {
 		return;
 	}
 };
+
+module.exports = [characterCreation];
