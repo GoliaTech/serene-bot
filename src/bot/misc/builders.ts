@@ -108,6 +108,7 @@ export function commandBuilder(
 };
 
 /**
+ * Use this builder to create replies to interactions and messages, as it includes some predefined stuff.
  * This will create an embed, with some default things. 
  * It is basically just EmbedBuilder just with some default stuff set.
  * @param title - Title of your embed.
@@ -116,6 +117,8 @@ export function commandBuilder(
  */
 export function embedBuilder(title: string, color?: EmbedColors) {
 	const embed = new EmbedBuilder({ title: title, timestamp: new Date(), footer: { text: "serene-bot" } });
+	// It looks ugly, ew.
+	// embed.setAuthor({ name: "Bot", url: "https://sucrosia.xyz:5050/" });
 	if (!color) {
 		embed.setColor(EmbedColors.default);
 	} else {
