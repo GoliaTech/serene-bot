@@ -1,12 +1,11 @@
 import "reflect-metadata";
 import { DataSource, DefaultNamingStrategy, NamingStrategyInterface } from "typeorm";
 import { Card, RPG, User } from "./entity/index";
-import { nodeEnv } from "../utilities/utilities";
+import { logInfo, nodeEnv } from "../utilities/utilities";
 require("dotenv").config();
 
-console.log("we are setting database options...");
 process.env.NODE_ENV = nodeEnv();
-console.log(process.env.NODE_ENV);
+logInfo(`We are setting database options within following NODE_ENV: [ ${process.env.NODE_ENV} ]`);
 
 const database = {
 	name: process.env.NODE_ENV == "development" ? process.env.DB_DEV_NAME : process.env.DB_PROD_NAME,
@@ -40,6 +39,7 @@ export const AppDataSource = new DataSource({
 		User.Currency,
 		User.LevelName,
 		User.PrestigeName,
+		User.Daily,
 		Card.Core,
 		Card.Set,
 		Card.Rewards,

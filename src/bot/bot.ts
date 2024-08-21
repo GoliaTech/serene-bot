@@ -2,6 +2,8 @@
 import { GatewayIntentBits } from "discord.js";
 import { ClientExtended } from "../utilities/interface";
 import { loadCommands, loadEvents } from "./misc/loaders";
+import { AppDataSource } from "../database/datasource";
+import { logError, logInfo } from "../utilities/utilities";
 
 // For quick testing if commands or events load. I don't want to login every time you see.
 const login: boolean = true;
@@ -63,27 +65,39 @@ async function bot() {
 			]
 		});
 
-		// This will test command stuff.
-		const loadedCommands = loadCommands();
-		if (process.env.NODE_ENV === "development") { console.info(discordClient.commands); }
+		// This will load commands.
+		
+		loadCommands();
+		// if (process.env.NODE_ENV === "development") {
+		// 	console.log("DISCORDCLIENT.COMMANDS:\n", discordClient.commands);
+		// }
 
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
 		const loadedEvents = loadEvents();
-		if (process.env.NODE_ENV === "development") { console.info(loadedEvents); }
+		if (process.env.NODE_ENV === "development") {
+			console.log("LOADEVENTS:\n", loadedEvents);
+		}
 		eventHandlers(discordClient, loadedEvents);
 
 		if (login) {
+			await AppDataSource.initialize();
 			// I don't think we need a try here, but it is probably a smart idea to do it anyway.
 			try {
 				await discordClient.login(process.env.TOKEN);
-				console.log(`[${new Date().toUTCString()}] We started the bot!`);
-			} catch (err) { console.error("unable to login to client!!!", err); }
+				logInfo(`We started the bot for: [ ${process.env.NODE_ENV} ]`);
+			} catch (err) {
+				logError(`unable to login to client!!!${err}`);
+			}
 		} else {
 			process.exit(1);
 		}
-	} catch (e: any) { console.error(e); process.exit(1); }
+	} catch (e: any) {
+		console.error(e);
+		await AppDataSource.destroy();
+		process.exit(1);
+	}
 }
 
 // This will run the bot.

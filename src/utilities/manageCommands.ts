@@ -62,7 +62,8 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				throw new Error("You have provided invalid args. You should try --deploy, --delete or --get");
 		}
 	} catch (e: any) {
-		throw new Error(e.message);
+		console.error(e);
+		throw new Error();
 	}
 }
 

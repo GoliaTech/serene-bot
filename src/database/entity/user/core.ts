@@ -2,6 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, OneToOne, One
 import { UserLevel } from "./level";
 import { UserCurrency } from "./currency";
 import { CharacterCore } from "../rpg/characterCore";
+import { UserDaily } from "./daily";
 
 /**
  * User Core
@@ -26,4 +27,6 @@ export class UserCore {
 	userCurrency!: UserCurrency;
 	@OneToMany(() => CharacterCore, (characters) => characters.userCore)
 	characters!: CharacterCore[];
+	@OneToOne(() => UserDaily, (udaily) => udaily.userCore)
+	dailies!: UserDaily;
 };

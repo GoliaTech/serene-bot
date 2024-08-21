@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import { ClientExtended, I_BotEvent, I_Command } from "../../utilities/interface";
 import { Collection } from "discord.js";
+import { logError } from "../../utilities/utilities";
 
 export const commands = new Collection<string, I_Command>();
 
@@ -12,7 +13,7 @@ export const commands = new Collection<string, I_Command>();
  * Then it will loop through each sub folder, get the files, and finally do something about it.
  * It should then return the collection of commands.
  */
-export function loadCommands(discordClient?: ClientExtended): Collection<string, I_Command> {
+export function loadCommands(discordClient?: ClientExtended): Collection<string, I_Command> | void {
 	// A quick counter.
 	let commandsCounter: number = 0;
 	// This is the path for the commands folder.
@@ -22,6 +23,7 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 
 	// This will loop through all the sub folders inside the commands folder.
 	for (const folder of commandFolders) {
+		// console.log("we are looping through folder: ", folder);
 		// The path for the subfolder.
 		const folderPath = path.join(commandsFolderPath, folder);
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
@@ -29,13 +31,21 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 		const files = fs.readdirSync(folderPath).filter((file) => file.endsWith(`.${fileExtension}`));
 		// This will loop through --- the --- files, inside---- files???? Eh???
 		for (const file of files) {
+			// console.log("we are looping through file: ", file);
 			const filePath = path.join(folderPath, file);
+			// console.log("Filepath: ", filePath);
 			const command: I_Command[] = require(filePath);
+			// console.log("command: ", command);
+
+			if (Object.keys(command).length == 0) {
+				return logError(`WE can't iterate through a command, skipping...\nPath: ${filePath}`);
+			}
 			// I am so stupid. I forgot that I allowed multiple commands in a single file.
 			// Why? Well because modals or something could perhaps benefit from it, is what I'm thinking.
 			// We can loop through them no problem.
 			// Remember: in is for index.
 			for (const cmd of command) {
+				// console.log("cmd: ", cmd);
 				try {
 					commandsCounter++;
 					if (discordClient) {
@@ -43,7 +53,9 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 					} else {
 						commands.set(cmd.data.name, cmd);
 					}
-				} catch (problem: any) { console.error("There was a problem setting the command: ", problem); throw new Error(problem); }
+				} catch (problem: any) {
+					return logError(`There was a problem setting the command:\n${problem}`);
+				}
 			}
 
 			// This is for a single command, but we don't know if they have multiple commands or not. WE can check however.

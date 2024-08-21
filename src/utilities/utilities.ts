@@ -8,10 +8,10 @@ import { nodeEnvEnumType } from "./interface";
  */
 export function nodeEnv(overwrite?: nodeEnvEnumType) {
 	try {
-		console.log("Setting NODE_ENV");
+		logInfo("Setting process.env.NODE_ENV...");
 		// As this function is going to be reused, I want to make sure we are not overwriting previously set NODE_ENV in other parts of the code.
 		if (process.env.NODE_ENV != "" && process.env.NODE_ENV != undefined && process.env.NODE_ENV != "test") {
-			console.log("NODE_ENV already set: ", process.env.NODE_ENV);
+			logInfo(`NODE_ENV already set: ${process.env.NODE_ENV}`);
 			return process.env.NODE_ENV;
 		}
 
@@ -38,10 +38,10 @@ export function nodeEnv(overwrite?: nodeEnvEnumType) {
 			throw new Error("Invalid argument: expected '-P' or '-D'.");
 		}
 
-		console.log("NODE_ENV set to: ", env);
+		logInfo(`NODE_ENV set to: ${env}`);
 		return env;
 	} catch (e: any) { throw new Error(e.message); }
-}
+};
 
 /**
  * This checks what process.env.NODE_ENV you are running and returns correct bot token.
@@ -65,7 +65,7 @@ export function getToken() {
 	}
 
 	return token;
-}
+};
 
 /**
  * Setting this to :never fixes the issue in getToken where it thought it would be returning void.
@@ -74,7 +74,7 @@ export function getToken() {
  */
 export function handleTokenError(error: string): never {
 	throw new Error(`Environment variable ${error} is not set.`);
-}
+};
 
 /**
  * These are the shard's execution argument variables. 
@@ -97,7 +97,7 @@ export function getExecArgv(): string[] {
 		"-r",
 		"ts-node/register"
 	];
-}
+};
 
 /**
  * This automatically checks whether you should provide the DEV App ID or not.
@@ -116,11 +116,11 @@ export function getAppId() {
 	} else if (process.env.NODE_ENV === "development") {
 		token = process.env.DEV_APP_ID || handleTokenError("DEV_APP_ID");
 	} else {
-		throw new Error("Invalid NODE_ENV value: expected \"production\" or \"development\".");
+		throw new Error("Cannot get App ID!\nInvalid NODE_ENV value: expected \"production\" or \"development\".");
 	}
 
 	return token;
-}
+};
 
 /**
  * This checks whether we should use DEV Guild ID or not.
@@ -139,11 +139,11 @@ export function getGuildId() {
 	} else if (process.env.NODE_ENV === "development") {
 		token = process.env.DEV_GUILD_ID || handleTokenError("DEV_GUILD_ID");
 	} else {
-		throw new Error("Invalid NODE_ENV value: expected \"production\" or \"development\".");
+		throw new Error("Cannot get Guild ID!\nInvalid NODE_ENV value: expected \"production\" or \"development\".");
 	}
 
 	return token;
-}
+};
 
 /**
  * This will check if the identifier is UUID or Discord ID.
@@ -153,4 +153,39 @@ export function getGuildId() {
 export function checkUUID(identifier: string): boolean {
 	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 	return uuidRegex.test(identifier);
-}
+};
+
+/**
+ * This will log the error in the console in a nice way, including date and time.
+ * It starts with 2 line breaks and ends with 2 line breaks.
+ * You also have a line break before the error message, so don't add it at the start.
+ * @param {Error | string} error The error.
+ */
+export function logError(error: Error | string) {
+	if (error instanceof Error) {
+		console.error(`\n\n[${new Date().toLocaleString()}] - #### ERROR #### -\n${error.stack}\n\n`);
+	} else {
+		console.error(`\n\n[${new Date().toLocaleString()}] - #### ERROR #### -\n${error}\n\n`);
+	}
+	return;
+};
+
+/**
+ * This is a general log. Use it to nicely log stuff with date and time.
+ * It ends with 1 line break.
+ * You also have a line break before the message, so don't add it at the start.
+ * @param {string} message a message as a string.
+ */
+export function logGeneral(message: string) {
+	return console.log(`[${new Date().toLocaleString()}]\n${message}\n`);
+};
+
+/**
+ * This is a general log. Use it to nicely log stuff with date and time.
+ * It ends with 1 line break.
+ * You also have a line break before the message, so don't add it at the start.
+ * @param {string} message a message as a string.
+ */
+export function logInfo(message: string) {
+	return console.info(`[${new Date().toLocaleString()}] - ## INFO ## - \n${message}\n`);
+};

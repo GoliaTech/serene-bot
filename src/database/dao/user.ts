@@ -1,6 +1,6 @@
 import { User } from "../entity/index";
 import { AppDataSource } from "../datasource";
-import { checkUUID } from "../../utilities/utilities";
+import { checkUUID, logError } from "../../utilities/utilities";
 import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 
 
@@ -32,7 +32,7 @@ export interface I_findOrCreateUser {
 export async function findOrCreateUser(identifier: string): Promise<I_findOrCreateUser> {
 	try {
 		// Get the user first.
-		await AppDataSource.initialize();
+		// await AppDataSource.initialize();
 		let userInfo = await AppDataSource.manager.findOne(User.Core, {
 			where: [{ discord_id: identifier }],
 			relations: ["userLevel", "userCurrency"],
@@ -84,7 +84,7 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 			},
 		});
 
-		await AppDataSource.destroy();
+		// await AppDataSource.destroy();
 
 		return {
 			data: {
@@ -103,9 +103,9 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 			},
 		};
 	} catch (e: any) {
-		console.error(e);
+		logError(e);
 		return {
-			data: "It seems something didn't work out.",
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
 			error: true,
 		};
 	}

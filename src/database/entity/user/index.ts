@@ -3,3 +3,4 @@ export { PrestigeName } from "./prestigeName";
 export { LevelName } from "./levelName";
 export { UserLevel as Level } from "./level";
 export { UserCurrency as Currency } from "./currency";
+export { UserDaily as Daily } from "./daily"

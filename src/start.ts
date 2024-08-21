@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
-import { getToken, nodeEnv, getExecArgv } from "./utilities/utilities";
-import { loadCommands } from "./bot/misc/loaders";
+import { getToken, nodeEnv, getExecArgv, logInfo, logError } from "./utilities/utilities";
 import { findOrCreateUser } from "./database/dao/user";
 import { findAllCharacters } from "./database/dao/character";
+import { AppDataSource } from "./database/datasource";
 
 require("dotenv").config();
 
@@ -20,10 +20,10 @@ const shards: Collection<number, Shard> = new Collection();
 async function killShards() {
 	for (const shard of shards) {
 		try {
-			console.log(`Killing shard ${shard[1].id}`);
+			logInfo(`Killing shard ${shard[1].id}`);
 			shard[1].kill();
 		} catch (e) {
-			console.error("Unable to kill shard " + shard[1].id + "\n", e);
+			logError(`Unable to kill shard ${shard[1].id}\n${e}`);
 		}
 	}
 }
@@ -35,7 +35,7 @@ async function killShards() {
 function setupShardEvents(manager: ShardingManager) {
 	manager.on("shardCreate", (...args: [shard: Shard]) => {
 		shards.set(args[0].id, args[0]);
-		console.log(`Launched shard ${args[0].id}\n`);
+		logInfo(`Launched shard ${args[0].id}`);
 	});
 }
 
@@ -47,15 +47,15 @@ function watchShardEvents(managedShards: Collection<number, Shard>) {
 	// For each Shard of managed shards.
 	for (const shard of managedShards.values()) {
 		shard.on("death", () => handleShardDeath(shard));
-		shard.on("disconnect", () => console.log(`Shard ${shard.id} disconnected. Reconnecting...`));
-		shard.on("ready", () => console.log(`Shard ${shard.id} is ready.`));
-		shard.on("reconnecting", () => console.log(`Shard ${shard.id} is reconnecting...`));
-		shard.on("spawn", () => console.log(`Shard ${shard.id} spawned.`));
+		shard.on("disconnect", () => logInfo(`Shard ${shard.id} disconnected. Reconnecting...`));
+		shard.on("ready", () => logInfo(`Shard ${shard.id} is ready.`));
+		shard.on("reconnecting", () => logInfo(`Shard ${shard.id} is reconnecting...`));
+		shard.on("spawn", () => logInfo(`Shard ${shard.id} spawned.`));
 
 		// This is in case you want to see how many events have been resumed.
 		// We have to apply the shard.on even as any, in order for it to function.
 		(shard.on as any)("resume", (replayed: number) => {
-			console.log(`Shard ${shard.id} resumed. Replayed ${replayed} events.`);
+			logInfo(`Shard ${shard.id} resumed. Replayed ${replayed} events.`);
 		});
 	}
 }
@@ -65,22 +65,22 @@ function watchShardEvents(managedShards: Collection<number, Shard>) {
  * @param {Shard} shard The shard object.
  */
 function handleShardDeath(shard: Shard) {
-	console.log(`Shard ${shard.id} died. Restarting...`);
+	logInfo(`Shard ${shard.id} died. Restarting...`);
 	shards.delete(shard.id);
 }
 
-async function performDatabaseStuff() {
-	const userId = process.env.OWNER_ID || "289098255038676992";
+// async function performDatabaseStuff() {
+// 	const userId = process.env.OWNER_ID || "289098255038676992";
 
-	// const response = await findOrCreateUser(userId);
-	// if (response.error) {
-	// 	console.log(response.data);
-	// }
-	// return response.data;
+// 	// const response = await findOrCreateUser(userId);
+// 	// if (response.error) {
+// 	// 	console.log(response.data);
+// 	// }
+// 	// return response.data;
 
-	const response = await findAllCharacters();
-	console.log(response);
-}
+// 	const response = await findAllCharacters();
+// 	console.log(response);
+// }
 
 /**
  * This is the main starting point for the bot.
@@ -90,7 +90,7 @@ async function performDatabaseStuff() {
  */
 async function startBot() {
 	try {
-		console.log("We are now starting your bot...");
+		logInfo("We are now starting your bot...");
 		// First handle the environment.
 		process.env.NODE_ENV = nodeEnv();
 
@@ -107,7 +107,7 @@ async function startBot() {
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 
 		if (start == false) {
-			console.info(await performDatabaseStuff());
+			// console.info(await performDatabaseStuff());
 		}
 		else if (start) {
 			// This is a managed that handles the shards and sharding events.
@@ -118,9 +118,6 @@ async function startBot() {
 				totalShards: "auto"
 			});
 
-			// Load commands for all bots to use.
-			loadCommands();
-
 			// Start the setup shard events.
 			setupShardEvents(manager);
 
@@ -130,10 +127,12 @@ async function startBot() {
 			// Now watch for watch shard events.
 			watchShardEvents(managedShards);
 		} else {
+			await AppDataSource.destroy();
 			process.exit(1);
 		}
 	} catch (e: any) {
-		console.error(e);
+		logError(e);
+		await AppDataSource.destroy();
 		throw new Error(e.message);
 	}
 }
@@ -145,17 +144,20 @@ startBot();
 process.on("exit", async () => {
 	console.log("Got exit signal, quitting...");
 	await killShards();
+	await AppDataSource.destroy();
 	process.exit(1);
 });
 
 process.on("SIGTERM", async () => {
 	console.log("Got SIGTERM signal, quitting...");
 	await killShards();
+	await AppDataSource.destroy();
 	process.exit(1);
 });
 
 process.on("SIGKILL", async () => {
 	console.log("Got SIGKILL signal, quitting...");
 	await killShards();
+	await AppDataSource.destroy();
 	process.exit(1);
 });

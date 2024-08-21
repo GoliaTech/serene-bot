@@ -7,7 +7,7 @@ import { Class } from "./class";
 export class CharacterCore {
 	@PrimaryGeneratedColumn("uuid")
 	character_uuid!: string;
-	@Column({ type: "int" })
+	@Column({ type: "int", default: 0 })
 	character_id!: number;
 	@Column({ type: "varchar", length: 64 })
 	name!: string;
@@ -18,7 +18,7 @@ export class CharacterCore {
 	@ManyToOne(() => Race, (race) => race.characters)
 	@JoinColumn({ name: "race_id" })
 	race!: Race;
-	@ManyToOne(() => Race, (race) => race.characters)
+	@ManyToOne(() => Class, (rpgclass) => rpgclass.characters)
 	@JoinColumn({ name: "class_id" })
 	class!: Class;
 };

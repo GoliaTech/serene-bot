@@ -1,3 +1,4 @@
+import { logError } from "../../utilities/utilities";
 import { AppDataSource } from "../datasource";
 import { RPG } from "../entity";
 
@@ -9,9 +10,14 @@ export async function findAllClasses() {
 
 		await AppDataSource.destroy();
 
-		return classes;
+		return {
+			data: classes
+		};
 	} catch (e: any) {
-		console.error(e);
-		return "It didn't work";
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
 	}
 }

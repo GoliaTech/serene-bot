@@ -1,58 +1,73 @@
+import { logError } from "../../utilities/utilities";
 import { AppDataSource } from "../datasource";
 import { RPG } from "../entity";
 
-export async function findCharacter(identifier: string, characterID?: number) {
+export interface I_RPGCharacterResponse {
+	data: string | null | RPG.CharacterCore;
+	error?: boolean;
+}
+
+export interface I_RPGCharactersResponse {
+	data: RPG.CharacterCore[] | any;
+	error?: boolean;
+}
+
+export async function findCharacter(identifier: string, characterID: number) {
 	try {
 		await AppDataSource.initialize();
 
-		let character!: any[] | any;
-
-		// Find all their characters.
-		if (!characterID) {
-			character = await AppDataSource.manager.find(RPG.CharacterCore, {
-				where: {
-					userCore: {
-						discord_id: identifier,
-					}
+		const character = await AppDataSource.manager.findOne(RPG.CharacterCore, {
+			where: {
+				userCore: {
+					discord_id: identifier,
 				},
-				relations: ["userCore", "race", "class"],
-			});
-		} else {
-			character = await AppDataSource.manager.find(RPG.CharacterCore, {
-				where: {
-					userCore: {
-						discord_id: identifier,
-					},
-					character_id: characterID
-				},
-				relations: ["userCore", "race", "class"],
-			})
-		}
+				character_id: characterID
+			},
+			relations: ["race", "class"],
+		});
 
 		console.log(character);
 
 		await AppDataSource.destroy();
 
-		return character;
+		// Let the program handle whether we got null or not.
+		return {
+			data: character
+		};
 	} catch (e: any) {
-		console.error(e);
-		return "Ooops";
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
 	}
 }
 
-export async function findAllCharacters() {
+export async function findAllCharacters(identifier: string) {
 	try {
 		await AppDataSource.initialize();
 
-		const characters = await AppDataSource.manager.find(RPG.CharacterCore);
+		const characters = await AppDataSource.manager.find(RPG.CharacterCore, {
+			where: {
+				userCore: {
+					discord_id: identifier,
+				}
+			},
+			relations: ["race", "class"],
+		});
 
-		console.log(characters);
+		console.log("findAllCharacters:", characters);
 
 		await AppDataSource.destroy();
 
-		return characters;
+		return {
+			data: characters
+		};
 	} catch (e: any) {
-		console.error(e);
-		return "Ooops";
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
 	}
 }
