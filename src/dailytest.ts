@@ -1,10 +1,3 @@
-import { ChatInputCommandInteraction } from "discord.js";
-import { I_Command } from "../../../utilities/interface";
-import { commandBuilder } from "../../misc/builders";
-import { AppDataSource } from "../../../database/datasource";
-import { User } from "../../../database/entity";
-import { findOrCreateUser } from "../../../database/dao/user";
-
 enum rarities {
 	common = "common", uncommon = "uncommon", rare = "rare", epic = "epic", mythical = "mythical", legendary = "legendary", ancient = "ancient"
 };
@@ -17,9 +10,6 @@ enum lootboxKeys {
 	common = "common", rare = "rare", epic = "epic", mythical = "mythical", legendary = "legendary", ancient = "ancient"
 };
 
-/**
- * At one point, we will move the rewardPool into a database.
- */
 const rewardPool = {
 	"common": {
 		"common_currency": [100, 150, 200],
@@ -128,6 +118,40 @@ const rewardPool = {
 	}
 };
 
+type Reward = {
+	tier: rarities;
+	rewardType: rewardTypes;
+	reward: number | { type: string; amount: number; } | { rarity: lootboxKeys; amount: number; };
+};
+
+function generateRewards(count: number, multiplier: number): Reward[] {
+	const rewardsList: Reward[] = [];
+
+	for (let i = 0; i < count; i++) {
+		const tier = rarityRandom(multiplier) as keyof typeof rewardPool; // Determine the rarity tier
+
+		if (rewardPool[tier]) {
+			const rewardTypes = Object.keys(rewardPool[tier]) as Array<keyof typeof rewardPool[typeof tier]>;
+			const selectedRewardType = rewardTypes[Math.floor(Math.random() * rewardTypes.length)]; // Randomly select a reward type
+
+			const rewards = rewardPool[tier][selectedRewardType];
+
+			if (Array.isArray(rewards)) {
+				const selectedReward = rewards[Math.floor(Math.random() * rewards.length)]; // Randomly select a reward
+
+				// Push the reward into the rewardsList array
+				rewardsList.push({
+					tier: tier as rarities,
+					rewardType: selectedRewardType as rewardTypes,
+					reward: selectedReward
+				});
+			}
+		}
+	}
+
+	return rewardsList;
+}
+
 function rarityRandom(multiplier: number) {
 	let r = Math.floor(Math.random() * 10000);  // Generates a random number between 0 and 9999
 
@@ -152,156 +176,87 @@ function rarityRandom(multiplier: number) {
 
 	// Determine the reward based on adjusted thresholds.
 	if (r < thresholds.common) {
+		counters.common++;
 		return rarities.common;
 	} else if (r < thresholds.uncommon) {
+		counters.uncommon++;
 		return rarities.uncommon;
 	} else if (r < thresholds.rare) {
+		counters.rare++;
 		return rarities.rare;
 	} else if (r < thresholds.epic) {
+		counters.epic++;
 		return rarities.epic;
 	} else if (r < thresholds.mythical) {
+		counters.mythical++;
 		return rarities.mythical;
 	} else if (r < thresholds.legendary) {
+		counters.legendary++;
 		return rarities.legendary;
 	} else {
+		counters.ancient++;
 		return rarities.ancient;
 	}
 }
 
-type Reward = {
-	tier: rarities;
-	rewardType: rewardTypes;
-	reward: number | { type: string; amount: number; } | { rarity: lootboxKeys; amount: number; };
+enum loopType {
+	daily,
+	weekly,
+	monthly,
+}
+
+let counters = {
+	common: 0, uncommon: 0, rare: 0, epic: 0, mythical: 0, legendary: 0, ancient: 0
 };
 
-function generateRewards(count: number, multiplier: number): Reward[] {
-	const rewardsList: Reward[] = [];
-
-	for (let i = 0; i < count; i++) {
-		// Determine the rarity tier.
-		// A little complex, keyof typeof...
-		const tier = rarityRandom(multiplier) as keyof typeof rewardPool;
-
-		// Here we are checking which reward tier to randomly pick rewards from.
-		if (rewardPool[tier]) {
-			// This takes the object keys from that tier, and converts it to an array, as a type of rewardPool.
-			const rewardTypes = Object.keys(rewardPool[tier]) as Array<keyof typeof rewardPool[typeof tier]>;
-			// Randomly select a reward type
-			const selectedRewardType = rewardTypes[Math.floor(Math.random() * rewardTypes.length)];
-
-			// This selects what kind of rewards are possible.
-			const rewards = rewardPool[tier][selectedRewardType];
-
-			// If rewards is an array, we can randomly select a reward.
-			if (Array.isArray(rewards)) {
-				// Randomly select a reward
-				const selectedReward = rewards[Math.floor(Math.random() * rewards.length)];
-
-				// Push the reward into the rewardsList array.
-				rewardsList.push({
-					// Assign this the tier, reward type, and reward.
-					tier: tier as rarities,
-					rewardType: selectedRewardType as rewardTypes,
-					reward: selectedReward
-				});
-			}
-		}
+function loopDaily(loops: number, type: loopType) {
+	let chances: number = 0, multiplier: number = 0;
+	if (type == loopType.daily) {
+		chances = 3;
+		multiplier = 1;
+	} else if (type == loopType.weekly) {
+		chances = 5;
+		multiplier = 2;
+	} else if (type == loopType.monthly) {
+		chances = 7;
+		multiplier = 10;
 	}
 
-	// Finally return the list.
-	return rewardsList;
+	const rewards = [];
+	for (let i = 0; i < loops; i++) {
+		rewards.push(generateRewards(chances, multiplier));
+	}
+
+	return rewards;
 }
 
-async function distributeRewards(rewardsList: Reward[]) {
-	// This will have to communicate with database, so we need to do async/await.
-	console.log("Distributing WIP");
-	return;
+function getRewards(loops: number, type: loopType) {
+	const reply = loopDaily(loops, type);
+
+	const rewards = reply[0];
+
+	return rewards;
 }
 
-const daily: I_Command = {
-	data: commandBuilder(
-		"daily",
-		"Get your daily reward!",
-		{
-			dm: true
-		}
-	),
-	/**
-	 * This is the daily command.
-	 * @param interaction Discord interaction with command.
-	 * @returns Nothing actually
-	 */
-	async execute(interaction: ChatInputCommandInteraction) {
-		const now = new Date();
-
-		const userInfo = await findOrCreateUser(interaction.user.id);
-		// this should never happen, as that thing above finds OR creates a user.
-		if (!userInfo) { return; }
-
-		// If we couldnt create a user...
-		if (typeof (userInfo.data) == "string") { return; }
-
-		// Fetch user's daily table.
-		let userDaily = await AppDataSource.manager.findOne(User.Daily, {
-			where: {
-				uuid: userInfo.data.uuid,
-			},
-		});
-
-		// If no found. This should only happen once.
-		if (!userDaily) {
-			userDaily = new User.Daily();
-			// this if should never happen.
-			userDaily.uuid = userInfo.data.uuid;
-			await AppDataSource.manager.save(User.Daily, userDaily);
-			userDaily = await AppDataSource.manager.findOne(User.Daily, {
-				where: {
-					uuid: userInfo.data.uuid,
-				},
-			});
-		}
-
-		// This should never happen as we already tried to find, then created and found the user again.
-		if (!userDaily) { return; }
-
-		// Check if the user can claim their reward;
-		const lastClaimed = userDaily?.daily_timestamp ? new Date(userDaily.daily_timestamp) : null;
-		const nextClaim = lastClaimed ? new Date(lastClaimed.getTime() + 24 * 60 * 60 * 1000) : null;
-
-		// if (nextClaim && now < nextClaim) {
-		// 	return interaction.reply(`You can claim your next daily reward after ${nextClaim.toLocaleString()}.`);
-		// }
-
-		// Check if the streak continues or resets.
-		if (lastClaimed && now.getTime() - lastClaimed.getTime() > 36 * 60 * 60 * 1000) {
-			// This resets the streak if more than 36 hours have passed.
-			// That is, 24 to be able to claim, then 12 hours on top so the user has time to actually claim them.
-			userDaily.daily_streak = 0;
-		}
-
-		userDaily.daily_streak += 1;
-		userDaily.daily_timestamp = now;
-		await AppDataSource.manager.save(User.Daily, userDaily);
-
-		// Determine reward multipliers.
-		// God I love/hate modulo.
-		const isWeekly = userDaily.daily_streak % 7 == 0;
-		// Not exactly monthly.
-		const isMonthly = userDaily.daily_streak % 28 == 0;
-		// I love the ? : operand.
-		const multiplier = isMonthly ? 3 : isWeekly ? 2 : 1;
-		const rewardCount = isMonthly ? 7 : isWeekly ? 5 : 3;
-
-		// Generate rewards to be presented to the user.
-		const rewards = await generateRewards(rewardCount, multiplier);
-
-		// Save the reward to database.
-		await distributeRewards(rewards);
-
-		return interaction.reply(`Congrats. Here are your rewards:\n${rewards.map((reward: any) => `• ${reward.tier} ${reward.rewardType}: ${typeof (reward.rewards) == "number" ? reward.rewards : reward.rewards.amount}`).join("\n")}\nYour streak: ${userDaily.daily_streak}.`);
-	},
+export function testDaily() {
+	// Daily
+	const loops = 1;
+	console.log("DAILY");
+	const daily = getRewards(loops, loopType.daily);
+	console.log(counters);
+	console.log(daily);
+	counters = {
+		common: 0, uncommon: 0, rare: 0, epic: 0, mythical: 0, legendary: 0, ancient: 0
+	};
+	console.log("WEEKLY");
+	const weekly = getRewards(loops, loopType.weekly);
+	console.log(counters);
+	console.log(weekly);
+	counters = {
+		common: 0, uncommon: 0, rare: 0, epic: 0, mythical: 0, legendary: 0, ancient: 0
+	};
+	console.log("MONTHLY");
+	const monthly = getRewards(loops, loopType.monthly);
+	console.log(counters);
+	console.log(monthly);
 };
-
-module.exports = [
-	daily
-];
