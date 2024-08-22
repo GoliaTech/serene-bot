@@ -216,12 +216,12 @@ module.exports = [
 	daily
 ];
 
-const rewardsPool = [
-	{
-		rarity: "common",
-		{
+// const rewardsPool = [
+// 	{
+// 		rarity: "common",
+// 		{
 
-	}
-	}
-{ type: "common_currency", baseAmount: 100; },
-];
+// 	}
+// 	}
+// { type: "common_currency", baseAmount: 100; },
+// ];
