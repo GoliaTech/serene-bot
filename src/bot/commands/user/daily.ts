@@ -215,6 +215,7 @@ function generateRewards(count: number, multiplier: number): Reward[] {
 async function distributeRewards(rewardsList: Reward[]) {
 	// This will have to communicate with database, so we need to do async/await.
 	console.log("Distributing WIP");
+	console.info(rewardsList);
 	return;
 }
 
