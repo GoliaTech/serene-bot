@@ -5,6 +5,9 @@ import { AppDataSource } from "../../../database/datasource";
 import { User } from "../../../database/entity";
 import { findOrCreateUser } from "../../../database/dao/user";
 
+/**
+ * The card rarities.
+ */
 enum rarities {
 	"Common",
 	"Uncommon",
@@ -23,6 +26,11 @@ const daily: I_Command = {
 			dm: true
 		}
 	),
+	/**
+	 * This is the daily command.
+	 * @param interaction Discord interaction with command.
+	 * @returns Nothing actually
+	 */
 	async execute(interaction: ChatInputCommandInteraction) {
 		const now = new Date();
 
@@ -141,8 +149,23 @@ async function distributeRewards() {
 	console.log("we are distributing rewards :)");
 }
 
-function rarityRandom() {
-	const r = Math.floor(Math.random() * 10000);  // Generates a random number between 0 and 9999
+/**
+ * This will generate a random number between 0 and 9999.
+ * It will then see what number you got and get the appropriate rarity.
+ * @param {number} multiplier - The multiplier to adjust the random value.
+ * @returns {rarities}
+ */
+function rarityRandom(multiplier: number) {
+	let r = Math.floor(Math.random() * 10000);  // Generates a random number between 0 and 9999
+
+	// Adjust the thresholds based on the multiplier.
+	if (multiplier > 1) {
+		// The multiplier adjusts the random value.
+		// Do some math stuff basically.
+		r -= Math.floor(r * (0.1 * (multiplier - 1)));
+		// Ensure we don't go below 0.
+		r = Math.max(0, r);
+	}
 
 	if (r < 6000) {
 		// 60% chance
@@ -191,4 +214,14 @@ function customRandom() {
 
 module.exports = [
 	daily
+];
+
+const rewardsPool = [
+	{
+		rarity: "common",
+		{
+
+	}
+	}
+{ type: "common_currency", baseAmount: 100; },
 ];
