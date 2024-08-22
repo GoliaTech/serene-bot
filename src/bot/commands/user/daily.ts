@@ -299,7 +299,7 @@ const daily: I_Command = {
 		// Save the reward to database.
 		await distributeRewards(rewards);
 
-		return interaction.reply(`Congrats. Here are your rewards:\n${rewards.map((reward: any) => `• ${reward.tier} ${reward.rewardType}: ${typeof (reward.rewards) == "number" ? reward.rewards : reward.rewards.amount}`).join("\n")}\nYour streak: ${userDaily.daily_streak}.`);
+		return interaction.reply(`Congrats. Here are your rewards:\n${rewards.map((reward: any) => `• ${reward.tier} ${reward.rewardType}: ${reward.reward}`).join("\n")}\nYour streak: ${userDaily.daily_streak}.`);
 	},
 };
 
