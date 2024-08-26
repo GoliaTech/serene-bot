@@ -100,3 +100,7 @@ export enum CardRewardType {
 	"avatar" = "avatar",
 	"banner" = "banner"
 };
+
+export enum E_CurrencyTypes {
+	common, premium
+}

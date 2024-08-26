@@ -1,9 +1,9 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { I_Command } from "../../../utilities/interface";
+import { E_CurrencyTypes, I_Command } from "../../../utilities/interface";
 import { commandBuilder } from "../../misc/builders";
 import { AppDataSource } from "../../../database/datasource";
 import { User } from "../../../database/entity";
-import { findOrCreateUser } from "../../../database/dao/user";
+import { findOrCreateUser, userCurrencyIncrease, userLevelXpAdd } from "../../../database/dao/user";
 
 enum rarities {
 	common = "common", uncommon = "uncommon", rare = "rare", epic = "epic", mythical = "mythical", legendary = "legendary", ancient = "ancient"
@@ -212,10 +212,42 @@ function generateRewards(count: number, multiplier: number): Reward[] {
 	return rewardsList;
 }
 
-async function distributeRewards(rewardsList: Reward[]) {
+async function distributeRewards(rewardsList: Reward[], user: string) {
 	// This will have to communicate with database, so we need to do async/await.
 	console.log("Distributing WIP");
+
+	// The rewards.
 	console.info(rewardsList);
+
+	let common_currency: number = 0, premium_currency: number = 0, xp: number = 0, items: any = [];
+
+	rewardsList.map((r) => {
+		if (typeof (r.reward) == "number") {
+			if (r.rewardType == rewardTypes.common_currency) {
+				common_currency += r.reward;
+			} else if (r.rewardType == rewardTypes.premium_currency) {
+				premium_currency += r.reward;
+			} else if (r.rewardType == rewardTypes.xp) {
+				xp += r.reward;
+			}
+		} else {
+			items.push(r.reward);
+		}
+	});
+
+	console.log(`${common_currency} common_currency, ${premium_currency} premium_currency, ${xp} xp, ${items} items`);
+
+
+	if (common_currency > 0) {
+		await userCurrencyIncrease(user, E_CurrencyTypes.common, common_currency);
+	}
+	if (premium_currency > 0) {
+		await userCurrencyIncrease(user, E_CurrencyTypes.premium, premium_currency);
+	}
+	// if (xp > 0) {
+	// 	await userLevelXpAdd(user, xp);
+	// }
+	await userLevelXpAdd(user, 310);
 	return;
 }
 
@@ -249,7 +281,7 @@ const daily: I_Command = {
 			},
 		});
 
-		// If no found. This should only happen once.
+		// If no user found. This should only happen once.
 		if (!userDaily) {
 			userDaily = new User.Daily();
 			// this if should never happen.
@@ -269,9 +301,13 @@ const daily: I_Command = {
 		const lastClaimed = userDaily?.daily_timestamp ? new Date(userDaily.daily_timestamp) : null;
 		const nextClaim = lastClaimed ? new Date(lastClaimed.getTime() + 24 * 60 * 60 * 1000) : null;
 
-		// if (nextClaim && now < nextClaim) {
-		// 	return interaction.reply(`You can claim your next daily reward after ${nextClaim.toLocaleString()}.`);
-		// }
+		// This is reply, when you are not ready to claim.
+		const testing = true;
+		if (!testing) {
+			if (nextClaim && now < nextClaim) {
+				return interaction.reply(`You can claim your next daily reward after ${nextClaim.toLocaleString()}.`);
+			}
+		}
 
 		// Check if the streak continues or resets.
 		if (lastClaimed && now.getTime() - lastClaimed.getTime() > 36 * 60 * 60 * 1000) {
@@ -297,7 +333,7 @@ const daily: I_Command = {
 		const rewards = await generateRewards(rewardCount, multiplier);
 
 		// Save the reward to database.
-		await distributeRewards(rewards);
+		await distributeRewards(rewards, userInfo.data.discordID);
 
 		return interaction.reply(`Congrats. Here are your rewards:\n${rewards.map((reward: any) => `• ${reward.tier} ${reward.rewardType}: ${reward.reward}`).join("\n")}\nYour streak: ${userDaily.daily_streak}.`);
 	},
