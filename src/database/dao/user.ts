@@ -4,7 +4,9 @@ import { checkUUID, logError } from "../../utilities/utilities";
 import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { E_CurrencyTypes } from "../../utilities/interface";
 
-
+/**
+ * This is the return type of the findOrCreateUser function.
+ */
 export interface I_findOrCreateUser {
 	data: {
 		uuid: string,
@@ -112,6 +114,12 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 	}
 };
 
+/**
+ * This actually just finds the user currency. It doesn't create it, because a currency table is created when a new user is created.
+ * An SQL trigger ensures that.
+ * @param user Discord ID
+ * @returns Either error or data.
+ */
 export async function findOrCreateUserCurrency(user: string) {
 	try {
 		// Find it by discord id.
@@ -327,38 +335,74 @@ export async function userLevelXpAdd(user: string, amount: number) {
 		// 4. If our level up has let us go to max level, prestige.
 		// 5. If we have reached max prestige and max level, we should not get more XP.
 
-		do {
-			// first add the xp.
-			tempXP = xpToAdd;
-			// Check if we have overflowed.
+		// V2.
+		while (xpToAdd > 0) {
+			// First, add the XP.
+			tempXP += xpToAdd;
+
+			// Check if we have overflow.
 			if (tempXP >= nextXpTotal) {
 				// Calculate overflow.
-				xpOverflow = tempXP - nextXpTotal;
-				// Add the level.
+				xpToAdd = tempXP - nextXpTotal;
+				// Then reset the XP.
+				tempXP = 0;
+				// Add level.
 				userTemp.level++;
-				// Calculate how much XP we actually added.
-				xpAdded = tempXP - xpOverflow;
-				// Calculate new XP needed to level up more.
-				nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent);
-			}
 
-			// IF we have reached max level, get prestige and reset progress.
-			if (userTemp.level > maxLevel) {
-				userTemp.level = 1;
-				userTemp.prestige++;
-				nextXpTotal = baseXP;
+				// Now we check if we have reached max level.
+				if (userTemp.level > maxLevel) {
+					// Check if we have have not reached max prestige yet.
+					if (userTemp.prestige < maxPrestige) {
+						// Reset the level things, to get new prestige.
+						userTemp.level = 1;
+						userTemp.prestige++;
+						nextXpTotal = baseXP;
+					} else {
+						// Cap out at max level.
+						userTemp.level = maxLevel;
+						xpAdded = 0;
+					}
+				} else {
+					// Otherwise if we haven't, calculate XP needed for nex level.
+					nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent);
+				}
+			} else {
+				// No level up, just add the remaining XP and stop.
+				xpToAdd = 0;
 			}
-			xpToAdd -= xpAdded;
-		} while (xpToAdd > 0);
+		}
 
 		userTemp.xp = tempXP;
 		userTemp.xpNeeded = nextXpTotal;
 
-		console.log(`USERTEMP ${JSON.stringify(userTemp)}`);
+		// V1.
+		// do {
+		// 	// first add the xp.
+		// 	tempXP = xpToAdd;
+		// 	// Check if we have overflowed.
+		// 	if (tempXP >= nextXpTotal) {
+		// 		// Calculate overflow.
+		// 		xpOverflow = tempXP - nextXpTotal;
+		// 		// Add the level.
+		// 		userTemp.level++;
+		// 		// Calculate how much XP we actually added.
+		// 		xpAdded = tempXP - xpOverflow;
+		// 		// Calculate new XP needed to level up more.
+		// 		nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent);
+		// 	}
+
+		// 	// IF we have reached max level, get prestige and reset progress.
+		// 	if (userTemp.level > maxLevel) {
+		// 		userTemp.level = 1;
+		// 		userTemp.prestige++;
+		// 		nextXpTotal = baseXP;
+		// 	}
+		// 	xpToAdd -= xpAdded;
+		// } while (xpToAdd > 0);
+
+		await AppDataSource.manager.save(User.Level, userTemp);
 		return {
-			data: {
-				xp: amount,
-			}
+			data: userTemp,
 		};
 	} catch (e: any) {
 		logError(e);
