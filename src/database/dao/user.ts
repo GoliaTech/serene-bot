@@ -312,6 +312,7 @@ export async function userLevelXpAdd(user: string, amount: number) {
 			return userLevel;
 		}
 
+		// Set up temporary data.
 		let userTemp = userLevel.data;
 		let xpToAdd: number = amount,
 			tempXP: number = userTemp.xp,
@@ -319,15 +320,29 @@ export async function userLevelXpAdd(user: string, amount: number) {
 			xpOverflow: number = 0,
 			nextXpTotal: number = userTemp.xpNeeded;
 
+		// What we need to do:
+		// 1. Add XP.
+		// 2. If we have more XP than xp needed to level up, level up.
+		// 3. Calculate how much XP we actually added.
+		// 4. If our level up has let us go to max level, prestige.
+		// 5. If we have reached max prestige and max level, we should not get more XP.
+
 		do {
 			// first add the xp.
 			tempXP = xpToAdd;
+			// Check if we have overflowed.
 			if (tempXP >= nextXpTotal) {
+				// Calculate overflow.
 				xpOverflow = tempXP - nextXpTotal;
+				// Add the level.
 				userTemp.level++;
+				// Calculate how much XP we actually added.
 				xpAdded = tempXP - xpOverflow;
+				// Calculate new XP needed to level up more.
 				nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent);
 			}
+
+			// IF we have reached max level, get prestige and reset progress.
 			if (userTemp.level > maxLevel) {
 				userTemp.level = 1;
 				userTemp.prestige++;
