@@ -299,7 +299,11 @@ function exponentXpCalc(baseXP: number, level: number, exponent: number) {
 
 export async function userLevelXpAdd(user: string, amount: number) {
 	try {
-		const maxLevel: number = 200, maxPrestige: number = 200, baseXP: number = 100, exponent: number = 1.05, baseLevel: number = 1;
+		const maxLevel: number = 200,
+			maxPrestige: number = 200,
+			baseXP: number = 100,
+			exponent: number = 1.05,
+			baseLevel: number = 1;
 		const userLevel = await findOrCreateUserLevel(user);
 		if (!userLevel) {
 			return userLevel;
@@ -315,33 +319,21 @@ export async function userLevelXpAdd(user: string, amount: number) {
 			xpOverflow: number = 0,
 			nextXpTotal: number = userTemp.xpNeeded;
 
-		// we have to add XP.
-		// If we reach XP to next level, we give the user a level. 
-		// if there is still XP left to give, we give until none is left.
 		do {
 			// first add the xp.
-			console.log(`${tempXP} tempXP before xpToAdd`);
 			tempXP = xpToAdd;
-			console.log(`${tempXP} tempXP after xpToAdd`);
 			if (tempXP >= nextXpTotal) {
-				console.log(`tempXP higher or equal to NexXpTotal ${nextXpTotal}`);
 				xpOverflow = tempXP - nextXpTotal;
-				console.log(`${xpOverflow} xpOverflow = nextXpTotal - tempXP`);
 				userTemp.level++;
-				console.log("Level added");
 				xpAdded = tempXP - xpOverflow;
-				console.log(`${xpAdded} xpAdded = tempXP - xpOverflow`);
 				nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent);
-				console.log(`${nextXpTotal} nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent)`);
 			}
-			if(userTemp.level > maxLevel) {
+			if (userTemp.level > maxLevel) {
 				userTemp.level = 1;
 				userTemp.prestige++;
 				nextXpTotal = baseXP;
 			}
-			console.log(`xpToAdd before -= xpAdded ${xpToAdd}`);
 			xpToAdd -= xpAdded;
-			console.log(`xpToAdd after -= xpAdded ${xpToAdd}`);
 		} while (xpToAdd > 0);
 
 		userTemp.xp = tempXP;
