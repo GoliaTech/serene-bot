@@ -2,35 +2,14 @@ import { User } from "../entity/index";
 import { AppDataSource } from "../datasource";
 import { checkUUID, logError } from "../../utilities/utilities";
 import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
-import { E_CurrencyTypes } from "../../utilities/interface";
-
-/**
- * This is the return type of the findOrCreateUser function.
- */
-export interface I_findOrCreateUser {
-	data: {
-		uuid: string,
-		displayName: string,
-		discordID: string,
-		joinedAt: Date,
-		common: number,
-		premium: number,
-		level: number,
-		prestige: number,
-		xp: number,
-		xpToLevel: number,
-		levelName: string,
-		prestigeName: string;
-	} | string,
-	error?: boolean;
-};
+import { E_CurrencyTypes, I_addedItem, I_findOrCreateUser, Reward } from "../../utilities/interface";
 
 /**
  * This function performs database operations for a given user.
  * It initializes the database, finds or creates a user record,
  * and returns the user record.
  *
- * @param {string} identifier Either a UUID or Discord ID. We have a helper function that will check whether this is a UUID or not.
+ * @param {string} identifier Discord ID. We have a helper function that will check whether this is a UUID or not.
  */
 export async function findOrCreateUser(identifier: string): Promise<I_findOrCreateUser> {
 	try {
@@ -117,7 +96,7 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 /**
  * This actually just finds the user currency. It doesn't create it, because a currency table is created when a new user is created.
  * An SQL trigger ensures that.
- * @param user Discord ID
+ * @param {string} user Discord ID
  * @returns Either error or data.
  */
 export async function findOrCreateUserCurrency(user: string) {
@@ -154,6 +133,11 @@ export async function findOrCreateUserCurrency(user: string) {
 	}
 };
 
+/**
+ * This will find or create the user level.
+ * @param {string} user Discord ID
+ * @returns Either error or data.
+ */
 export async function findOrCreateUserLevel(user: string) {
 	try {
 		// Find it by discord id.
@@ -206,6 +190,13 @@ export async function findOrCreateUserLevel(user: string) {
 	}
 };
 
+/**
+ * This will increase a user's currency.
+ * @param {string} user Discord ID
+ * @param {E_CurrencyTypes} type a currency type.
+ * @param {number} amount The amount
+ * @returns Either error or data.
+ */
 export async function userCurrencyIncrease(user: string, type: E_CurrencyTypes, amount: number) {
 	try {
 		const commonCurrencyMaximum = 2000000000;
@@ -254,6 +245,13 @@ export async function userCurrencyIncrease(user: string, type: E_CurrencyTypes, 
 	}
 };
 
+/**
+ * This will decrease a user's currency.
+ * @param {string} user Discord ID
+ * @param {E_CurrencyTypes} type a currency type.
+ * @param {number} amount The amount
+ * @returns Either error or data.
+ */
 export async function userCurrencyDecrease(user: string, type: E_CurrencyTypes, amount: number) {
 	try {
 		const userCurrency = await findOrCreateUserCurrency(user);
@@ -300,11 +298,24 @@ export async function userCurrencyDecrease(user: string, type: E_CurrencyTypes, 
 	}
 };
 
+/**
+ * This will calculate the new XP needed.
+ * @param {number} baseXP Provide the current xpNeeded
+ * @param {number} level Provide the current level
+ * @param {number} exponent Provide the exponent wanted
+ * @returns {number} the new XP needed.
+ */
 function exponentXpCalc(baseXP: number, level: number, exponent: number) {
 	const xpNeeded = Math.floor(baseXP * Math.pow(level, exponent));
 	return xpNeeded;
 };
 
+/**
+ * This will calculate the XP for the user, as well as level them up and prestige them if conditions apply.
+ * @param {string} user Discord ID
+ * @param {number} amount the amount of XP to add
+ * @returns Either error or data.
+ */
 export async function userLevelXpAdd(user: string, amount: number) {
 	try {
 		const maxLevel: number = 200,
@@ -325,7 +336,6 @@ export async function userLevelXpAdd(user: string, amount: number) {
 		let xpToAdd: number = amount,
 			tempXP: number = userTemp.xp,
 			xpAdded: number = 0,
-			xpOverflow: number = 0,
 			nextXpTotal: number = userTemp.xpNeeded;
 
 		// What we need to do:
@@ -354,7 +364,7 @@ export async function userLevelXpAdd(user: string, amount: number) {
 					// Check if we have have not reached max prestige yet.
 					if (userTemp.prestige < maxPrestige) {
 						// Reset the level things, to get new prestige.
-						userTemp.level = 1;
+						userTemp.level = baseLevel;
 						userTemp.prestige++;
 						nextXpTotal = baseXP;
 					} else {
@@ -412,3 +422,173 @@ export async function userLevelXpAdd(user: string, amount: number) {
 		};
 	}
 };
+
+export async function findOrCreateItem(item: number | string) {
+	try {
+		let itemInfo: User.Item | null;
+		if (typeof (item) == "string") {
+			itemInfo = await AppDataSource.manager.findOne(User.Item, {
+				where: {
+					name: item,
+				}, relations: ["userInventories"]
+			});
+			if (!itemInfo) {
+				return {
+					data: "Couldn't find item in database, by the ID provided. Contact the developer.",
+					error: true,
+				};
+			}
+		} else if (typeof (item) == "number") {
+			itemInfo = await AppDataSource.manager.findOne(User.Item, {
+				where: {
+					id: item,
+				},
+			});
+			if (!itemInfo) {
+				return {
+					data: "Couldn't find item in database, by the name provided. Contact the developer.",
+					error: true,
+				};
+			}
+		} else {
+			return {
+				data: "Something terrible happened whilst trying to get the item in the database. Contact the developer.",
+				error: true,
+			};
+		}
+
+		if (!itemInfo) {
+			return {
+				data: "Something terrible happened whilst trying to access database. Contact the developer.",
+				error: true,
+			};
+		}
+
+		return {
+			data: itemInfo,
+		};
+	} catch (e: any) {
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
+	}
+}
+
+/**
+ * This will distribute the items. 
+ * @param {string} user The Discrod ID
+ * @param {Reward[]} items The list of itmes to add.
+ * @returns Either error or data.
+ */
+export async function userItemsDistribute(user: string, items: Reward[]) {
+	try {
+		// Try getting/creating user.
+		const userInfo = await findOrCreateUser(user);
+		if (userInfo.error) {
+			return userInfo;
+		}
+		if (typeof (userInfo.data) == "string") {
+			return userInfo;
+		}
+
+		// Now we need to go through the items.
+		// See what items we are getting.
+		// Check if a user has that item.
+		// If yes, add amount.
+		// If not, create entry.
+		// Return new data.
+
+		const itemsAdded: I_addedItem[] = [];
+
+		items.map(async (item) => {
+			// This is not needed, but TS screams otherwise.
+			if (typeof (item.reward) != "object") {
+				return;
+			}
+			if (typeof (item.reward.type) != "string") { return; }
+
+			// Try finding the item first.
+			const itemDB = await findOrCreateItem(item.rewardType);
+			// What if we don't find any item???
+			if (!itemDB) {
+				return itemDB;
+			}
+
+			// Try to see if we have the item in our inventory.
+			let userItem = await AppDataSource.manager.findOne(User.Inventory, {
+				where: {
+					item: {
+						name: item.reward.type
+					}
+				}, relations: ["item", "userCore"]
+			});
+
+			// If we don't create it.
+			if (!userItem) {
+				const newItem = new User.Inventory();
+				// Not needed but screams otherwise.
+				if (typeof (userInfo.data) == "string") {
+					return userInfo;
+				}
+				if (typeof (itemDB.data) == "string") {
+					return itemDB;
+				}
+				newItem.uuid = userInfo.data.uuid;
+				newItem.item_id = itemDB.data.id;
+
+				await AppDataSource.manager.save(User.Inventory, newItem);
+				userItem = await AppDataSource.manager.findOne(User.Inventory, {
+					where: {
+						item: {
+							name: item.reward.type
+						}
+					}, relations: ["item", "userCore"]
+				});
+			}
+
+			// Not needed but screams otherwise.
+			if (!userItem) {
+				return userItem;
+			}
+			// Add the amount.
+			userItem.amount += item.reward.amount;
+			await AppDataSource.manager.save(User.Inventory, userItem);
+			userItem = await AppDataSource.manager.findOne(User.Inventory, {
+				where: {
+					item: {
+						name: item.reward.type
+					}
+				}, relations: ["item", "userCore"]
+			});
+
+			// Again, not needed but screams at me.
+			if (!userItem) { return userItem; }
+
+			// Lets give it an object.
+			const addedItem = {
+				id: userItem.item_id,
+				uuid: userItem.uuid,
+				name: userItem.item.name,
+				description: userItem.item.description,
+				lore: userItem.item.lore,
+				amount: userItem.amount,
+				maxStack: userItem.item.max_stack
+			};
+
+			itemsAdded.push(addedItem);
+			return addedItem;
+		});
+
+		return {
+			data: itemsAdded,
+		};
+	} catch (e: any) {
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
+	}
+}

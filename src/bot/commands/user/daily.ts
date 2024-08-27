@@ -1,21 +1,9 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { E_CurrencyTypes, I_Command } from "../../../utilities/interface";
+import { E_CurrencyTypes, I_Command, lootboxKeys, rarities, Reward, rewardTypes } from "../../../utilities/interface";
 import { commandBuilder } from "../../misc/builders";
 import { AppDataSource } from "../../../database/datasource";
 import { User } from "../../../database/entity";
-import { findOrCreateUser, userCurrencyIncrease, userLevelXpAdd } from "../../../database/dao/user";
-
-enum rarities {
-	common = "common", uncommon = "uncommon", rare = "rare", epic = "epic", mythical = "mythical", legendary = "legendary", ancient = "ancient"
-};
-
-enum rewardTypes {
-	common_currency = "common_currency", premium_currency = "premium_currency", xp = "xp", materials = "material", lootbox_key = "lootbox_key"
-};
-
-enum lootboxKeys {
-	common = "common", rare = "rare", epic = "epic", mythical = "mythical", legendary = "legendary", ancient = "ancient"
-};
+import { findOrCreateUser, userCurrencyIncrease, userItemsDistribute, userLevelXpAdd } from "../../../database/dao/user";
 
 /**
  * At one point, we will move the rewardPool into a database.
@@ -31,9 +19,9 @@ const rewardPool = {
 			{ type: "metal", amount: 5 }
 		],
 		"lootbox_key": [
-			{ rarity: lootboxKeys.common, amount: 1 },
-			{ rarity: lootboxKeys.common, amount: 2 },
-			{ rarity: lootboxKeys.common, amount: 3 }
+			{ type: lootboxKeys.common, amount: 1 },
+			{ type: lootboxKeys.common, amount: 2 },
+			{ type: lootboxKeys.common, amount: 3 }
 		]
 	},
 	"uncommon": {
@@ -46,9 +34,9 @@ const rewardPool = {
 			{ type: "metal", amount: 10 }
 		],
 		"lootbox_key": [
-			{ rarity: lootboxKeys.common, amount: 3 },
-			{ rarity: lootboxKeys.rare, amount: 1 },
-			{ rarity: lootboxKeys.rare, amount: 2 }
+			{ type: lootboxKeys.common, amount: 3 },
+			{ type: lootboxKeys.rare, amount: 1 },
+			{ type: lootboxKeys.rare, amount: 2 }
 		]
 	},
 	"rare": {
@@ -61,9 +49,9 @@ const rewardPool = {
 			{ type: "metal", amount: 15 }
 		],
 		"lootbox_key": [
-			{ rarity: lootboxKeys.epic, amount: 1 },
-			{ rarity: lootboxKeys.rare, amount: 3 },
-			{ rarity: lootboxKeys.rare, amount: 2 }
+			{ type: lootboxKeys.epic, amount: 1 },
+			{ type: lootboxKeys.rare, amount: 3 },
+			{ type: lootboxKeys.rare, amount: 2 }
 		]
 	},
 	"epic": {
@@ -76,9 +64,9 @@ const rewardPool = {
 			{ type: "metal", amount: 20 }
 		],
 		"lootbox_key": [
-			{ rarity: lootboxKeys.epic, amount: 1 },
-			{ rarity: lootboxKeys.mythical, amount: 1 },
-			{ rarity: lootboxKeys.epic, amount: 2 }
+			{ type: lootboxKeys.epic, amount: 1 },
+			{ type: lootboxKeys.mythical, amount: 1 },
+			{ type: lootboxKeys.epic, amount: 2 }
 		]
 	},
 	"mythical": {
@@ -91,9 +79,9 @@ const rewardPool = {
 			{ type: "metal", amount: 40 }
 		],
 		"lootbox_key": [
-			{ rarity: lootboxKeys.legendary, amount: 1 },
-			{ rarity: lootboxKeys.mythical, amount: 1 },
-			{ rarity: lootboxKeys.mythical, amount: 2 }
+			{ type: lootboxKeys.legendary, amount: 1 },
+			{ type: lootboxKeys.mythical, amount: 1 },
+			{ type: lootboxKeys.mythical, amount: 2 }
 		]
 	},
 	"legendary": {
@@ -106,9 +94,9 @@ const rewardPool = {
 			{ type: "metal", amount: 80 }
 		],
 		"lootbox_key": [
-			{ rarity: lootboxKeys.legendary, amount: 1 },
-			{ rarity: lootboxKeys.legendary, amount: 2 },
-			{ rarity: lootboxKeys.legendary, amount: 3 }
+			{ type: lootboxKeys.legendary, amount: 1 },
+			{ type: lootboxKeys.legendary, amount: 2 },
+			{ type: lootboxKeys.legendary, amount: 3 }
 		]
 	},
 	"ancient": {
@@ -121,9 +109,9 @@ const rewardPool = {
 			{ type: "metal", amount: 160 }
 		],
 		"lootbox_key": [
-			{ rarity: lootboxKeys.ancient, amount: 1 },
-			{ rarity: lootboxKeys.ancient, amount: 2 },
-			{ rarity: lootboxKeys.legendary, amount: 3 }
+			{ type: lootboxKeys.ancient, amount: 1 },
+			{ type: lootboxKeys.ancient, amount: 2 },
+			{ type: lootboxKeys.legendary, amount: 3 }
 		]
 	}
 };
@@ -168,12 +156,6 @@ function rarityRandom(multiplier: number) {
 	}
 }
 
-type Reward = {
-	tier: rarities;
-	rewardType: rewardTypes;
-	reward: number | { type: string; amount: number; } | { rarity: lootboxKeys; amount: number; };
-};
-
 function generateRewards(count: number, multiplier: number): Reward[] {
 	const rewardsList: Reward[] = [];
 
@@ -212,6 +194,12 @@ function generateRewards(count: number, multiplier: number): Reward[] {
 	return rewardsList;
 }
 
+/**
+ * This will distribute the rewards to the user.
+ * @param rewardsList The list of rewards.
+ * @param user Discord ID
+ * @returns Well, nothing
+ */
 async function distributeRewards(rewardsList: Reward[], user: string) {
 	// This will have to communicate with database, so we need to do async/await.
 	console.log("Distributing WIP");
@@ -219,7 +207,7 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 	// The rewards.
 	console.info(rewardsList);
 
-	let common_currency: number = 0, premium_currency: number = 0, xp: number = 0, items: any = [];
+	let common_currency: number = 0, premium_currency: number = 0, xp: number = 0, items: Reward[] = [];
 
 	rewardsList.map((r) => {
 		if (typeof (r.reward) == "number") {
@@ -231,7 +219,7 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 				xp += r.reward;
 			}
 		} else {
-			items.push(r.reward);
+			items.push(r);
 		}
 	});
 
@@ -244,10 +232,14 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 	if (premium_currency > 0) {
 		await userCurrencyIncrease(user, E_CurrencyTypes.premium, premium_currency);
 	}
-	// if (xp > 0) {
-	// 	await userLevelXpAdd(user, xp);
-	// }
-	await userLevelXpAdd(user, 310);
+	if (xp > 0) {
+		await userLevelXpAdd(user, xp);
+	}
+	if (items.length > 0) {
+		await userItemsDistribute(user, items);
+	}
+	// this was testing.
+	// await userLevelXpAdd(user, 310);
 	return;
 }
 
