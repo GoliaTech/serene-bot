@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UserInventory } from "./inventory";
 
-@Entity()
+@Entity({ name: "user_item" })
 export class Item {
 	@PrimaryGeneratedColumn("increment")
 	id!: number;
@@ -20,6 +20,6 @@ export class Item {
 	@Column({ type: "int" })
 	value!: number;
 	@OneToMany(() => UserInventory, (userInventory) => userInventory.item)
-	@JoinColumn({ name: "item_id" })
+	@JoinColumn({ name: "id" })
 	userInventories!: UserInventory[];
 }

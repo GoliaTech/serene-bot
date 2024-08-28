@@ -223,7 +223,7 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 		}
 	});
 
-	console.log(`${common_currency} common_currency, ${premium_currency} premium_currency, ${xp} xp, ${items} items`);
+	console.log(`${common_currency} common_currency, ${premium_currency} premium_currency, ${xp} xp`);
 
 
 	if (common_currency > 0) {
@@ -236,6 +236,7 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 		await userLevelXpAdd(user, xp);
 	}
 	if (items.length > 0) {
+		console.log("Distributing items");
 		await userItemsDistribute(user, items);
 	}
 	// this was testing.

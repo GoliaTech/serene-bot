@@ -176,7 +176,7 @@ export async function findOrCreateUserLevel(user: string) {
 				level: userLevel.level,
 				prestige: userLevel.prestige,
 				xp: userLevel.xp,
-				xpNeeded: userLevel.xp_to_level,
+				xp_to_level: userLevel.xp_to_level,
 				levelName: levelName ? levelName.title : "Unknown",
 				prestigeName: prestigeName ? prestigeName.title : "Unknown"
 			}
@@ -323,6 +323,7 @@ export async function userLevelXpAdd(user: string, amount: number) {
 			baseXP: number = 100,
 			exponent: number = 1.05,
 			baseLevel: number = 1;
+
 		const userLevel = await findOrCreateUserLevel(user);
 		if (!userLevel) {
 			return userLevel;
@@ -335,17 +336,9 @@ export async function userLevelXpAdd(user: string, amount: number) {
 		let userTemp = userLevel.data;
 		let xpToAdd: number = amount,
 			tempXP: number = userTemp.xp,
-			xpAdded: number = 0,
-			nextXpTotal: number = userTemp.xpNeeded;
+			nextXpTotal: number = userTemp.xp_to_level;
 
-		// What we need to do:
-		// 1. Add XP.
-		// 2. If we have more XP than xp needed to level up, level up.
-		// 3. Calculate how much XP we actually added.
-		// 4. If our level up has let us go to max level, prestige.
-		// 5. If we have reached max prestige and max level, we should not get more XP.
-
-		// V2.
+		// Loop to add XP and handle level-ups
 		while (xpToAdd > 0) {
 			// First, add the XP.
 			tempXP += xpToAdd;
@@ -354,26 +347,26 @@ export async function userLevelXpAdd(user: string, amount: number) {
 			if (tempXP >= nextXpTotal) {
 				// Calculate overflow.
 				xpToAdd = tempXP - nextXpTotal;
-				// Then reset the XP.
+				// Then reset the XP for the current level.
 				tempXP = 0;
-				// Add level.
+				// Add a level.
 				userTemp.level++;
 
 				// Now we check if we have reached max level.
 				if (userTemp.level > maxLevel) {
-					// Check if we have have not reached max prestige yet.
+					// Check if we have not reached max prestige yet.
 					if (userTemp.prestige < maxPrestige) {
-						// Reset the level things, to get new prestige.
+						// Reset the level and increase prestige.
 						userTemp.level = baseLevel;
 						userTemp.prestige++;
-						nextXpTotal = baseXP;
+						nextXpTotal = baseXP; // Reset XP needed for the next level
 					} else {
-						// Cap out at max level.
+						// Cap out at max level and max prestige.
 						userTemp.level = maxLevel;
-						xpAdded = 0;
+						xpToAdd = 0; // No more XP to add since max level and prestige reached
 					}
 				} else {
-					// Otherwise if we haven't, calculate XP needed for nex level.
+					// Calculate XP needed for the next level based on the new level.
 					nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent);
 				}
 			} else {
@@ -382,42 +375,27 @@ export async function userLevelXpAdd(user: string, amount: number) {
 			}
 		}
 
+		// Update the user's XP and XP needed for the next level.
 		userTemp.xp = tempXP;
-		userTemp.xpNeeded = nextXpTotal;
+		userTemp.xp_to_level = nextXpTotal;
 
-		// V1.
-		// do {
-		// 	// first add the xp.
-		// 	tempXP = xpToAdd;
-		// 	// Check if we have overflowed.
-		// 	if (tempXP >= nextXpTotal) {
-		// 		// Calculate overflow.
-		// 		xpOverflow = tempXP - nextXpTotal;
-		// 		// Add the level.
-		// 		userTemp.level++;
-		// 		// Calculate how much XP we actually added.
-		// 		xpAdded = tempXP - xpOverflow;
-		// 		// Calculate new XP needed to level up more.
-		// 		nextXpTotal = exponentXpCalc(baseXP, userTemp.level, exponent);
-		// 	}
+		// IDK man.
+		userLevel.data.level = userTemp.level;
+		userLevel.data.prestige = userTemp.prestige;
+		userLevel.data.xp = userTemp.xp;
+		userLevel.data.xp_to_level = userTemp.xp_to_level;
 
-		// 	// IF we have reached max level, get prestige and reset progress.
-		// 	if (userTemp.level > maxLevel) {
-		// 		userTemp.level = 1;
-		// 		userTemp.prestige++;
-		// 		nextXpTotal = baseXP;
-		// 	}
-		// 	xpToAdd -= xpAdded;
-		// } while (xpToAdd > 0);
 
-		await AppDataSource.manager.save(User.Level, userTemp);
+		// Save the updated user level data.
+		await AppDataSource.manager.save(User.Level, userLevel.data);
+
 		return {
 			data: userTemp,
 		};
 	} catch (e: any) {
 		logError(e);
 		return {
-			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			data: "Something terrible happened whilst trying to access the database. Contact the developer.",
 			error: true,
 		};
 	}
@@ -425,12 +403,13 @@ export async function userLevelXpAdd(user: string, amount: number) {
 
 export async function findOrCreateItem(item: number | string) {
 	try {
-		let itemInfo: User.Item | null;
+		console.log(`The item trying to find: ${item}`);
+		let itemInfo;
 		if (typeof (item) == "string") {
 			itemInfo = await AppDataSource.manager.findOne(User.Item, {
 				where: {
 					name: item,
-				}, relations: ["userInventories"]
+				}
 			});
 			if (!itemInfo) {
 				return {
@@ -493,6 +472,8 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 			return userInfo;
 		}
 
+		console.log("We found a suser in useritemsdistribute.");
+
 		// Now we need to go through the items.
 		// See what items we are getting.
 		// Check if a user has that item.
@@ -501,6 +482,7 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 		// Return new data.
 
 		const itemsAdded: I_addedItem[] = [];
+		console.log(`items to distribute: ${JSON.stringify(items)}`);
 
 		items.map(async (item) => {
 			// This is not needed, but TS screams otherwise.
@@ -510,9 +492,10 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 			if (typeof (item.reward.type) != "string") { return; }
 
 			// Try finding the item first.
-			const itemDB = await findOrCreateItem(item.rewardType);
+			console.log("trying to find item");
+			const itemDB = await findOrCreateItem(item.reward.type);
 			// What if we don't find any item???
-			if (!itemDB) {
+			if (itemDB.error) {
 				return itemDB;
 			}
 
@@ -522,7 +505,7 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 					item: {
 						name: item.reward.type
 					}
-				}, relations: ["item", "userCore"]
+				}
 			});
 
 			// If we don't create it.
@@ -535,7 +518,7 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 				if (typeof (itemDB.data) == "string") {
 					return itemDB;
 				}
-				newItem.uuid = userInfo.data.uuid;
+				newItem.user_uuid = userInfo.data.uuid;
 				newItem.item_id = itemDB.data.id;
 
 				await AppDataSource.manager.save(User.Inventory, newItem);
@@ -544,7 +527,7 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 						item: {
 							name: item.reward.type
 						}
-					}, relations: ["item", "userCore"]
+					}, relations: ["item"]
 				});
 			}
 
@@ -553,14 +536,21 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 				return userItem;
 			}
 			// Add the amount.
+
 			userItem.amount += item.reward.amount;
+
+			//Ensure we don't go over max stack.
+			if (userItem.amount > userItem.item.max_stack) {
+				userItem.amount = userItem.item.max_stack;
+			}
+
 			await AppDataSource.manager.save(User.Inventory, userItem);
 			userItem = await AppDataSource.manager.findOne(User.Inventory, {
 				where: {
 					item: {
 						name: item.reward.type
 					}
-				}, relations: ["item", "userCore"]
+				}, relations: ["item"]
 			});
 
 			// Again, not needed but screams at me.
@@ -569,7 +559,7 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 			// Lets give it an object.
 			const addedItem = {
 				id: userItem.item_id,
-				uuid: userItem.uuid,
+				uuid: userItem.user_uuid,
 				name: userItem.item.name,
 				description: userItem.item.description,
 				lore: userItem.item.lore,
@@ -591,4 +581,4 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 			error: true,
 		};
 	}
-}
+};
