@@ -76,7 +76,6 @@ const characterManager: I_Command = {
 		"View, create, edit your character!",
 		{
 			dm: true,
-			owner: true
 		}
 	).addStringOption((input) => input
 		.setName("choice")
@@ -88,6 +87,9 @@ const characterManager: I_Command = {
 		.setDescription("This is only necessary if you want to view/edit/create 1 character.")
 		.setMinValue(1).setMaxValue(10)
 	),
+	options: {
+		botOwner: true,
+	},
 	async execute(interaction) {
 		const embed = embedBuilder("Character manager");
 		const choice = interaction.options.getString("choice");

@@ -14,7 +14,6 @@ const user: I_Command = {
 		"See who is at the top!",
 		{
 			dm: true,
-			owner: true,
 		},
 	).addStringOption((option) => option
 		.setName("leaderboardtype")
@@ -26,6 +25,9 @@ const user: I_Command = {
 			.setDescription("Choose how you want to sort. Default is descending (top to bottom).")
 			.setChoices({ name: "Descending", value: "desc" }, { name: "Ascending", value: "asc" })
 			.setRequired(false)),
+	options: {
+		botOwner: true,
+	},
 	async execute(interaction: ChatInputCommandInteraction) {
 		try {
 			let leaderboardType = interaction.options.getString("leaderboardtype", true);

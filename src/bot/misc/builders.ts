@@ -23,9 +23,6 @@ export function commandBuilder(
 		dm?: boolean;
 		// If the command is for NSFW channels only.
 		nsfw?: boolean;
-		cooldown?: number;
-		// If the command is for owner only.
-		owner?: boolean;
 	},
 	localization?: {
 		name?: LocalizationMap;

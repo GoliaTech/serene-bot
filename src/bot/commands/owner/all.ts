@@ -31,9 +31,11 @@ const allCards: I_Command = {
 		"Get all the cards.",
 		{
 			dm: true,
-			owner: true
 		},
 	),
+	options: {
+		botOwner: true,
+	},
 	async execute(interaction: ChatInputCommandInteraction) {
 		const embed = embedBuilder("Profile");
 

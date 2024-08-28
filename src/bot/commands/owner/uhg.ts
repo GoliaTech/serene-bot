@@ -1,17 +1,9 @@
+import { SlashCommandBuilder } from "discord.js";
 import { I_Command } from "../../../utilities/interface";
 import { commandBuilder } from "../../misc/builders";
 
 const viewAllRaces: I_Command = {
-	data: commandBuilder(
-		"viewallraces",
-		"View all the races.",
-		{
-			dm: true
-		}
-	),
-	options: {
-		botOwner: true,
-	},
+	data: new SlashCommandBuilder(),
 	async execute(interaction) {
 		await interaction.reply({ content: "WIP", ephemeral: true });
 		return;

@@ -1,4 +1,4 @@
-import { Events } from "discord.js";
+import { Events, ChatInputCommandInteraction } from "discord.js";
 import { I_BotEvent, CommandInteractionExtended, EmbedColors } from "../../utilities/interface";
 import { commands } from "../misc/loaders";
 import { embedBuilder } from "../misc/builders";
@@ -13,7 +13,7 @@ const interaction: I_BotEvent = {
 	 * @param interaction The interaction.
 	 * @returns It returns nothing
 	 */
-	execute(interaction: CommandInteractionExtended) {
+	execute(interaction: ChatInputCommandInteraction) {
 		try {
 			// If the command is not an interaction, return.
 			if (!interaction.isCommand()) {
@@ -27,7 +27,7 @@ const interaction: I_BotEvent = {
 			if (!command) {
 				// If the command doesn't exist, don't do anything.
 				embed.setDescription("Command was not found.");
-				interaction.reply({ embeds: [embed] });
+				interaction.reply({ embeds: [embed], ephemeral: true });
 				return;
 			}
 
@@ -36,18 +36,19 @@ const interaction: I_BotEvent = {
 				console.info(command);
 			}
 
-			// We need uhhh, what are they called... cooldowns. Because otherwise poeple will spam commands.
-			if (command.owner && interaction.user.id !== process.env.OWNER_ID) {
-				embed.setDescription("You are not allowed to use this command.");
-				interaction.reply({ embeds: [embed] });
+			if (command.options?.botOwner && interaction.user.id !== process.env.OWNER_ID) {
+				embed.setDescription("You are not allowed to use this command, only Bot Owner can.");
+				interaction.reply({ embeds: [embed], ephemeral: true });
 				return;
 			}
+			// We need uhhh, what are they called... cooldowns. Because otherwise poeple will spam commands.
+			if(command.options?.)
 			command.execute(interaction);
 			return;
 		} catch (error) {
 			console.error(error);
 			embed.setDescription("We are sorry, it seems we have encountered an error.");
-			interaction.reply({ embeds: [embed] });
+			interaction.reply({ embeds: [embed], ephemeral: true });
 			return;
 		}
 	}

@@ -14,7 +14,7 @@ export enum EmbedColors {
 /**
  * Extending the basae CommandInteraction with what I need.
  */
-export interface CommandInteractionExtended extends CommandInteraction {
+export interface CommandInteractionExtended extends ChatInputCommandInteraction {
 	interaction: {
 		client: ClientExtended;
 	};
@@ -33,6 +33,14 @@ export interface ClientExtended extends Client {
 export interface I_Command {
 	data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
 	execute(interaction: ChatInputCommandInteraction): any;
+	options?: {
+		botOwner?: boolean;
+		owner?: boolean;
+		cooldown?: number;
+		admins?: boolean;
+		mods?: boolean;
+		staff?:b
+	};
 };
 
 /**
