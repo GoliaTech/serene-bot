@@ -115,10 +115,11 @@ export function commandBuilder(
  * @param color - Color of your embed. Not necessary. Sets to EmbedColors.default if not provided.
  * @returns 
  */
-export function embedBuilder(title: string, color?: EmbedColors) {
-	const embed = new EmbedBuilder({ title: title, timestamp: new Date(), footer: { text: "serene-bot" } });
+export function embedBuilder(title?: string, color?: EmbedColors) {
+	const embed = new EmbedBuilder({ timestamp: new Date(), footer: { text: "serene-bot" } });
 	// It looks ugly, ew.
 	// embed.setAuthor({ name: "Bot", url: "https://sucrosia.xyz:5050/" });
+	if (title) embed.setTitle(title);
 	if (!color) {
 		embed.setColor(EmbedColors.default);
 	} else {

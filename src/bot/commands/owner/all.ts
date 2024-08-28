@@ -43,6 +43,7 @@ const allCards: I_Command = {
 			embed.setDescription("oh man, something didn't work.");
 			interaction.reply({
 				embeds: [embed],
+				ephemeral: true,
 			});
 			return;
 		}
@@ -50,6 +51,7 @@ const allCards: I_Command = {
 		embed.setDescription(String(reply.msg));
 		interaction.reply({
 			embeds: [embed],
+			ephemeral: true
 		});
 		return;
 	}

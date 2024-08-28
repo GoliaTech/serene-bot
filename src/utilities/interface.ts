@@ -117,11 +117,11 @@ export enum rarities {
 };
 
 export enum rewardTypes {
-	common_currency = "common_currency",
-	premium_currency = "premium_currency",
+	common_currency = "common currency",
+	premium_currency = "premium currency",
 	xp = "xp",
 	materials = "material",
-	lootbox_key = "lootbox_key"
+	lootbox_key = "lootbox key"
 };
 
 export enum lootboxKeys {

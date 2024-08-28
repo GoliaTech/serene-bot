@@ -75,4 +75,83 @@ function maser() {
 	`);
 }
 
-maser();
+/**
+ * 
+ * @param {number} multiplier multiplier
+ * @param {number} loops how many times to loop this
+ * @returns {{common: number, uncommon: number, rare: number, epic: number, mythical: number, legendary: number, ancient: number}}
+ */
+function rarityRandom(multiplier, loops) {
+	const rarities = {
+		common: 0,
+		uncommon: 0,
+		rare: 0,
+		epic: 0,
+		mythical: 0,
+		legendary: 0,
+		ancient: 0
+	};
+
+	for (let i = 0; i < loops; i++) {
+		let r = Math.floor(Math.random() * 10000);  // Generates a random number between 0 and 9999
+
+		// Adjust thresholds based on the multiplier. This ensures that the increase is proportional.
+		let thresholds = {
+			common: 6000 - multiplier * 600,	// Slightly reduce the threshold for common as the multiplier increases.
+			uncommon: 8000 - multiplier * 500,	// Reduce the threshold for uncommon.
+			rare: 9000 - multiplier * 400,		// Similarly, reduce for rare.
+			epic: 9500 - multiplier * 300,		// Slightly reduce for epic.
+			mythical: 9800 - multiplier * 100,	// Smaller reduction for mythical.
+			legendary: 9990 - multiplier * 50,	// Minimal reduction for legendary.
+			ancient: 10000						// No change for ancient since it's the highest tier.
+		};
+
+		// Ensure the thresholds do not overlap or go below 0.
+		thresholds.common = Math.max(0, thresholds.common);
+		thresholds.uncommon = Math.max(thresholds.common + 1, thresholds.uncommon);
+		thresholds.rare = Math.max(thresholds.uncommon + 1, thresholds.rare);
+		thresholds.epic = Math.max(thresholds.rare + 1, thresholds.epic);
+		thresholds.mythical = Math.max(thresholds.epic + 1, thresholds.mythical);
+		thresholds.legendary = Math.max(thresholds.mythical + 1, thresholds.legendary);
+
+		// Determine the reward based on adjusted thresholds.
+		if (r < thresholds.common) {
+			rarities.common++;
+		} else if (r < thresholds.uncommon) {
+			rarities.uncommon++;
+		} else if (r < thresholds.rare) {
+			rarities.rare++;
+		} else if (r < thresholds.epic) {
+			rarities.epic++;
+		} else if (r < thresholds.mythical) {
+			rarities.mythical++;
+		} else if (r < thresholds.legendary) {
+			rarities.legendary++;
+		} else {
+			rarities.ancient++;
+		}
+	}
+
+	return rarities;
+}
+
+/**
+ * 
+ * @param {{common: number, uncommon: number, rare: number, epic: number, mythical: number, legendary: number, ancient: number}} rewards 
+ * @returns {string}
+ */
+function displayRewards(rewards) {
+	return `**Common:** ${rewards.common}\n**Uncommon:** ${rewards.uncommon}\n**Rare:** ${rewards.rare}\n**Epic:** ${rewards.epic}\n**Mythical:** ${rewards.mythical}\n**Legendary:** ${rewards.legendary}\n**Ancient:** ${rewards.ancient}`;
+}
+
+(() => {
+	// maser();
+	const loops = 28;
+	const dailyMultiplier = 1;
+	const weeklyMultiplier = 5;
+	const monthlyMultiplier = 10;
+	const dailyRewards = rarityRandom(dailyMultiplier, loops);
+	const weeklyRewards = rarityRandom(weeklyMultiplier, loops);
+	const monthlyRewards = rarityRandom(monthlyMultiplier, loops);
+	console.log(`[DAILY]\n${displayRewards(dailyRewards)}\n\n[WEEKLY]\n${displayRewards(weeklyRewards)}\n\n[MONTHLY]\n${displayRewards(monthlyRewards)}`);
+})();

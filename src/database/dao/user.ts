@@ -505,7 +505,7 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 					item: {
 						name: item.reward.type
 					}
-				}
+				}, relations: ["item"]
 			});
 
 			// If we don't create it.

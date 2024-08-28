@@ -1,114 +1,115 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { E_CurrencyTypes, I_Command, lootboxKeys, rarities, Reward, rewardTypes } from "../../../utilities/interface";
-import { commandBuilder } from "../../misc/builders";
+import { E_CurrencyTypes, EmbedColors, I_Command, lootboxKeys, rarities, Reward, rewardTypes } from "../../../utilities/interface";
+import { commandBuilder, embedBuilder } from "../../misc/builders";
 import { AppDataSource } from "../../../database/datasource";
 import { User } from "../../../database/entity";
 import { findOrCreateUser, userCurrencyIncrease, userItemsDistribute, userLevelXpAdd } from "../../../database/dao/user";
+import { capitalizeEachWord, capitalizeFirstLetter } from "../../../utilities/utilities";
 
 /**
  * At one point, we will move the rewardPool into a database.
  */
 const rewardPool = {
 	"common": {
-		"common_currency": [100, 150, 200],
-		"premium_currency": [1, 3, 5],
+		"common currency": [100, 150, 200],
+		"premium currency": [1, 3, 5],
 		"xp": [10, 15, 20],
 		"material": [
 			{ type: "wood", amount: 5 },
 			{ type: "stone", amount: 5 },
 			{ type: "metal", amount: 5 }
 		],
-		"lootbox_key": [
+		"lootbox key": [
 			{ type: lootboxKeys.common, amount: 1 },
 			{ type: lootboxKeys.common, amount: 2 },
 			{ type: lootboxKeys.common, amount: 3 }
 		]
 	},
 	"uncommon": {
-		"common_currency": [200, 250, 300],
-		"premium_currency": [5, 7, 10],
+		"common currency": [200, 250, 300],
+		"premium currency": [5, 7, 10],
 		"xp": [20, 25, 30],
 		"material": [
 			{ type: "wood", amount: 10 },
 			{ type: "stone", amount: 10 },
 			{ type: "metal", amount: 10 }
 		],
-		"lootbox_key": [
+		"lootbox key": [
 			{ type: lootboxKeys.common, amount: 3 },
 			{ type: lootboxKeys.rare, amount: 1 },
 			{ type: lootboxKeys.rare, amount: 2 }
 		]
 	},
 	"rare": {
-		"common_currency": [300, 350, 400],
-		"premium_currency": [10, 13, 15],
+		"common currency": [300, 350, 400],
+		"premium currency": [10, 13, 15],
 		"xp": [30, 35, 40],
 		"material": [
 			{ type: "wood", amount: 15 },
 			{ type: "stone", amount: 15 },
 			{ type: "metal", amount: 15 }
 		],
-		"lootbox_key": [
+		"lootbox key": [
 			{ type: lootboxKeys.epic, amount: 1 },
 			{ type: lootboxKeys.rare, amount: 3 },
 			{ type: lootboxKeys.rare, amount: 2 }
 		]
 	},
 	"epic": {
-		"common_currency": [400, 450, 500],
-		"premium_currency": [15, 18, 20],
+		"common currency": [400, 450, 500],
+		"premium currency": [15, 18, 20],
 		"xp": [40, 45, 50],
 		"material": [
 			{ type: "wood", amount: 20 },
 			{ type: "stone", amount: 20 },
 			{ type: "metal", amount: 20 }
 		],
-		"lootbox_key": [
+		"lootbox key": [
 			{ type: lootboxKeys.epic, amount: 1 },
 			{ type: lootboxKeys.mythical, amount: 1 },
 			{ type: lootboxKeys.epic, amount: 2 }
 		]
 	},
 	"mythical": {
-		"common_currency": [500, 750, 1000],
-		"premium_currency": [20, 40, 60],
+		"common currency": [500, 750, 1000],
+		"premium currency": [20, 40, 60],
 		"xp": [50, 75, 100],
 		"material": [
 			{ type: "wood", amount: 40 },
 			{ type: "stone", amount: 40 },
 			{ type: "metal", amount: 40 }
 		],
-		"lootbox_key": [
+		"lootbox key": [
 			{ type: lootboxKeys.legendary, amount: 1 },
 			{ type: lootboxKeys.mythical, amount: 1 },
 			{ type: lootboxKeys.mythical, amount: 2 }
 		]
 	},
 	"legendary": {
-		"common_currency": [1000, 2500, 5000],
-		"premium_currency": [60, 80, 100],
+		"common currency": [1000, 2500, 5000],
+		"premium currency": [60, 80, 100],
 		"xp": [100, 250, 500],
 		"material": [
 			{ type: "wood", amount: 80 },
 			{ type: "stone", amount: 80 },
 			{ type: "metal", amount: 80 }
 		],
-		"lootbox_key": [
+		"lootbox key": [
 			{ type: lootboxKeys.legendary, amount: 1 },
 			{ type: lootboxKeys.legendary, amount: 2 },
 			{ type: lootboxKeys.legendary, amount: 3 }
 		]
 	},
 	"ancient": {
-		"common_currency": [5000, 10000, 20000],
-		"premium_currency": [100, 250, 500],
+		"common currency": [5000, 10000, 20000],
+		"premium currency": [100, 250, 500],
 		"xp": [500, 1000, 2000],
 		"material": [
 			{ type: "wood", amount: 160 },
 			{ type: "stone", amount: 160 },
 			{ type: "metal", amount: 160 }
 		],
-		"lootbox_key": [
+		"lootbox key": [
 			{ type: lootboxKeys.ancient, amount: 1 },
 			{ type: lootboxKeys.ancient, amount: 2 },
 			{ type: lootboxKeys.legendary, amount: 3 }
@@ -121,13 +122,13 @@ function rarityRandom(multiplier: number) {
 
 	// Adjust thresholds based on the multiplier. This ensures that the increase is proportional.
 	let thresholds = {
-		common: 6000 - multiplier * 500,   	// Slightly reduce the threshold for common as the multiplier increases.
-		uncommon: 8000 - multiplier * 400, 	// Reduce the threshold for uncommon.
-		rare: 9000 - multiplier * 200,     	// Similarly, reduce for rare.
-		epic: 9500 - multiplier * 100,     	// Slightly reduce for epic.
-		mythical: 9800 - multiplier * 50,  	// Smaller reduction for mythical.
-		legendary: 9990 - multiplier * 10, 	// Minimal reduction for legendary.
-		ancient: 10000                    	// No change for ancient since it's the highest tier.
+		common: 6000 - multiplier * 600,	// Slightly reduce the threshold for common as the multiplier increases.
+		uncommon: 8000 - multiplier * 500,	// Reduce the threshold for uncommon.
+		rare: 9000 - multiplier * 400,		// Similarly, reduce for rare.
+		epic: 9500 - multiplier * 300,		// Slightly reduce for epic.
+		mythical: 9800 - multiplier * 100,	// Smaller reduction for mythical.
+		legendary: 9990 - multiplier * 50,	// Minimal reduction for legendary.
+		ancient: 10000						// No change for ancient since it's the highest tier.
 	};
 
 	// Ensure the thresholds do not overlap or go below 0.
@@ -177,7 +178,16 @@ function generateRewards(count: number, multiplier: number): Reward[] {
 			// If rewards is an array, we can randomly select a reward.
 			if (Array.isArray(rewards)) {
 				// Randomly select a reward
-				const selectedReward = rewards[Math.floor(Math.random() * rewards.length)];
+				let selectedReward = rewards[Math.floor(Math.random() * rewards.length)];
+
+				// Ensure people get higher rewards if the multiplier is higher than 1.
+				if (multiplier > 1 && tier != rarities.ancient) {
+					if (typeof (selectedReward) == "object") {
+						selectedReward.amount *= multiplier;
+					} else {
+						selectedReward *= multiplier;
+					}
+				}
 
 				// Push the reward into the rewardsList array.
 				rewardsList.push({
@@ -192,6 +202,42 @@ function generateRewards(count: number, multiplier: number): Reward[] {
 
 	// Finally return the list.
 	return rewardsList;
+}
+
+// Group rewards by their tier
+function groupRewardsByTier(rewards: any[]): Record<string, any[]> {
+	return rewards.reduce((acc: Record<string, any[]>, reward) => {
+		if (!acc[reward.tier]) {
+			acc[reward.tier] = [];
+		}
+		acc[reward.tier].push(reward);
+		return acc;
+	}, {});
+}
+
+// Format rewards for display
+function formatGroupedRewards(groupedRewards: Record<string, any[]>): string {
+	return Object.keys(groupedRewards).map(tier => {
+		const formattedRewards = groupedRewards[tier].map(reward => {
+			const formattedReward = formatReward(reward.reward);
+			return `**${capitalizeFirstLetter(reward.rewardType)}**: ${formattedReward}`;
+		}).join("\n");
+		return `**[${capitalizeFirstLetter(tier)}]**\n${formattedRewards}`;
+	}).join("\n\n");
+}
+
+// Function to handle the reward display
+function formatReward(reward: number | { type: string, amount: number; }): string {
+	if (typeof reward === 'number') {
+		// If reward is a number, simply return it
+		return `${reward}`;
+	} else if (typeof reward === 'object' && reward !== null) {
+		// If reward is an object, format it using type and amount
+		return `${capitalizeFirstLetter(reward.type)} + ${reward.amount}`;
+	} else {
+		// Fallback for unexpected cases
+		return '';
+	}
 }
 
 /**
@@ -249,7 +295,7 @@ const daily: I_Command = {
 		"daily",
 		"Get your daily reward!",
 		{
-			dm: true
+			dm: true,
 		}
 	),
 	/**
@@ -259,6 +305,7 @@ const daily: I_Command = {
 	 */
 	async execute(interaction: ChatInputCommandInteraction) {
 		const now = new Date();
+		const embed = embedBuilder();
 
 		const userInfo = await findOrCreateUser(interaction.user.id);
 		// this should never happen, as that thing above finds OR creates a user.
@@ -293,13 +340,27 @@ const daily: I_Command = {
 		// Check if the user can claim their reward;
 		const lastClaimed = userDaily?.daily_timestamp ? new Date(userDaily.daily_timestamp) : null;
 		const nextClaim = lastClaimed ? new Date(lastClaimed.getTime() + 24 * 60 * 60 * 1000) : null;
+		const claimDeadline = lastClaimed ? new Date(lastClaimed.getTime() + 36 * 60 * 60 * 1000) : null;
 
-		// This is reply, when you are not ready to claim.
-		const testing = true;
-		if (!testing) {
-			if (nextClaim && now < nextClaim) {
-				return interaction.reply(`You can claim your next daily reward after ${nextClaim.toLocaleString()}.`);
-			}
+		if (nextClaim && now < nextClaim) {
+			// Calculate time left until rewards are ready
+			const timeUntilReady = nextClaim.getTime() - now.getTime();
+			const hoursUntilReady = Math.floor(timeUntilReady / (1000 * 60 * 60));
+			const minutesUntilReady = Math.floor((timeUntilReady % (1000 * 60 * 60)) / (1000 * 60));
+
+			// Calculate time left to claim the current reward
+			const timeUntilDeadline = claimDeadline ? claimDeadline.getTime() - now.getTime() : 0;
+			const hoursUntilDeadline = Math.floor(timeUntilDeadline / (1000 * 60 * 60));
+			const minutesUntilDeadline = Math.floor((timeUntilDeadline % (1000 * 60 * 60)) / (1000 * 60));
+
+			embed
+				.setTitle("You have to wait.")
+				.setColor(EmbedColors.pending)
+				.setDescription(`You can claim your next daily reward after **${nextClaim.toLocaleString()}**.\n\n` +
+					`**Time left until rewards are ready:** ${hoursUntilReady}h ${minutesUntilReady}m\n` +
+					`**Time left to claim your reward:** ${hoursUntilDeadline}h ${minutesUntilDeadline}m\n` +
+					`**Claim deadline:** ${claimDeadline?.toLocaleString()}`);
+			return interaction.reply({ embeds: [embed], ephemeral: true });
 		}
 
 		// Check if the streak continues or resets.
@@ -323,12 +384,18 @@ const daily: I_Command = {
 		const rewardCount = isMonthly ? 7 : isWeekly ? 5 : 3;
 
 		// Generate rewards to be presented to the user.
-		const rewards = await generateRewards(rewardCount, multiplier);
+		const rewards = generateRewards(rewardCount, multiplier);
 
 		// Save the reward to database.
 		await distributeRewards(rewards, userInfo.data.discordID);
 
-		return interaction.reply(`Congrats. Here are your rewards:\n${rewards.map((reward: any) => `• ${reward.tier} ${reward.rewardType}: ${reward.reward}`).join("\n")}\nYour streak: ${userDaily.daily_streak}.`);
+		const groupRewards = groupRewardsByTier(rewards);
+		const formatRewards = formatGroupedRewards(groupRewards);
+
+		embed
+			.setColor(EmbedColors.success)
+			.setDescription(`## Congratulations!\nHere are your rewards:\n\n${formatRewards}\n\n**Your streak:** ${userDaily.daily_streak}.`);
+		return interaction.reply({ embeds: [embed], ephemeral: true });
 	},
 };
 

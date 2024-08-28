@@ -189,3 +189,19 @@ export function logGeneral(message: string) {
 export function logInfo(message: string) {
 	return console.info(`[${new Date().toLocaleString()}] - ## INFO ## - \n${message}\n`);
 };
+
+export function capitalizeFirstLetter(str: string): string {
+    if (str.length === 0) return str; // Check if string is empty
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+// Function to capitalize the first letter of each word in a sentence
+export function capitalizeEachWord(sentence: string): string {
+	return sentence
+		// Split the words.
+		.split(' ')
+		// Captialize each word.
+		.map(capitalizeFirstLetter)
+		// Finally join them again.
+        .join(' ');
+}

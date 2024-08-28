@@ -11,7 +11,7 @@ const viewAllRaces: I_Command = {
 	),
 
 	async execute(interaction) {
-		await interaction.reply({ content: "WIP" });
+		await interaction.reply({ content: "WIP", ephemeral: true });
 		return;
 		// const embed = embedBuilder("View all races");
 		// const response = await findAllRaces();

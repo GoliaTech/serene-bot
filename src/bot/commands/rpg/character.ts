@@ -100,7 +100,7 @@ const characterManager: I_Command = {
 
 		if (choice != choices.viewall && !characterID) {
 			embed.setColor(EmbedColors.error).setDescription("You have to input a character ID if you want to view/edit/create 1 character!");
-			return interaction.reply({ embeds: [embed] });
+			return interaction.reply({ embeds: [embed], ephemeral: true });
 		}
 
 		switch (choice) {
@@ -118,7 +118,7 @@ const characterManager: I_Command = {
 
 			case choices.create:
 				embed.setColor(EmbedColors.warning).setDescription("Still WIP.");
-				return interaction.reply({ embeds: [embed] });
+				return interaction.reply({ embeds: [embed], ephemeral: true });
 			// break;
 
 			case choices.view:
@@ -145,12 +145,12 @@ const characterManager: I_Command = {
 		if (response!.error) {
 			embed.setColor(EmbedColors.error)
 				.setDescription(String(response!.data));
-			await interaction.reply({ embeds: [embed] });
+			await interaction.reply({ embeds: [embed], ephemeral: true });
 			return;
 		}
 
 		embed.setDescription(reply);
-		await interaction.reply({ embeds: [embed] });
+		await interaction.reply({ embeds: [embed], ephemeral: true });
 		return;
 	}
 };
