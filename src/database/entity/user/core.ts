@@ -3,6 +3,7 @@ import { UserLevel } from "./level";
 import { UserCurrency } from "./currency";
 import { CharacterCore } from "../rpg/characterCore";
 import { UserDaily } from "./daily";
+import { UserInventory } from "./inventory";
 
 /**
  * User Core
@@ -29,4 +30,6 @@ export class UserCore {
 	characters!: CharacterCore[];
 	@OneToOne(() => UserDaily, (udaily) => udaily.userCore)
 	dailies!: UserDaily;
+	@OneToMany(() => UserInventory, (inventory) => inventory.userCore)
+	inventory!: UserInventory;
 };

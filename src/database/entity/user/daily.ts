@@ -8,7 +8,6 @@ import { UserCore } from "./core";
  * @class UserDaily
  */
 @Entity({ name: "user_daily" })
-
 export class UserDaily {
 	@PrimaryGeneratedColumn("uuid")
 	uuid!: string;

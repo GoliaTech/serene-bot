@@ -100,3 +100,73 @@ export enum CardRewardType {
 	"avatar" = "avatar",
 	"banner" = "banner"
 };
+
+export enum E_CurrencyTypes {
+	common,
+	premium
+}
+
+export enum rarities {
+	common = "common",
+	uncommon = "uncommon",
+	rare = "rare",
+	epic = "epic",
+	mythical = "mythical",
+	legendary = "legendary",
+	ancient = "ancient"
+};
+
+export enum rewardTypes {
+	common_currency = "common_currency",
+	premium_currency = "premium_currency",
+	xp = "xp",
+	materials = "material",
+	lootbox_key = "lootbox_key"
+};
+
+export enum lootboxKeys {
+	common = "common lootbox key",
+	rare = "rare lootbox key",
+	epic = "epic lootbox key",
+	mythical = "mythical lootbox key",
+	legendary = "legendary lootbox key",
+	ancient = "ancient lootbox key"
+};
+
+export type Reward = {
+	tier: rarities;
+	rewardType: rewardTypes;
+	reward: number | { amount: number; type: lootboxKeys | string; };
+};
+
+
+/**
+ * This is the return type of the findOrCreateUser function.
+ */
+export interface I_findOrCreateUser {
+	data: {
+		uuid: string,
+		displayName: string,
+		discordID: string,
+		joinedAt: Date,
+		common: number,
+		premium: number,
+		level: number,
+		prestige: number,
+		xp: number,
+		xpToLevel: number,
+		levelName: string,
+		prestigeName: string;
+	} | string,
+	error?: boolean;
+};
+
+export interface I_addedItem {
+	id: number;
+	uuid: string;
+	name: string;
+	description: string;
+	lore: string;
+	amount: number;
+	maxStack: number;
+};

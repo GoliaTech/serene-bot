@@ -40,6 +40,8 @@ export const AppDataSource = new DataSource({
 		User.LevelName,
 		User.PrestigeName,
 		User.Daily,
+		User.Item,
+		User.Inventory,
 		Card.Core,
 		Card.Set,
 		Card.Rewards,
