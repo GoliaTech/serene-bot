@@ -39,7 +39,7 @@ export interface I_Command {
 		cooldown?: number;
 		admins?: boolean;
 		mods?: boolean;
-		staff?:b
+		staff?: boolean;
 	};
 };
 

@@ -247,47 +247,51 @@ function formatReward(reward: number | { type: string, amount: number; }): strin
  * @returns Well, nothing
  */
 async function distributeRewards(rewardsList: Reward[], user: string) {
-	// This will have to communicate with database, so we need to do async/await.
-	console.log("Distributing WIP");
+	try {
+		// This will have to communicate with database, so we need to do async/await.
+		console.log("Distributing WIP");
 
-	// The rewards.
-	console.info(rewardsList);
+		// The rewards.
+		console.info(rewardsList);
 
-	let common_currency: number = 0, premium_currency: number = 0, xp: number = 0, items: Reward[] = [];
+		let common_currency: number = 0, premium_currency: number = 0, xp: number = 0, items: Reward[] = [];
 
-	rewardsList.map((r) => {
-		if (typeof (r.reward) == "number") {
-			if (r.rewardType == rewardTypes.common_currency) {
-				common_currency += r.reward;
-			} else if (r.rewardType == rewardTypes.premium_currency) {
-				premium_currency += r.reward;
-			} else if (r.rewardType == rewardTypes.xp) {
-				xp += r.reward;
+		rewardsList.map((r) => {
+			if (typeof (r.reward) == "number") {
+				if (r.rewardType == rewardTypes.common_currency) {
+					common_currency += r.reward;
+				} else if (r.rewardType == rewardTypes.premium_currency) {
+					premium_currency += r.reward;
+				} else if (r.rewardType == rewardTypes.xp) {
+					xp += r.reward;
+				}
+			} else {
+				items.push(r);
 			}
-		} else {
-			items.push(r);
+		});
+
+		console.log(`${common_currency} common_currency, ${premium_currency} premium_currency, ${xp} xp`);
+
+
+		if (common_currency > 0) {
+			await userCurrencyIncrease(user, E_CurrencyTypes.common, common_currency);
 		}
-	});
+		if (premium_currency > 0) {
+			await userCurrencyIncrease(user, E_CurrencyTypes.premium, premium_currency);
+		}
+		if (xp > 0) {
+			await userLevelXpAdd(user, xp);
+		}
+		if (items.length > 0) {
+			console.log("Distributing items");
+			await userItemsDistribute(user, items);
+		}
+		// this was testing.
+		// await userLevelXpAdd(user, 310);
+		return false;
+	} catch (e: any) {
 
-	console.log(`${common_currency} common_currency, ${premium_currency} premium_currency, ${xp} xp`);
-
-
-	if (common_currency > 0) {
-		await userCurrencyIncrease(user, E_CurrencyTypes.common, common_currency);
 	}
-	if (premium_currency > 0) {
-		await userCurrencyIncrease(user, E_CurrencyTypes.premium, premium_currency);
-	}
-	if (xp > 0) {
-		await userLevelXpAdd(user, xp);
-	}
-	if (items.length > 0) {
-		console.log("Distributing items");
-		await userItemsDistribute(user, items);
-	}
-	// this was testing.
-	// await userLevelXpAdd(user, 310);
-	return;
 }
 
 const daily: I_Command = {
@@ -385,9 +389,10 @@ const daily: I_Command = {
 
 		// Generate rewards to be presented to the user.
 		const rewards = generateRewards(rewardCount, multiplier);
+		if ()
 
-		// Save the reward to database.
-		await distributeRewards(rewards, userInfo.data.discordID);
+			// Save the reward to database.
+			const distribution = await distributeRewards(rewards, userInfo.data.discordID);
 
 		const groupRewards = groupRewardsByTier(rewards);
 		const formatRewards = formatGroupedRewards(groupRewards);
