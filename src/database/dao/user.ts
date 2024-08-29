@@ -19,39 +19,16 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 			where: {
 				discord_id: identifier
 			},
-			relations: ["userLevel", "userCurrency", "dailies", "inventory", "characters"],
+			relations: ["userLevel", "userCurrency"],
 		});
 
-		// let userInfo = await AppDataSource.getRepository(User.Core)
-		// 	.createQueryBuilder("user")
-		// 	.where("user.uuid = :identifier", { identifier })
-		// 	.orWhere("user.discord_id = :identifier", { identifier })
-		// 	.leftJoinAndSelect("user.userLevel", "userLevel")
-		// 	.leftJoinAndSelect("user.userCurrency", "userCurrency")
-		// 	.getOne();
-		// If no user was found AND if the identifier is not a UUID, create a new user.
-		if (!userInfo && !checkUUID(identifier)) {
+		if (!userInfo) {
 			console.log("User not found. Creating new user.");
 			userInfo = new User.Core();
 			userInfo.discord_id = identifier;
-			await AppDataSource.manager.save(User.Core, userInfo);
-
-			// After saving, the trigger creates Currency and Level entries.
-			// We need to therefore reload the User.Core from the database.
-			userInfo = await AppDataSource.manager.findOne(User.Core, {
-				where: [{ discord_id: identifier }],
-				relations: ["userLevel", "userCurrency"],
-			});
+			userInfo = await AppDataSource.manager.save(User.Core, userInfo);
 		}
-		console.log("Identifier was not UUID and user not found.");
-
-		// TODO: remake this function. We literally never look after UUID.
-		if (!userInfo) {
-			return {
-				data: "User not found.",
-				error: true,
-			};
-		}
+		// console.log("Identifier was not UUID and user not found.");
 
 		console.log("user was found");
 

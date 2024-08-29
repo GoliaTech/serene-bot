@@ -357,7 +357,7 @@ const daily: I_Command = {
 		}
 
 		// Fetch user's daily table.
-		const getUserDaily = await findOrCreateUserDaily(userInfo.data.uuid);
+		const getUserDaily = await findOrCreateUserDaily(userInfo.data.discordID);
 
 		// This should never happen as we already tried to find, then created and found the user again.
 		if (getUserDaily.error || typeof (getUserDaily.data) == "string") {
