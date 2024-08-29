@@ -7,7 +7,7 @@ import { UserCore } from "./core";
  * @export
  * @class UserCurrency
  */
-@Entity({ name: "user_currency", schema: "user_currency" })
+@Entity({ name: "user_currency"})
 export class UserCurrency {
 	@PrimaryGeneratedColumn("uuid")
 	uuid!: string;

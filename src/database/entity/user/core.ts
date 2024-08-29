@@ -11,7 +11,7 @@ import { UserInventory } from "./inventory";
  * @export
  * @class UserCore
  */
-@Entity({ name: "user_core", schema: "user_core" })
+@Entity({ name: "user_core"})
 export class UserCore {
 	@PrimaryGeneratedColumn("uuid")
 	uuid!: string;

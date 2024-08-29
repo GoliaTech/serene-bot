@@ -1,10 +1,10 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { E_CurrencyTypes, EmbedColors, I_Command, lootboxKeys, rarities, Reward, rewardTypes } from "../../../utilities/interface";
-import { commandBuilder, embedBuilder } from "../../misc/builders";
+import { commandBuilder, embedBuilder, errorEmbedBuilder } from "../../misc/builders";
 import { AppDataSource } from "../../../database/datasource";
 import { User } from "../../../database/entity";
-import { findOrCreateUser, userCurrencyIncrease, userItemsDistribute, userLevelXpAdd } from "../../../database/dao/user";
-import { capitalizeEachWord, capitalizeFirstLetter } from "../../../utilities/utilities";
+import { findOrCreateUser, findOrCreateUserDaily, setNewDaily, userCurrencyIncrease, userItemsDistribute, userLevelXpAdd } from "../../../database/dao/user";
+import { capitalizeEachWord, capitalizeFirstLetter, logError } from "../../../utilities/utilities";
 
 /**
  * At one point, we will move the rewardPool into a database.
@@ -247,6 +247,7 @@ function formatReward(reward: number | { type: string, amount: number; }): strin
  * @returns Well, nothing
  */
 async function distributeRewards(rewardsList: Reward[], user: string) {
+
 	try {
 		// This will have to communicate with database, so we need to do async/await.
 		console.log("Distributing WIP");
@@ -254,7 +255,10 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 		// The rewards.
 		console.info(rewardsList);
 
-		let common_currency: number = 0, premium_currency: number = 0, xp: number = 0, items: Reward[] = [];
+		let common_currency: number = 0,
+			premium_currency: number = 0,
+			xp: number = 0,
+			items: Reward[] = [];
 
 		rewardsList.map((r) => {
 			if (typeof (r.reward) == "number") {
@@ -274,23 +278,57 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 
 
 		if (common_currency > 0) {
-			await userCurrencyIncrease(user, E_CurrencyTypes.common, common_currency);
+			const currencyIncrease = await userCurrencyIncrease(user, E_CurrencyTypes.common, common_currency);
+			if (currencyIncrease.error) {
+				return {
+					data: currencyIncrease.data,
+					error: currencyIncrease.error,
+				};
+			}
 		}
 		if (premium_currency > 0) {
-			await userCurrencyIncrease(user, E_CurrencyTypes.premium, premium_currency);
+			const currencyIncrease = await userCurrencyIncrease(user, E_CurrencyTypes.premium, premium_currency);
+			if (currencyIncrease.error) {
+				return {
+					data: currencyIncrease.data,
+					error: currencyIncrease.error,
+				};
+			}
 		}
 		if (xp > 0) {
-			await userLevelXpAdd(user, xp);
+			const xpIncrease = await userLevelXpAdd(user, xp);
+			if (xpIncrease.error) {
+				return {
+					data: xpIncrease.data,
+					error: xpIncrease.error,
+				};
+			}
 		}
 		if (items.length > 0) {
 			console.log("Distributing items");
-			await userItemsDistribute(user, items);
+			const distribution = await userItemsDistribute(user, items);
+			if (distribution.error) {
+				return {
+					data: distribution.data,
+					error: distribution.error,
+				};
+			}
 		}
 		// this was testing.
 		// await userLevelXpAdd(user, 310);
-		return false;
+		return {
+			data: {
+				common_currency: common_currency,
+				premium_currency: premium_currency,
+				xp: xp,
+			}
+		};
 	} catch (e: any) {
-
+		logError(e);
+		return {
+			data: "Something went wrong whilst trying to distribute rewards. Contact the developer.",
+			error: true,
+		};
 	}
 }
 
@@ -313,36 +351,22 @@ const daily: I_Command = {
 
 		const userInfo = await findOrCreateUser(interaction.user.id);
 		// this should never happen, as that thing above finds OR creates a user.
-		if (!userInfo) { return; }
-
-		// If we couldnt create a user...
-		if (typeof (userInfo.data) == "string") { return; }
-
-		// Fetch user's daily table.
-		let userDaily = await AppDataSource.manager.findOne(User.Daily, {
-			where: {
-				uuid: userInfo.data.uuid,
-			},
-		});
-
-		// If no user found. This should only happen once.
-		if (!userDaily) {
-			userDaily = new User.Daily();
-			// this if should never happen.
-			userDaily.uuid = userInfo.data.uuid;
-			await AppDataSource.manager.save(User.Daily, userDaily);
-			userDaily = await AppDataSource.manager.findOne(User.Daily, {
-				where: {
-					uuid: userInfo.data.uuid,
-				},
-			});
+		if (userInfo.error || typeof (userInfo.data) == "string") {
+			const errorEmbed = errorEmbedBuilder(userInfo.data);
+			return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
 		}
 
+		// Fetch user's daily table.
+		const getUserDaily = await findOrCreateUserDaily(userInfo.data.uuid);
+
 		// This should never happen as we already tried to find, then created and found the user again.
-		if (!userDaily) { return; }
+		if (getUserDaily.error || typeof (getUserDaily.data) == "string") {
+			const errorEmbed = errorEmbedBuilder(getUserDaily.data);
+			return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+		}
 
 		// Check if the user can claim their reward;
-		const lastClaimed = userDaily?.daily_timestamp ? new Date(userDaily.daily_timestamp) : null;
+		const lastClaimed = getUserDaily.data.daily_timestamp ? new Date(getUserDaily.data.daily_timestamp) : null;
 		const nextClaim = lastClaimed ? new Date(lastClaimed.getTime() + 24 * 60 * 60 * 1000) : null;
 		const claimDeadline = lastClaimed ? new Date(lastClaimed.getTime() + 36 * 60 * 60 * 1000) : null;
 
@@ -371,35 +395,38 @@ const daily: I_Command = {
 		if (lastClaimed && now.getTime() - lastClaimed.getTime() > 36 * 60 * 60 * 1000) {
 			// This resets the streak if more than 36 hours have passed.
 			// That is, 24 to be able to claim, then 12 hours on top so the user has time to actually claim them.
-			userDaily.daily_streak = 0;
+			getUserDaily.data.daily_streak = 0;
 		}
 
-		userDaily.daily_streak += 1;
-		userDaily.daily_timestamp = now;
-		await AppDataSource.manager.save(User.Daily, userDaily);
+		getUserDaily.data.daily_streak += 1;
+		getUserDaily.data.daily_timestamp = now;
+		await setNewDaily(getUserDaily.data.uuid, getUserDaily.data.daily_streak, getUserDaily.data.daily_timestamp);
 
 		// Determine reward multipliers.
 		// God I love/hate modulo.
-		const isWeekly = userDaily.daily_streak % 7 == 0;
+		const isWeekly = getUserDaily.data.daily_streak % 7 == 0;
 		// Not exactly monthly.
-		const isMonthly = userDaily.daily_streak % 28 == 0;
+		const isMonthly = getUserDaily.data.daily_streak % 28 == 0;
 		// I love the ? : operand.
 		const multiplier = isMonthly ? 3 : isWeekly ? 2 : 1;
 		const rewardCount = isMonthly ? 7 : isWeekly ? 5 : 3;
 
 		// Generate rewards to be presented to the user.
 		const rewards = generateRewards(rewardCount, multiplier);
-		if ()
 
-			// Save the reward to database.
-			const distribution = await distributeRewards(rewards, userInfo.data.discordID);
+		// Save the reward to database.
+		const distribution = await distributeRewards(rewards, userInfo.data.discordID);
+		if (distribution.error || typeof (distribution.data) == "string") {
+			const errorEmbed = errorEmbedBuilder(distribution.data);
+			return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+		}
 
 		const groupRewards = groupRewardsByTier(rewards);
 		const formatRewards = formatGroupedRewards(groupRewards);
 
 		embed
 			.setColor(EmbedColors.success)
-			.setDescription(`## Congratulations!\nHere are your rewards:\n\n${formatRewards}\n\n**Your streak:** ${userDaily.daily_streak}.`);
+			.setDescription(`## Congratulations!\nHere are your rewards:\n\n${formatRewards}\n\n**Your streak:** ${getUserDaily.data.daily_streak}.`);
 		return interaction.reply({ embeds: [embed], ephemeral: true });
 	},
 };

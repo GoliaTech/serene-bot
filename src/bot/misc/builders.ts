@@ -124,3 +124,10 @@ export function embedBuilder(title?: string, color?: EmbedColors) {
 	}
 	return embed;
 }
+
+export function errorEmbedBuilder(error: any) {
+	const embed = embedBuilder("**ERROR**", EmbedColors.error);
+	embed.setDescription(String(error));
+
+	return embed;
+}

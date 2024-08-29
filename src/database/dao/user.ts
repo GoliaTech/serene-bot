@@ -16,8 +16,10 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 		// Get the user first.
 		// await AppDataSource.initialize();
 		let userInfo = await AppDataSource.manager.findOne(User.Core, {
-			where: [{ discord_id: identifier }],
-			relations: ["userLevel", "userCurrency"],
+			where: {
+				discord_id: identifier
+			},
+			relations: ["userLevel", "userCurrency", "dailies", "inventory", "characters"],
 		});
 
 		// let userInfo = await AppDataSource.getRepository(User.Core)
@@ -42,6 +44,8 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 			});
 		}
 		console.log("Identifier was not UUID and user not found.");
+
+		// TODO: remake this function. We literally never look after UUID.
 		if (!userInfo) {
 			return {
 				data: "User not found.",
@@ -204,27 +208,42 @@ export async function userCurrencyIncrease(user: string, type: E_CurrencyTypes, 
 		const userCurrency = await findOrCreateUserCurrency(user);
 		// These two, I can't get rid of, otherwise TS complains.
 		if (userCurrency.error) {
-			return userCurrency;
+			return {
+				data: userCurrency.data,
+				error: userCurrency.error
+			};
 		}
 		if (typeof (userCurrency.data) == "string") {
-			return userCurrency;
+			return {
+				data: userCurrency.data,
+				error: userCurrency.error
+			};
 		}
 
+		// New currency start at 0.
 		let newCurrency: number = 0;
 
 		// Check what we are increasing.
-		if (type == E_CurrencyTypes.common) {
-			newCurrency = userCurrency.data.common + amount;
-			if (newCurrency > commonCurrencyMaximum) {
-				newCurrency = commonCurrencyMaximum;
-			}
-			userCurrency.data.common = newCurrency;
-		} else if (type == E_CurrencyTypes.premium) {
-			newCurrency = userCurrency.data.premium + amount;
-			if (newCurrency > premiumCurrencyMaximum) {
-				newCurrency = premiumCurrencyMaximum;
-			}
-			userCurrency.data.premium = newCurrency;
+		switch (type) {
+			case E_CurrencyTypes.common:
+				newCurrency = userCurrency.data.common + amount;
+				if (newCurrency > commonCurrencyMaximum) {
+					newCurrency = commonCurrencyMaximum;
+				}
+				userCurrency.data.common = newCurrency;
+				break;
+			case E_CurrencyTypes.premium:
+				newCurrency = userCurrency.data.premium + amount;
+				if (newCurrency > premiumCurrencyMaximum) {
+					newCurrency = premiumCurrencyMaximum;
+				}
+				userCurrency.data.premium = newCurrency;
+				break;
+			default:
+				return {
+					data: "Something terrible happened whilst trying to access database. Contact the developer.",
+					error: true,
+				};
 		}
 
 		const newUserCurrency = await AppDataSource.manager.save(User.Currency, userCurrency.data);
@@ -257,10 +276,16 @@ export async function userCurrencyDecrease(user: string, type: E_CurrencyTypes, 
 		const userCurrency = await findOrCreateUserCurrency(user);
 		// These two, I can't get rid of, otherwise TS complains.
 		if (userCurrency.error) {
-			return userCurrency;
+			return {
+				data: userCurrency.data,
+				error: userCurrency.error
+			};
 		}
 		if (typeof (userCurrency.data) == "string") {
-			return userCurrency;
+			return {
+				data: userCurrency.data,
+				error: userCurrency.error
+			};
 		}
 
 		let newCurrency: number = 0;
@@ -305,7 +330,7 @@ export async function userCurrencyDecrease(user: string, type: E_CurrencyTypes, 
  * @param {number} exponent Provide the exponent wanted
  * @returns {number} the new XP needed.
  */
-function exponentXpCalc(baseXP: number, level: number, exponent: number) {
+function exponentXpCalc(baseXP: number, level: number, exponent: number): number {
 	const xpNeeded = Math.floor(baseXP * Math.pow(level, exponent));
 	return xpNeeded;
 };
@@ -325,11 +350,17 @@ export async function userLevelXpAdd(user: string, amount: number) {
 			baseLevel: number = 1;
 
 		const userLevel = await findOrCreateUserLevel(user);
-		if (!userLevel) {
-			return userLevel;
+		if (userLevel.error) {
+			return {
+				data: userLevel.data,
+				error: userLevel.error,
+			};
 		}
 		if (typeof (userLevel.data) == "string") {
-			return userLevel;
+			return {
+				data: userLevel.data,
+				error: userLevel.error,
+			};
 		}
 
 		// Set up temporary data.
@@ -455,6 +486,81 @@ export async function findOrCreateItem(item: number | string) {
 	}
 }
 
+export async function findOrCreateUserInventoryItem(user: string, item: string | number) {
+	try {
+		let userInventoryItem;
+		// We are not looking for a user, in userCore, since we assume he is already created, as this function gets called AFTER findOrCreateUser.
+		// Try finding item by ID first.
+		if (typeof (item) == "number") {
+			userInventoryItem = await AppDataSource.manager.findOne(User.Inventory, {
+				where: {
+					user_uuid: user,
+					item_id: item,
+				},
+			});
+		}
+		// Then try finding by name.
+		else if (typeof (item) == "string") {
+			userInventoryItem = await AppDataSource.manager.findOne(User.Inventory, {
+				where: {
+					user_uuid: user,
+					item: {
+						name: item,
+					}
+				}, relations: ["item"]
+			});
+		}
+
+		// If we don't find any, well, create it.
+		if (!userInventoryItem) {
+			userInventoryItem = new User.Inventory();
+			userInventoryItem.user_uuid = user;
+			// If we provided ID number.
+			if (typeof (item) == "number") {
+				userInventoryItem.item_id = item;
+			}
+			// If we provided string, we will have to find it in the item database first.
+			else if (typeof (item) == "string") {
+				const itemInfo = await findOrCreateItem(item);
+				if (itemInfo.error) {
+					return {
+						data: itemInfo.data,
+						error: itemInfo.error
+					};
+				}
+				if (typeof (itemInfo.data) == "string") {
+					return {
+						data: itemInfo.data,
+						error: itemInfo.error
+					};
+				}
+				// Finally we can apply the ID if we found the item.
+				userInventoryItem.item_id = itemInfo.data.id;
+				// Finally save it.
+				userInventoryItem = await AppDataSource.manager.save(User.Inventory, userInventoryItem);
+			}
+		}
+
+		return {
+			data: {
+				name: userInventoryItem.item.name,
+				description: userInventoryItem.item.description,
+				lore: userInventoryItem.item.lore,
+				id: userInventoryItem.item_id,
+				user: userInventoryItem.user_uuid,
+				amount: userInventoryItem.amount,
+				maxStack: userInventoryItem.item.max_stack,
+			}
+		};
+	} catch (e: any) {
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
+	}
+}
+
 /**
  * This will distribute the items. 
  * @param {string} user The Discrod ID
@@ -466,13 +572,17 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 		// Try getting/creating user.
 		const userInfo = await findOrCreateUser(user);
 		if (userInfo.error) {
-			return userInfo;
+			return {
+				data: userInfo.data,
+				error: userInfo.error
+			};
 		}
 		if (typeof (userInfo.data) == "string") {
-			return userInfo;
+			return {
+				data: userInfo.data,
+				error: userInfo.error
+			};
 		}
-
-		console.log("We found a suser in useritemsdistribute.");
 
 		// Now we need to go through the items.
 		// See what items we are getting.
@@ -487,84 +597,58 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 		items.map(async (item) => {
 			// This is not needed, but TS screams otherwise.
 			if (typeof (item.reward) != "object") {
-				return;
+				return {
+					data: "Something terrible happened whilst trying to distribute items.",
+					error: true
+				};
 			}
-			if (typeof (item.reward.type) != "string") { return; }
+			if (typeof (item.reward.type) != "string") {
+				return {
+					data: "Something terrible happened whilst trying to distribute items.",
+					error: true
+				};
+			}
 
 			// Try finding the item first.
-			console.log("trying to find item");
-			const itemDB = await findOrCreateItem(item.reward.type);
-			// What if we don't find any item???
-			if (itemDB.error) {
-				return itemDB;
+			let userItem = await findOrCreateUserInventoryItem(user, item.reward.type);
+			if (userItem.error) {
+				return {
+					data: userItem.data,
+					error: userItem.error
+				};
+			}
+			if (typeof (userItem.data) == "string") {
+				return {
+					data: userItem.data,
+					error: userItem.error,
+				};
 			}
 
-			// Try to see if we have the item in our inventory.
-			let userItem = await AppDataSource.manager.findOne(User.Inventory, {
-				where: {
-					item: {
-						name: item.reward.type
-					}
-				}, relations: ["item"]
-			});
-
-			// If we don't create it.
-			if (!userItem) {
-				const newItem = new User.Inventory();
-				// Not needed but screams otherwise.
-				if (typeof (userInfo.data) == "string") {
-					return userInfo;
-				}
-				if (typeof (itemDB.data) == "string") {
-					return itemDB;
-				}
-				newItem.user_uuid = userInfo.data.uuid;
-				newItem.item_id = itemDB.data.id;
-
-				await AppDataSource.manager.save(User.Inventory, newItem);
-				userItem = await AppDataSource.manager.findOne(User.Inventory, {
-					where: {
-						item: {
-							name: item.reward.type
-						}
-					}, relations: ["item"]
-				});
-			}
-
-			// Not needed but screams otherwise.
-			if (!userItem) {
-				return userItem;
-			}
-			// Add the amount.
-
-			userItem.amount += item.reward.amount;
+			userItem.data.amount += item.reward.amount;
 
 			//Ensure we don't go over max stack.
-			if (userItem.amount > userItem.item.max_stack) {
-				userItem.amount = userItem.item.max_stack;
+			if (userItem.data.amount > userItem.data.maxStack) {
+				userItem.data.amount = userItem.data.maxStack;
 			}
 
-			await AppDataSource.manager.save(User.Inventory, userItem);
-			userItem = await AppDataSource.manager.findOne(User.Inventory, {
-				where: {
-					item: {
-						name: item.reward.type
-					}
-				}, relations: ["item"]
-			});
-
-			// Again, not needed but screams at me.
-			if (!userItem) { return userItem; }
+			// Sanitize the object before saving.
+			const saveItem = {
+				amount: userItem.data.amount,
+				user_uuid: userItem.data.user,
+				item_id: userItem.data.id
+			};
+			// Save and return.
+			const newItem = await AppDataSource.manager.save(User.Inventory, saveItem);
 
 			// Lets give it an object.
 			const addedItem = {
-				id: userItem.item_id,
-				uuid: userItem.user_uuid,
-				name: userItem.item.name,
-				description: userItem.item.description,
-				lore: userItem.item.lore,
-				amount: userItem.amount,
-				maxStack: userItem.item.max_stack
+				id: newItem.item_id,
+				uuid: newItem.user_uuid,
+				name: newItem.item.name,
+				description: newItem.item.description,
+				lore: newItem.item.lore,
+				amount: newItem.amount,
+				maxStack: newItem.item.max_stack
 			};
 
 			itemsAdded.push(addedItem);
@@ -582,3 +666,100 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 		};
 	}
 };
+
+export async function findOrCreateUserDaily(user: string, streak?: number, timestamp?: Date) {
+	try {
+		const userInfo = await findOrCreateUser(user);
+		if (userInfo.error) {
+			return {
+				data: userInfo.data,
+				error: userInfo.error
+			};
+		}
+		if (typeof (userInfo.data) == "string") {
+			return {
+				data: userInfo.data,
+				error: userInfo.error
+			};
+		}
+
+		let userDaily = await AppDataSource.manager.findOne(User.Daily, {
+			where: {
+				uuid: userInfo.data.uuid,
+			}
+		});
+		// If no daily found, create.
+		if (!userDaily) {
+			userDaily = new User.Daily();
+			userDaily.uuid = userInfo.data.uuid;
+		}
+
+		// If we provide the timestamp
+		if (timestamp) {
+			userDaily.daily_timestamp = timestamp;
+		}
+		if (streak) {
+			userDaily.daily_streak = streak;
+		}
+		userDaily = await AppDataSource.manager.save(User.Daily, userDaily);
+		return {
+			data: {
+				uuid: userDaily.uuid,
+				daily_streak: userDaily.daily_streak,
+				daily_timestamp: userDaily.daily_timestamp,
+			}
+		};
+	} catch (e: any) {
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
+	}
+}
+
+export async function setNewDaily(user: string, streak?: number, timestamp?: Date) {
+	try {
+		let userDaily = await findOrCreateUserDaily(user);
+		if (userDaily.error) {
+			return {
+				data: userDaily.data,
+				error: userDaily.error
+			};
+		}
+		if (typeof (userDaily.data) == "string") {
+			return {
+				data: userDaily.data,
+				error: userDaily.error
+			};
+		}
+
+		if (streak) {
+			userDaily.data.daily_streak = streak;
+		}
+
+		if (timestamp) {
+			userDaily.data.daily_timestamp = timestamp;
+		}
+
+		const newUserDaily = {
+			uuid: userDaily.data.uuid,
+			daily_streak: userDaily.data.daily_streak,
+			daily_timestamp: userDaily.data.daily_timestamp
+		};
+		const response = await AppDataSource.manager.save(User.Daily, newUserDaily);
+		return {
+			data: {
+				uuid: response.uuid,
+				daily_streak: response.daily_streak,
+				daily_timestamp: response.daily_timestamp,
+			}
+		};
+	} catch (e: any) {
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
+	}
+}

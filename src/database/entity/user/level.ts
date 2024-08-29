@@ -7,7 +7,7 @@ import { UserCore } from "./core";
  * @export
  * @class UserLevel
  */
-@Entity({ name: "user_level", schema: "user_level" })
+@Entity({ name: "user_level"})
 export class UserLevel {
   @PrimaryGeneratedColumn("uuid")
   uuid!: string;
