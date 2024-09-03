@@ -10,7 +10,7 @@ import { updateUsersFromFile } from "./updateUsers";
 require("dotenv").config();
 
 // whether we should actually start the program.
-const start: boolean = false;
+const start: boolean = true;
 
 // Initialize shards collection.
 const shards: Collection<number, Shard> = new Collection();
