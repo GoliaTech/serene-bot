@@ -16,9 +16,9 @@
     "deletecommandsdev": "ts-node src/utilities/manageCommands.ts -D --delete",
     "getcommandsdev": "ts-node src/utilities/manageCommands.ts -D --get",
     "putcommandsdev": "ts-node src/utilities/manageCommands.ts -D --deploy",
-    "deletecommands": "ts-node src/utilities/manageCommands.ts -P --delete",
-    "getcommands": "ts-node src/utilities/manageCommands.ts -P --get",
-    "putcommands": "ts-node src/utilities/manageCommands.ts -P --deploy"
+    "deletecommands": "node dist/utilities/manageCommands.js -P --delete",
+    "getcommands": "node dist/utilities/manageCommands.js -P --get",
+    "putcommands": "node dist/utilities/manageCommands.js -P --deploy"
   },
   "keywords": [],
   "author": "GoliaTech",

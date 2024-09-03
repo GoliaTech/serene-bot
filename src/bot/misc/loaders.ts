@@ -20,11 +20,14 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 	let commandsFolderPath = "";
 	if (process.env.NODE_ENV === nodeEnvEnum.development) {
 		commandsFolderPath = path.join(__dirname, "../commands");
+	} else if (process.env.NODE_ENV === nodeEnvEnum.production && process.argv.includes("--deploy")) {
+		commandsFolderPath = path.join(__dirname, "../bot/commands");
 	} else if (process.env.NODE_ENV === nodeEnvEnum.production) {
 		commandsFolderPath = path.join(__dirname, "commands");
 	}
 	// The commands folder.
 	const commandFolders = fs.readdirSync(commandsFolderPath);
+	console.log(commandFolders);
 
 	// This will loop through all the sub folders inside the commands folder.
 	for (const folder of commandFolders) {
@@ -32,8 +35,11 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 		// The path for the subfolder.
 		const folderPath = path.join(commandsFolderPath, folder);
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		console.log(fileExtension);
 		// Filter just the files we care about inside the subfolder.
 		const files = fs.readdirSync(folderPath).filter((file) => file.endsWith(`.${fileExtension}`));
+		console.log(folderPath);
+		console.log(files);
 		// This will loop through --- the --- files, inside---- files???? Eh???
 		for (const file of files) {
 			// console.log("we are looping through file: ", file);
@@ -51,15 +57,21 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 			// Remember: in is for index.
 			for (const cmd of command) {
 				// console.log("cmd: ", cmd);
-				try {
-					commandsCounter++;
-					if (discordClient) {
-						discordClient.commands.set(cmd.data.name, cmd);
-					} else {
-						commands.set(cmd.data.name, cmd);
+				// if (!cmd.data.name) {
+				// 	console.log("Command has no name set, skipping.");
+				// 	return;
+				// }
+				if (cmd.data.name != undefined || cmd.data.name != null) {
+					try {
+						commandsCounter++;
+						if (discordClient) {
+							discordClient.commands.set(cmd.data.name, cmd);
+						} else {
+							commands.set(cmd.data.name, cmd);
+						}
+					} catch (problem: any) {
+						return logError(`There was a problem setting the command:\n${problem}`);
 					}
-				} catch (problem: any) {
-					return logError(`There was a problem setting the command:\n${problem}`);
 				}
 			}
 

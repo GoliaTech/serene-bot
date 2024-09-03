@@ -38,6 +38,7 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				return;
 			case commandDecision.deploy:
 				commands = loadCommands();
+				console.log(commands);
 				if (!commands) {
 					throw new Error("Failed to load commands. Check 'loadCommands()' function and try again.");
 				}
@@ -98,6 +99,8 @@ async function handleUserInput() {
 	// Define the REST client thingy to be used in the commands. 
 	const rest = new REST({ version: "10" }).setToken(token);
 
+	console.log(process.env.NODE_ENV);
+	console.log(process.argv);
 	if (args.includes("--deploy")) {
 		await handleCommands(process.env.NODE_ENV, commandDecision.deploy, clientID, guildID, rest);
 	} else if (args.includes("--delete")) {
