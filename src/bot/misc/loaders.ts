@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { ClientExtended, I_BotEvent, I_Command } from "../../utilities/interface";
+import { ClientExtended, I_BotEvent, I_Command, nodeEnvEnum } from "../../utilities/interface";
 import { Collection } from "discord.js";
 import { logError } from "../../utilities/utilities";
 
@@ -17,7 +17,12 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 	// A quick counter.
 	let commandsCounter: number = 0;
 	// This is the path for the commands folder.
-	const commandsFolderPath = path.join(__dirname, "../commands");
+	let commandsFolderPath = "";
+	if (process.env.NODE_ENV === nodeEnvEnum.development) {
+		commandsFolderPath = path.join(__dirname, "../commands");
+	} else if (process.env.NODE_ENV === nodeEnvEnum.production) {
+		commandsFolderPath = path.join(__dirname, "commands");
+	}
 	// The commands folder.
 	const commandFolders = fs.readdirSync(commandsFolderPath);
 
@@ -84,7 +89,12 @@ export function loadEvents() {
 	// The array with events to be returned.
 	const events: I_BotEvent[] = [];
 	// This is the folder PATH where the events are located.
-	const eventFolderPath = path.join(__dirname, "../events");
+	let eventFolderPath = "";
+	if (process.env.NODE_ENV === nodeEnvEnum.development) {
+		eventFolderPath = path.join(__dirname, "../events");
+	} else if (process.env.NODE_ENV === nodeEnvEnum.production) {
+		eventFolderPath = path.join(__dirname, "events");
+	}
 	// This is to ensure that during development we are using .ts extension.
 	// Because during development we are using tsx.
 	const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";

@@ -108,7 +108,6 @@ async function startBot() {
 		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 
 		if (start == false) {
-			await AppDataSource.initialize();
 			// console.info(await performDatabaseStuff());
 			const pathToFile = path.join(__dirname, "../users.txt");
 			await updateUsersFromFile(pathToFile).catch((err) => {
@@ -116,6 +115,7 @@ async function startBot() {
 			});
 		}
 		else if (start) {
+			// await AppDataSource.initialize();
 			// This is a managed that handles the shards and sharding events.
 			const manager: ShardingManager = new ShardingManager(path.join(__dirname, `bot/bot.${fileExtension}`), {
 				token: process.env.TOKEN,
@@ -146,24 +146,24 @@ async function startBot() {
 // Then start the bot.
 startBot();
 
-// We need to process signals and handling process events here.
-process.on("exit", async () => {
-	console.log("Got exit signal, quitting...");
-	await killShards();
-	await AppDataSource.destroy();
-	process.exit(1);
-});
+// // We need to process signals and handling process events here.
+// process.on("exit", async () => {
+// 	console.log("Got exit signal, quitting...");
+// 	await killShards();
+// 	await AppDataSource.destroy();
+// 	process.exit(1);
+// });
 
-process.on("SIGTERM", async () => {
-	console.log("Got SIGTERM signal, quitting...");
-	await killShards();
-	await AppDataSource.destroy();
-	process.exit(1);
-});
+// process.on("SIGTERM", async () => {
+// 	console.log("Got SIGTERM signal, quitting...");
+// 	await killShards();
+// 	await AppDataSource.destroy();
+// 	process.exit(1);
+// });
 
-process.on("SIGKILL", async () => {
-	console.log("Got SIGKILL signal, quitting...");
-	await killShards();
-	await AppDataSource.destroy();
-	process.exit(1);
-});
+// process.on("SIGKILL", async () => {
+// 	console.log("Got SIGKILL signal, quitting...");
+// 	await killShards();
+// 	await AppDataSource.destroy();
+// 	process.exit(1);
+// });
