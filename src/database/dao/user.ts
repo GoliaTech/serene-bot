@@ -11,7 +11,7 @@ import { E_CurrencyTypes, I_addedItem, I_findOrCreateUser, Reward } from "../../
  *
  * @param {string} identifier Discord ID. We have a helper function that will check whether this is a UUID or not.
  */
-export async function findOrCreateUser(identifier: string): Promise<I_findOrCreateUser> {
+export async function findOrCreateUser(identifier: string, displayName?: string): Promise<I_findOrCreateUser> {
 	try {
 		// Get the user first.
 		// await AppDataSource.initialize();
@@ -26,11 +26,28 @@ export async function findOrCreateUser(identifier: string): Promise<I_findOrCrea
 			console.log("User not found. Creating new user.");
 			userInfo = new User.Core();
 			userInfo.discord_id = identifier;
-			userInfo = await AppDataSource.manager.save(User.Core, userInfo);
+			userInfo.display_name = displayName ? displayName : null;
+			await AppDataSource.manager.save(User.Core, userInfo);
+			// we have to save then find, because relations...
+			userInfo = await AppDataSource.manager.findOne(User.Core, {
+				where: {
+					discord_id: identifier
+				},
+				relations: ["userLevel", "userCurrency"],
+			});
 		}
-		// console.log("Identifier was not UUID and user not found.");
+		// This should literally never happen as we have already created a user. I need to find a better way to do this.
+
 
 		console.log("user was found");
+
+		if (!userInfo) {
+			console.log("This should have never happend, how did you get here?");
+			return {
+				data: "Something went wrong. Please contact the developer.",
+				error: true
+			};
+		}
 
 		const { userLevel, userCurrency } = userInfo;
 

@@ -154,7 +154,7 @@ export type Reward = {
 export interface I_findOrCreateUser {
 	data: {
 		uuid: string,
-		displayName: string,
+		displayName: string | null,
 		discordID: string,
 		joinedAt: Date,
 		common: number,

@@ -11,12 +11,12 @@ import { UserInventory } from "./inventory";
  * @export
  * @class UserCore
  */
-@Entity({ name: "user_core"})
+@Entity({ name: "user_core" })
 export class UserCore {
 	@PrimaryGeneratedColumn("uuid")
 	uuid!: string;
 	@Column({ type: "varchar", length: 64, nullable: true })
-	display_name!: string;
+	display_name!: string | null;
 	@Column({ type: "text", unique: true })
 	discord_id!: string;
 	@CreateDateColumn({ type: "timestamp" })
