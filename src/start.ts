@@ -5,7 +5,6 @@ import { getToken, nodeEnv, getExecArgv, logInfo, logError } from "./utilities/u
 import { findOrCreateUser } from "./database/dao/user";
 import { findAllCharacters } from "./database/dao/character";
 import { AppDataSource } from "./database/datasource";
-import { updateUsersFromFile } from "./updateUsers";
 
 require("dotenv").config();
 
@@ -105,14 +104,11 @@ async function startBot() {
 		const execArgv = getExecArgv();
 
 		// This is a fix to test and run TS code directly:
-		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		// const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		const fileExtension = "ts";
 
 		if (start == false) {
 			// console.info(await performDatabaseStuff());
-			const pathToFile = path.join(__dirname, "../users.txt");
-			await updateUsersFromFile(pathToFile).catch((err) => {
-				console.error('Error updating users:', err);
-			});
 		}
 		else if (start) {
 			// await AppDataSource.initialize();

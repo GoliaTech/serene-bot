@@ -20,10 +20,6 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 	let commandsFolderPath = "";
 	if (process.env.NODE_ENV === nodeEnvEnum.development) {
 		commandsFolderPath = path.join(__dirname, "../commands");
-	} else if (process.env.NODE_ENV === nodeEnvEnum.production && process.argv.includes("--deploy")) {
-		commandsFolderPath = path.join(__dirname, "../bot/commands");
-	} else if (process.env.NODE_ENV === nodeEnvEnum.production) {
-		commandsFolderPath = path.join(__dirname, "commands");
 	}
 	// The commands folder.
 	const commandFolders = fs.readdirSync(commandsFolderPath);
@@ -31,10 +27,11 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 
 	// This will loop through all the sub folders inside the commands folder.
 	for (const folder of commandFolders) {
-		// console.log("we are looping through folder: ", folder);
+		console.log("we are looping through folder: ", folder);
 		// The path for the subfolder.
 		const folderPath = path.join(commandsFolderPath, folder);
-		const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		// const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		const fileExtension = "ts";
 		console.log(fileExtension);
 		// Filter just the files we care about inside the subfolder.
 		const files = fs.readdirSync(folderPath).filter((file) => file.endsWith(`.${fileExtension}`));
@@ -109,7 +106,8 @@ export function loadEvents() {
 	}
 	// This is to ensure that during development we are using .ts extension.
 	// Because during development we are using tsx.
-	const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+	// const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+	const fileExtension = "ts";
 	// This reads the event folder where all the event files are located, it then filters out everything that is not a file with the correct extension.
 	const eventFolder = fs.readdirSync(eventFolderPath).filter((file) => file.endsWith(`.${fileExtension}`));
 

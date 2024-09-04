@@ -4,8 +4,8 @@
   "description": "This a blank readme for now.",
   "main": "src/start.ts",
   "scripts": {
-    "start": "node dist/start.js -P",
-    "dev": "nodemon src/start.ts -D",
+    "start": "nodemon --config nodemon.prod.json && nodemon src/start.ts -P",
+    "dev": "nodemon --config nodemon.dev.json && nodemon src/start.ts -D",
     "build": "tsup src",
     "devbuild": "tsc",
     "devtest": "jest tests --watch",
@@ -16,9 +16,9 @@
     "deletecommandsdev": "ts-node src/utilities/manageCommands.ts -D --delete",
     "getcommandsdev": "ts-node src/utilities/manageCommands.ts -D --get",
     "putcommandsdev": "ts-node src/utilities/manageCommands.ts -D --deploy",
-    "deletecommands": "node dist/utilities/manageCommands.js -P --delete",
-    "getcommands": "node dist/utilities/manageCommands.js -P --get",
-    "putcommands": "node dist/utilities/manageCommands.js -P --deploy"
+    "deletecommands": "ts-node src/utilities/manageCommands.ts -P --delete",
+    "getcommands": "ts-node src/utilities/manageCommands.ts -P --get",
+    "putcommands": "ts-node src/utilities/manageCommands.ts -P --deploy"
   },
   "keywords": [],
   "author": "GoliaTech",

@@ -1,10 +1,12 @@
 import { Events, ChatInputCommandInteraction } from "discord.js";
 import { I_BotEvent, CommandInteractionExtended, EmbedColors } from "../../utilities/interface";
-import { commands } from "../misc/loaders";
+// import { commands } from "../misc/loaders";
 import { embedBuilder } from "../misc/builders";
 import { AppDataSource } from "../../database/datasource";
 import { findOrCreateDiscordServer } from "../../database/dao/guild";
+import { loadCommands } from "../misc/loaders";
 const embed = embedBuilder("Error", EmbedColors.error);
+const commands = loadCommands();
 /**
  * This is the main interaction function.
  */
@@ -25,7 +27,13 @@ const interaction: I_BotEvent = {
 			}
 
 			// Now check if the command provided is correct.
+			if (!commands) {
+				console.log("commands not loaded???");
+				return;
+			}
 			const command = commands.get(interaction.commandName);
+			console.log(commands);
+			console.log(command);
 			if (!command) {
 				// If the command doesn't exist, don't do anything.
 				embed.setDescription("Command was not found.");
@@ -46,7 +54,7 @@ const interaction: I_BotEvent = {
 			}
 
 			// we should check if this is dm or not, then check what role we have the right perms.
-			
+
 			if (!interaction.channel?.isDMBased()) {
 				const guild = await interaction.client.guilds.fetch(String(interaction.guildId));
 				const serverSettings = await findOrCreateDiscordServer(guild.id);
@@ -60,7 +68,7 @@ const interaction: I_BotEvent = {
 				if (typeof (serverSettings.data) == "string") {
 					return;
 				}
-				if(command.options?.owner && interaction.user.id !== serverSettings.data.ownerId && interaction.user.id !== process.env.OWNER_ID) {
+				if (command.options?.owner && interaction.user.id !== serverSettings.data.ownerId && interaction.user.id !== process.env.OWNER_ID) {
 					embed.setDescription("You are not the owner of the server.");
 					interaction.reply({ embeds: [embed], ephemeral: true });
 					return;

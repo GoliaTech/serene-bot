@@ -66,8 +66,9 @@ async function bot() {
 		});
 
 		// This will load commands.
-		
-		loadCommands();
+
+		const loaded = loadCommands();
+		console.log(loaded);
 		// if (process.env.NODE_ENV === "development") {
 		// 	console.log("DISCORDCLIENT.COMMANDS:\n", discordClient.commands);
 		// }
