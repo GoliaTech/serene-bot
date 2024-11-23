@@ -105,6 +105,7 @@ async function startBot() {
 
 		// This is a fix to test and run TS code directly:
 		// const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
+		// I decided to not go with the deployement thing, using Javascript. Rather, the whole thing runs on TSnode. Yes, you can still build it, but really - i have limited time and it was just a hassle adapting everything that worked during dev on TSnode to JS. 
 		const fileExtension = "ts";
 
 		if (start == false) {
