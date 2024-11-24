@@ -4,13 +4,16 @@ import { commandBuilder } from "../../misc/builders";
 const races = [
 	{ name: "Human", value: "human" },
 	{ name: "Lustrovormir", value: "lustrovormir" },
-	{ name: "Equine - unicorn", value: "unicorn" },
-	{ name: "Dracon", value: "dracon" },
-	{ name: "Equine - pegasus", value: "pegasus" },
-	{ name: "Slithean", value: "slithean" },
-	{ name: "Vulpine", value: "vulpine" },
+	{ name: "Dracon - biped", value: "draconbiped" },
+	{ name: "Slithean - biped", value: "slitheanbiped" },
+	{ name: "Wolf", value: "wolf" },
 	{ name: "Fox", value: "fox" },
 	{ name: "Deer", value: "deer" },
+	{ name: "Equine - alicorn", value: "alicorn" },
+	{ name: "Equine - unicorn", value: "unicorn" },
+	{ name: "Equine - pegasus", value: "pegasus" },
+	{ name: "Equine", value: "equine" },
+	{ name: "Fyriian", value: "fyriian" },
 ];
 
 const rpCreate: I_Command = {
@@ -25,16 +28,19 @@ const rpCreate: I_Command = {
 			.setName("firstname")
 			.setRequired(true)
 			.setDescription("Set your character's first name.")
+			.setMinLength(3)
 			.setMaxLength(30))
 		.addStringOption((familyname) => familyname
 			.setName("familyname")
 			.setRequired(true)
 			.setDescription("If the family is ruled by a female, please end in a feminine suffix: -a, -i, etc.")
+			.setMinLength(3)
 			.setMaxLength(30))
 		.addStringOption((lineagename) => lineagename
 			.setName("lineagename")
 			.setRequired(true)
 			.setDescription("If the lineage was started by a female, please end in a feminine suffix: -a, -i, etc.")
+			.setMinLength(3)
 			.setMaxLength(30))
 		.addStringOption((gender) => gender
 			.setName("gender")
@@ -46,18 +52,19 @@ const rpCreate: I_Command = {
 			.setRequired(true)
 			.setDescription("Choose a race you wish to play. Read more about them and their stats on the wiki.")
 			.setChoices(
-				{ name: "Human", value: "human" },
 				{ name: "Random", value: "random" },
+				{ name: "Human", value: "human" },
 				{ name: "Lustrovormir", value: "lustrovormir" },
-				{ name: "Dracon", value: "dracon" },
-				{ name: "Fyriian", value: "fyriian" },
-				{ name: "Equine - unicorn", value: "unicorn" },
-				{ name: "Equine - pegasus", value: "pegasus" },
-				{ name: "Equine - alicorn", value: "alicorn" },
-				{ name: "Slithean", value: "slithean" },
-				{ name: "Wolf", value: "Wolf" },
+				{ name: "Dracon - biped", value: "draconbiped" },
+				{ name: "Slithean - biped", value: "slitheanbiped" },
+				{ name: "Wolf", value: "wolf" },
 				{ name: "Fox", value: "fox" },
 				{ name: "Deer", value: "deer" },
+				{ name: "Equine - alicorn", value: "alicorn" },
+				{ name: "Equine - unicorn", value: "unicorn" },
+				{ name: "Equine - pegasus", value: "pegasus" },
+				{ name: "Equine", value: "equine" },
+				{ name: "Fyriian", value: "fyriian" },
 			)),
 	options: {
 		botOwner: true,
@@ -68,11 +75,12 @@ const rpCreate: I_Command = {
 	 */
 	async execute(interaction) {
 		// choosing the race.
-		let race = interaction.options.getString("race");
 		let firstname = interaction.options.getString("firstname");
 		let familyname = interaction.options.getString("familyname");
 		let lineagename = interaction.options.getString("lineagename");
 		let gender = interaction.options.getString("gender");
+		let race = interaction.options.getString("race");
+
 		if (!firstname) {
 			await interaction.reply({ content: "You have to give your character a name.", ephemeral: true });
 			return;
@@ -100,7 +108,7 @@ const rpCreate: I_Command = {
 		}
 
 		let fullname = "";
-		if (race == "dracon") {
+		if (race == "draconbiped") {
 			fullname = `${firstname}-${familyname}'${lineagename}`;
 		}
 
