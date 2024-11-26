@@ -1,6 +1,7 @@
 import { randomInt } from "crypto";
 import { I_Command } from "../../../utilities/interface";
 import { commandBuilder } from "../../misc/builders";
+import { logInfo } from "../../../utilities/utilities";
 
 const rpCreate: I_Command = {
 	data: commandBuilder(
@@ -41,6 +42,8 @@ const rpCreate: I_Command = {
 				{ name: "Highest", value: "max" },
 				{ name: "Lowest", value: "min" },
 				{ name: "Average", value: "avg" },
+				{ name: "Ascending", value: "sortasc" },
+				{ name: "Descending", value: "sortdesc" },
 				{ name: "All", value: "all" }
 			)),
 	/**
@@ -58,9 +61,13 @@ const rpCreate: I_Command = {
 		}
 
 		const table = [];
+		const tableToSortDesc = [];
+		const tableToSortAsc = [];
 		for (let i = 0; i < amount; i++) {
 			const result = randomInt(1, sides);
 			table.push(result);
+			tableToSortDesc.push(result);
+			tableToSortAsc.push(result);
 		}
 
 		const sum = table.reduce((a, b) => a + b, 0);
@@ -75,6 +82,24 @@ const rpCreate: I_Command = {
 			average = Math.ceil(average);
 		}
 
+		// I dont get it. When I did this, ALL the tables got formatted, why????
+		// const tableToSortDesc = table;
+		// const tableToSortAsc = table;
+
+		console.log(tableToSortAsc);
+		console.log(tableToSortDesc);
+		console.log(table);
+
+		const sortdesc = tableToSortDesc.sort((a, b) => b - a);
+		const sortasc = tableToSortAsc.sort((a, b) => a - b);
+
+		console.log("after sort");
+		console.log(sortdesc);
+		console.log(sortasc);
+		console.log(tableToSortAsc);
+		console.log(tableToSortDesc);
+		console.log(table);
+
 		let display = interaction.options.getString("display");
 		let result = "";
 		if (!display || display == "list") {
@@ -87,15 +112,19 @@ const rpCreate: I_Command = {
 			result = String(min);
 		} else if (display == "avg") {
 			result = String(average);
+		} else if (display == "sortasc") {
+			result = sortasc.join(", ");
+		} else if (display == "sortdesc") {
+			result = sortdesc.join(", ");
 		} else if (display == "all") {
-			result = `${table.join(", ")}\nSum: ${sum}\nMax: ${max}\nMin: ${min}\nAverage: ${average}`;
+			result = `${table.join(", ")}\nAscending: ${sortasc.join(", ")}\nDescending: ${sortdesc.join(", ")}\nSum: ${sum}\nHighest: ${max}\nLowest: ${min}\nAverage: ${average}`;
 		} else {
 			result = table.join(", ");
 		}
 
 		// end of command
 		await interaction.reply({
-			content: result, ephemeral: true
+			content: result, ephemeral: false
 		});
 		return;
 	}
