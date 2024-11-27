@@ -1,6 +1,6 @@
 import { randomInt } from "crypto";
 import { I_Command } from "../../../utilities/interface";
-import { commandBuilder } from "../../misc/builders";
+import { commandBuilder, embedBuilder } from "../../misc/builders";
 
 const rpdiceroll: I_Command = {
 	data: commandBuilder(
@@ -103,8 +103,11 @@ const rpdiceroll: I_Command = {
 
 		const result = displays[display || "list"] || rolls.join(", ");
 
+		const embed = embedBuilder("Roll")
+			.setDescription(String(result));
+
 		await interaction.reply({
-			content: result
+			embeds: [embed]
 		});
 		return;
 	}
