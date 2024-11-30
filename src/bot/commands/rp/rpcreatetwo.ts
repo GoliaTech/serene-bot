@@ -10,9 +10,6 @@ const rpCreate: I_Command = {
 			dm: true
 		}
 	),
-	options: {
-		botOwner: true,
-	},
 	/**
 	 * The execute function for the rpcreate command.
 	 * @param interaction The interaction that triggered this command.

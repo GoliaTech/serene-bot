@@ -9,9 +9,6 @@ const viewAllRaces: I_Command = {
 			dm: true
 		}
 	),
-	options: {
-		botOwner: true,
-	},
 	async execute(interaction) {
 		await interaction.reply({ content: "WIP", ephemeral: true });
 		return;

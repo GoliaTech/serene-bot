@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, ModalSubmitInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, StringSelectMenuInteraction } from "discord.js";
+import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, Message, ModalSubmitInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, StringSelectMenuInteraction } from "discord.js";
 
 export enum EmbedColors {
 	"default" = "#ED4D84",
@@ -47,6 +47,13 @@ export interface I_Command {
 export interface I_OtherCommand {
 	customID: string;
 	execute(ineraction: ButtonInteraction | AutocompleteInteraction | ModalSubmitInteraction | StringSelectMenuInteraction): void;
+}
+
+export interface I_MessageCommand {
+	data: {
+		name: string;
+	};
+	execute(message: Message): void;
 }
 
 /**

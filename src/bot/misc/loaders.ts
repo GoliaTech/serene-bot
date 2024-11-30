@@ -1,11 +1,12 @@
 import path from "path";
 import fs from "fs";
-import { ClientExtended, I_BotEvent, I_Command, I_OtherCommand, nodeEnvEnum } from "../../utilities/interface";
+import { ClientExtended, I_BotEvent, I_Command, I_MessageCommand, I_OtherCommand, nodeEnvEnum } from "../../utilities/interface";
 import { Collection } from "discord.js";
 import { logError } from "../../utilities/utilities";
 
 export const commands = new Collection<string, I_Command>();
 export const otherCommands = new Collection<string, I_OtherCommand>();
+export const messageCommands = new Collection<string, I_MessageCommand>();
 
 /**
  * This is still testing...
@@ -136,7 +137,7 @@ export function loadEvents() {
 /**
  * Modals, etc.
  */
-export function loadOtherCommands(): Collection<any, I_OtherCommand> | void {
+export function loadOtherCommands(): Collection<string, I_OtherCommand> | void {
 	const commandsFolderPath = path.join(__dirname, "../otherCommands");
 	const commandsFolders = fs.readdirSync(commandsFolderPath);
 	console.log(commandsFolderPath);
@@ -170,4 +171,34 @@ export function loadOtherCommands(): Collection<any, I_OtherCommand> | void {
 	}
 	// }
 	return otherCommands;
+}
+
+export function messageCommandLoader(): Collection<string, I_MessageCommand> | void {
+	const commandsFolderPath = path.join(__dirname, "../messageCommands");
+	const commandsFolders = fs.readdirSync(commandsFolderPath);
+	console.log(commandsFolderPath);
+	for (const folders of commandsFolders) {
+		const foldersPath = path.join(commandsFolderPath, folders);
+		const fileExtension = "ts";
+		const files = fs.readdirSync(foldersPath).filter((file) => file.endsWith(`.${fileExtension}`));
+		for (const file of files) {
+			const filePath = path.join(foldersPath, file);
+			const command: I_MessageCommand[] = require(filePath);
+			if (Object.keys(command).length == 0) {
+				logError(`WE can't iterate through a command, skipping...\nPath: ${filePath}`);
+				return;
+			}
+			for (const cmd of command) {
+				if (cmd.data.name != undefined || cmd.data.name != null) {
+					try {
+						console.log(`Logged message command: ${cmd.data.name}`);
+						messageCommands.set(cmd.data.name, cmd);
+					} catch (e) {
+						return;
+					}
+				}
+			}
+		}
+	}
+	return messageCommands;
 }

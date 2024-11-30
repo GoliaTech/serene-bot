@@ -14,9 +14,6 @@ const rpBackstory: I_Command = {
 			.setRequired(true)
 			.setMinLength(30)
 			.setDescription("Give your character a backstory. Make it in theme with the current roleplay!")),
-	options: {
-		botOwner: true,
-	},
 	/**
 	 * The execute function for the rpcreate command.
 	 * @param interaction The interaction that triggered this command.

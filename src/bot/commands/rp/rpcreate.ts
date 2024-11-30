@@ -66,9 +66,6 @@ const rpCreate: I_Command = {
 				{ name: "Equine", value: "equine" },
 				{ name: "Fyriian", value: "fyriian" },
 			)),
-	options: {
-		botOwner: true,
-	},
 	/**
 	 * The execute function for the rpcreate command.
 	 * @param interaction The interaction that triggered this command.
