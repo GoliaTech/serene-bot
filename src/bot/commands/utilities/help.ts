@@ -12,3 +12,7 @@ const helpCommand: I_Command = {
 		return;
 	}
 };
+
+module.exports = [
+	helpCommand
+];

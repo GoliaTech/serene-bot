@@ -14,6 +14,8 @@ export const messageCommands = new Collection<string, I_MessageCommand>();
  * Then it will loop through sub folders.
  * Then it will loop through each sub folder, get the files, and finally do something about it.
  * It should then return the collection of commands.
+ * @returns {Collection<string, I_Command>}
+ * @param {discordClient} ClientExtended
  */
 export function loadCommands(discordClient?: ClientExtended): Collection<string, I_Command> | void {
 	// A quick counter.
@@ -98,9 +100,10 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
  * Then it loops through them, adds them into an array and then returns that array of events.
  * @returns {I_BotEvent[]} - Well I just put ANY for now, but I will have to make an interface for this, or declaration.
  */
-export function loadEvents() {
+export function loadEvents(): I_BotEvent[] | void {
 	// The array with events to be returned.
 	const events: I_BotEvent[] = [];
+	let eventsLoaded = 0, eventsTotal = 0, eventsDisabled = 0;
 	// This is the folder PATH where the events are located.
 	let eventFolderPath = "";
 	if (process.env.NODE_ENV === nodeEnvEnum.development) {
@@ -125,17 +128,32 @@ export function loadEvents() {
 		// It is possible to load an array of all the events from a file.
 		// We just have to loop through them like a normal array.
 		for (const e of event) {
-			// So you push each event into the array.
-			events.push(e);
+			// New feature: load only enabled commands.
+			try {
+				eventsTotal++;
+				if (!e.disabled) {
+					// So you push each event into the array.
+					eventsLoaded++;
+					events.push(e);
+				} else {
+					eventsDisabled++;
+					console.log(`Event ${e.name} is disabled.`);
+				}
+			} catch (err) {
+				logError(`there was a problem loading event: ${err}`);
+				return;
+			}
 		}
 	}
 
 	// You then return the array.
+	console.log(`Loaded: ${eventsLoaded} out of ${eventsTotal} events. (${eventsDisabled} disabled)`);
 	return events;
 }
 
 /**
  * Modals, etc.
+ * @returns {Collection<string, I_OtherCommand>}
  */
 export function loadOtherCommands(): Collection<string, I_OtherCommand> | void {
 	const commandsFolderPath = path.join(__dirname, "../otherCommands");
@@ -173,6 +191,10 @@ export function loadOtherCommands(): Collection<string, I_OtherCommand> | void {
 	return otherCommands;
 }
 
+/**
+ * This will load messageCommands for your messaging pleasures.
+ * @returns {Collection<string, I_MessageCommand>}
+ */
 export function messageCommandLoader(): Collection<string, I_MessageCommand> | void {
 	const commandsFolderPath = path.join(__dirname, "../messageCommands");
 	const commandsFolders = fs.readdirSync(commandsFolderPath);

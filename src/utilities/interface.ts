@@ -74,6 +74,7 @@ export interface I_BotEvent {
 	name: string;
 	execute(...args: any[]): any;
 	once?: boolean;
+	disabled?: boolean;
 };
 
 /**

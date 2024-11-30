@@ -67,8 +67,8 @@ async function bot() {
 
 		// This will load commands.
 
-		const loaded = loadCommands();
-		console.log(loaded);
+		// const loaded = loadCommands();
+		// console.log(loaded);
 		// if (process.env.NODE_ENV === "development") {
 		// 	console.log("DISCORDCLIENT.COMMANDS:\n", discordClient.commands);
 		// }
@@ -77,8 +77,12 @@ async function bot() {
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
 		const loadedEvents = loadEvents();
+		if (!loadedEvents) {
+			logError("Unable to load events.");
+			return;
+		}
 		if (process.env.NODE_ENV === "development") {
-			console.log("LOADEVENTS:\n", loadedEvents);
+			console.log("Loaded Events:\n", loadedEvents);
 		}
 		eventHandlers(discordClient, loadedEvents);
 

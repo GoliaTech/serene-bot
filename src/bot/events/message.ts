@@ -45,8 +45,13 @@ const emojisReact: I_BotEvent = {
 	},
 };
 
+/**
+ * This will handle message commands.
+ * One caveat: they cannot handle ephemeral messages.
+ */
 const messageCommandsEvent: I_BotEvent = {
 	name: Events.MessageCreate,
+	disabled: true,
 	async execute(message: Message) {
 		if (message.author.bot) {
 			return;
@@ -65,6 +70,7 @@ const messageCommandsEvent: I_BotEvent = {
 
 		// TS is an idiot and is screaming at me: "OOOO .get CANNOT BE MADE ON VOID."
 		// Okay bro, so why is it working on interaction.ts, the same exact command, you dumb stupid idiot.
+		// Ignore this error, TS is a stupid freak.
 		const command: I_MessageCommand | undefined = messageCommands.get(commandName);
 		if (!command) {
 			message.reply(`Command not found: ${commandName}`);
