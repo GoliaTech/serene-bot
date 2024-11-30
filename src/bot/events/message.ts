@@ -82,6 +82,7 @@ const messageCommandsEvent: I_BotEvent = {
 		if (!message.content.startsWith(commandStart) && message.mentions.users.size == 0 || !message.mentions.users.find((u) => u.id == message.client.user.id)) {
 			return;
 		}
+
 		let commandMessage = message.content.slice(commandStart.length).trim().split(/ +/);
 		if (message.mentions.users.size > 0) {
 			commandMessage = commandMessage.slice(1);
