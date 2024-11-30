@@ -2,8 +2,6 @@ import "reflect-metadata";
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
 import { getToken, nodeEnv, getExecArgv, logInfo, logError } from "./utilities/utilities";
-import { findOrCreateUser } from "./database/dao/user";
-import { findAllCharacters } from "./database/dao/character";
 import { AppDataSource } from "./database/datasource";
 
 require("dotenv").config();
@@ -143,24 +141,25 @@ async function startBot() {
 // Then start the bot.
 startBot();
 
-// // We need to process signals and handling process events here.
-// process.on("exit", async () => {
-// 	console.log("Got exit signal, quitting...");
-// 	await killShards();
-// 	await AppDataSource.destroy();
-// 	process.exit(1);
-// });
+// We need to process signals and handling process events here.
+// This is broken on JS, but works fine with TS.
+process.on("exit", async () => {
+	console.log("Got exit signal, quitting...");
+	await killShards();
+	await AppDataSource.destroy();
+	process.exit(1);
+});
 
-// process.on("SIGTERM", async () => {
-// 	console.log("Got SIGTERM signal, quitting...");
-// 	await killShards();
-// 	await AppDataSource.destroy();
-// 	process.exit(1);
-// });
+process.on("SIGTERM", async () => {
+	console.log("Got SIGTERM signal, quitting...");
+	await killShards();
+	await AppDataSource.destroy();
+	process.exit(1);
+});
 
-// process.on("SIGKILL", async () => {
-// 	console.log("Got SIGKILL signal, quitting...");
-// 	await killShards();
-// 	await AppDataSource.destroy();
-// 	process.exit(1);
-// });
+process.on("SIGKILL", async () => {
+	console.log("Got SIGKILL signal, quitting...");
+	await killShards();
+	await AppDataSource.destroy();
+	process.exit(1);
+});

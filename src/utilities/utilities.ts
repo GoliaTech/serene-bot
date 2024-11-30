@@ -3,10 +3,10 @@ import { nodeEnvEnumType } from "./interface";
 /**
  * This code handles setting the process.env.NODE_ENV to the correct one.
  * This is necessary as the rest of the program requires a properly functioning process.env.NODE_ENV to work right.
- * @param {nodeEnvEnumType}overwrite - If you want to overwrite the value.
+ * @param {nodeEnvEnumType} overwrite - If you want to overwrite the value.
  * @returns {string} Either "development" or "production".
  */
-export function nodeEnv(overwrite?: nodeEnvEnumType) {
+export function nodeEnv(overwrite?: nodeEnvEnumType): string {
 	try {
 		logInfo("Setting process.env.NODE_ENV...");
 		// As this function is going to be reused, I want to make sure we are not overwriting previously set NODE_ENV in other parts of the code.
@@ -17,7 +17,7 @@ export function nodeEnv(overwrite?: nodeEnvEnumType) {
 
 		// If we are providing overwrite.
 		if (overwrite) {
-			const validOverwrite = ["production", "development"];
+			const validOverwrite: string[] = ["production", "development"];
 			if (!validOverwrite.includes(overwrite)) {
 				throw new Error("Invalid argument: expected 'production' or 'development'.");
 			}
@@ -48,7 +48,7 @@ export function nodeEnv(overwrite?: nodeEnvEnumType) {
  * This is in case you have 2 bots, one for development and one for production.
  * @returns {string} - The token.
  */
-export function getToken() {
+export function getToken(): string {
 	// This skips getting the token if it is already set.
 	if (process.env.TOKEN != "" && process.env.TOKEN != undefined) {
 		return process.env.TOKEN;
@@ -103,7 +103,7 @@ export function getExecArgv(): string[] {
  * This automatically checks whether you should provide the DEV App ID or not.
  * @returns {string} The correct App ID.
  */
-export function getAppId() {
+export function getAppId(): string {
 	// This skips getting the token if it is already set.
 	if (process.env.APPID != "" && process.env.APPID != undefined) {
 		return process.env.APPID;
@@ -126,7 +126,7 @@ export function getAppId() {
  * This checks whether we should use DEV Guild ID or not.
  * @returns {string} The correct Guild ID
  */
-export function getGuildId() {
+export function getGuildId(): string {
 	// This skips getting the token if it is already set.
 	if (process.env.GUILDID != "" && process.env.GUILDID != undefined) {
 		return process.env.GUILDID;
@@ -156,18 +156,27 @@ export function checkUUID(identifier: string): boolean {
 };
 
 /**
- * This will log the error in the console in a nice way, including date and time.
- * It starts with 2 line breaks and ends with 2 line breaks.
- * You also have a line break before the error message, so don't add it at the start.
- * @param {Error | string} error The error.
+ * Logs an error in the console with a timestamp.
+ * @param {Error | string} error The error message or Error object.
+ * @returns {string} The error message.
  */
-export function logError(error: Error | string) {
-	if (error instanceof Error) {
-		console.error(`\n\n[${new Date().toLocaleString()}] - #### ERROR #### -\n${error.stack}\n\n`);
-	} else {
-		console.error(`\n\n[${new Date().toLocaleString()}] - #### ERROR #### -\n${error}\n\n`);
-	}
-	return String(error);
+export function logError(error: Error | string): string {
+	const time = new Date().toLocaleString();
+	const message = error instanceof Error ? error.stack : error;
+	console.error(`\n\n[${time}] - #### ERROR #### -\n${message}\n\n`);
+	return String(message);
+}
+
+/**
+ * This is a general log. Use it to nicely log stuff with date and time.
+ * It ends with 1 line break.
+ * You also have a line break before the message, so don't add it at the start.
+ * @param {string} message a message as a string.
+ * @returns {string} The message as a string.
+ */
+export function logGeneral(message: string): string {
+	console.log(`[${new Date().toLocaleString()}]\n${message}\n`);
+	return String(message);
 };
 
 /**
@@ -175,32 +184,33 @@ export function logError(error: Error | string) {
  * It ends with 1 line break.
  * You also have a line break before the message, so don't add it at the start.
  * @param {string} message a message as a string.
+ * @returns {string} The message as a string.
  */
-export function logGeneral(message: string) {
-	return console.log(`[${new Date().toLocaleString()}]\n${message}\n`);
+export function logInfo(message: string): string {
+	console.info(`[${new Date().toLocaleString()}] - ## INFO ## - \n${message}\n`);
+	return String(message);
 };
 
 /**
- * This is a general log. Use it to nicely log stuff with date and time.
- * It ends with 1 line break.
- * You also have a line break before the message, so don't add it at the start.
- * @param {string} message a message as a string.
+ * This will capitalize the first letter of a string.
+ * @param {string} str The string you want to capitalize.
+ * @returns {string} The capitalized string.
  */
-export function logInfo(message: string) {
-	return console.info(`[${new Date().toLocaleString()}] - ## INFO ## - \n${message}\n`);
-};
-
 export function capitalizeFirstLetter(str: string): string {
 	if (str.length === 0) return str; // Check if string is empty
 	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-// Function to capitalize the first letter of each word in a sentence
+/**
+ * This will capitalize a whole sentence, using space as the separator.
+ * @param {string} sentence The sentence you want to capitalize.
+ * @returns {string} The capitalized sentence, with space as separator.
+ */
 export function capitalizeEachWord(sentence: string): string {
 	return sentence
 		// Split the words.
 		.split(' ')
-		// Captialize each word.
+		// Capitalize each word.
 		.map(capitalizeFirstLetter)
 		// Finally join them again.
 		.join(' ');
