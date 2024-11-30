@@ -1,22 +1,29 @@
-import { Events, ChatInputCommandInteraction } from "discord.js";
+import { Events, ChatInputCommandInteraction, ButtonInteraction, AutocompleteInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
 import { I_BotEvent, CommandInteractionExtended, EmbedColors } from "../../utilities/interface";
 // import { commands } from "../misc/loaders";
 import { embedBuilder } from "../misc/builders";
 import { AppDataSource } from "../../database/datasource";
 import { findOrCreateDiscordServer } from "../../database/dao/guild";
-import { loadCommands } from "../misc/loaders";
+import { loadCommands, loadOtherCommands } from "../misc/loaders";
 const embed = embedBuilder("Error", EmbedColors.error);
 const commands = loadCommands();
+const otherCommands = loadOtherCommands();
+const errorEmbed = embedBuilder("Error", EmbedColors.error);
 
-async function commandInteraction(interaction: ChatInputCommandInteraction) {
+/**
+ * This will process standard commands used by users, for example: /help, /leaderboard, etc.
+ * @param interaction This is a "ChatInputCommandInteraction", the default interaction for commands.
+ * @returns void
+ */
+async function interaction_Command(interaction: ChatInputCommandInteraction) {
 	// Now check if the command provided is correct.
 	if (!commands) {
 		console.log("commands not loaded???");
 		return;
 	}
 	const command = commands.get(interaction.commandName);
-	console.log(commands);
-	console.log(command);
+	// console.log(commands);
+	// console.log(command);
 	if (!command) {
 		// If the command doesn't exist, don't do anything.
 		embed.setDescription("Command was not found.");
@@ -67,7 +74,65 @@ async function commandInteraction(interaction: ChatInputCommandInteraction) {
 	return;
 }
 
+async function interaction_Autocomplete(interaction: AutocompleteInteraction) {
+	console.log("Autocomplete interaction");
+	return;
+}
 
+async function interaction_Button(interaction: ButtonInteraction) {
+	if (!otherCommands) {
+		console.log("commands not loaded???");
+		errorEmbed.setDescription("Button commands have not been loaded, they will not work at the moment.");
+		return;
+	}
+	const customID = interaction.customId;
+	if (!customID) {
+		console.log("No custom ID provided.... bro what did you do.");
+		return;
+	}
+	const command = otherCommands.get(customID);
+	// console.log(command);
+	if (!command) {
+		console.log("Command not found");
+		return;
+	}
+	if (process.env.NODE_ENV === "development") {
+		console.info(command);
+	}
+
+	command.execute(interaction);
+	return;
+}
+
+async function interaction_StringSelectMenu(interaction: StringSelectMenuInteraction) {
+	console.log("StringSelectMenu interaction");
+	return;
+}
+
+async function interaction_ModalSubmit(interaction: ModalSubmitInteraction) {
+	if (!otherCommands) {
+		console.log("commands not loaded???");
+		errorEmbed.setDescription("Modal commands have not been loaded, they will not work at the moment.");
+		return;
+	}
+	const customID = interaction.customId;
+	if (!customID) {
+		console.log("No custom ID provided.... bro what did you do.");
+		return;
+	}
+	const command = otherCommands.get(customID);
+	// console.log(command);
+	if (!command) {
+		console.log("Command not found");
+		return;
+	}
+	if (process.env.NODE_ENV === "development") {
+		console.info(command);
+	}
+
+	command.execute(interaction);
+	return;
+}
 
 /**
  * This is the main interaction function.
@@ -87,23 +152,28 @@ const interaction: I_BotEvent = {
 			// 	if (process.env.NODE_ENV === "development") console.log(`[${new Date().toUTCString()}] - Command was not an interaction`);
 			// 	return;
 			// }
+
 			if (interaction.isChatInputCommand()) {
-				await commandInteraction(interaction);
-				return;
+				await interaction_Command(interaction);
 			} else if (interaction.isButton()) {
-				console.log("Button interaction");
-				return;
+				await interaction_Button(interaction);
 			} else if (interaction.isStringSelectMenu()) {
-				console.log("StringSelectMenu interaction");
-				return;
-			} else {
+				await interaction_StringSelectMenu(interaction);
+			} else if (interaction.isModalSubmit()) {
+				await interaction_ModalSubmit(interaction);
+			} else if (interaction.isAutocomplete()) {
+				await interaction_Autocomplete(interaction);
+			}
+			else {
 				console.log("Interaction was not a predefined interaction type;");
 			}
 
 			return;
 		} catch (error) {
 			console.error(error);
-			embed.setDescription("We are sorry, it seems we have encountered an error.");
+			embed.setTitle("Error processing interaction.")
+				.setDescription("We are sorry, it seems we have encountered an error.")
+				.setColor(EmbedColors.error);
 			interaction.reply({ embeds: [embed], ephemeral: true });
 			return;
 		}

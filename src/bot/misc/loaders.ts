@@ -1,10 +1,11 @@
 import path from "path";
 import fs from "fs";
-import { ClientExtended, I_BotEvent, I_Command, nodeEnvEnum } from "../../utilities/interface";
+import { ClientExtended, I_BotEvent, I_Command, I_OtherCommand, nodeEnvEnum } from "../../utilities/interface";
 import { Collection } from "discord.js";
 import { logError } from "../../utilities/utilities";
 
 export const commands = new Collection<string, I_Command>();
+export const otherCommands = new Collection<string, I_OtherCommand>();
 
 /**
  * This is still testing...
@@ -46,7 +47,8 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 			// console.log("command: ", command);
 
 			if (Object.keys(command).length == 0) {
-				return logError(`WE can't iterate through a command, skipping...\nPath: ${filePath}`);
+				logError(`WE can't iterate through a command, skipping...\nPath: ${filePath}`);
+				return;
 			}
 			// I am so stupid. I forgot that I allowed multiple commands in a single file.
 			// Why? Well because modals or something could perhaps benefit from it, is what I'm thinking.
@@ -67,7 +69,8 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 							commands.set(cmd.data.name, cmd);
 						}
 					} catch (problem: any) {
-						return logError(`There was a problem setting the command:\n${problem}`);
+						logError(`There was a problem setting the command:\n${problem}`);
+						return;
 					}
 				}
 			}
@@ -128,4 +131,43 @@ export function loadEvents() {
 
 	// You then return the array.
 	return events;
+}
+
+/**
+ * Modals, etc.
+ */
+export function loadOtherCommands(): Collection<any, I_OtherCommand> | void {
+	const commandsFolderPath = path.join(__dirname, "../otherCommands");
+	const commandsFolders = fs.readdirSync(commandsFolderPath);
+	console.log(commandsFolderPath);
+	for (const folders of commandsFolders) {
+		const foldersPath = path.join(commandsFolderPath, folders);
+		// const innerFolders = fs.readdirSync(foldersPath);
+		// console.log(foldersPath);
+		// for (const innerFolder of innerFolders) {
+		// 	const folderPath = path.join(foldersPath, innerFolder);
+		// 	console.log(folderPath);
+		const fileExtension = "ts";
+		const files = fs.readdirSync(foldersPath).filter((file) => file.endsWith(`.${fileExtension}`));
+		for (const file of files) {
+			const filePath = path.join(foldersPath, file);
+			const command: I_OtherCommand[] = require(filePath);
+			if (Object.keys(command).length == 0) {
+				logError(`WE can't iterate through a command, skipping...\nPath: ${filePath}`);
+				return;
+			}
+			for (const cmd of command) {
+				if (cmd.customID != undefined || cmd.customID != null) {
+					try {
+						console.log(`Logged other command: ${cmd.customID}`);
+						otherCommands.set(cmd.customID, cmd);
+					} catch (e) {
+						return;
+					}
+				}
+			}
+		}
+	}
+	// }
+	return otherCommands;
 }

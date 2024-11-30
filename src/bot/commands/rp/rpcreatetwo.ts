@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, StringSelectMenuBuilder } from "discord.js";
-import { I_Command } from "../../../utilities/interface";
+import { I_Command, I_OtherCommand } from "../../../utilities/interface";
 import { commandBuilder } from "../../misc/builders";
 
 const rpCreate: I_Command = {
@@ -67,5 +67,5 @@ const rpCreate: I_Command = {
 };
 
 module.exports = [
-	rpCreate
+	rpCreate,
 ];

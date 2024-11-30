@@ -13,7 +13,6 @@ const rpCreate: I_Command = {
 		"rpdicerolltwo",
 		"Interactive dice roller using modals.",
 	),
-
 	async execute(interaction: CommandInteraction) {
 		const modal = new ModalBuilder()
 			.setCustomId("dice_roll_modal")

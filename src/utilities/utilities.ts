@@ -167,7 +167,7 @@ export function logError(error: Error | string) {
 	} else {
 		console.error(`\n\n[${new Date().toLocaleString()}] - #### ERROR #### -\n${error}\n\n`);
 	}
-	return;
+	return String(error);
 };
 
 /**
@@ -191,8 +191,8 @@ export function logInfo(message: string) {
 };
 
 export function capitalizeFirstLetter(str: string): string {
-    if (str.length === 0) return str; // Check if string is empty
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+	if (str.length === 0) return str; // Check if string is empty
+	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 // Function to capitalize the first letter of each word in a sentence
@@ -203,5 +203,5 @@ export function capitalizeEachWord(sentence: string): string {
 		// Captialize each word.
 		.map(capitalizeFirstLetter)
 		// Finally join them again.
-        .join(' ');
+		.join(' ');
 }

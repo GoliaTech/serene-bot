@@ -12,10 +12,11 @@ const user: I_Command = {
 		{
 			dm: true,
 		},
-	).addUserOption(option => option
-		.setDescription("Input another user here, to get their profile.")
-		.setRequired(false)
-		.setName("getuser")),
+	)
+		.addUserOption(option => option
+			.setDescription("Input another user here, to get their profile.")
+			.setRequired(false)
+			.setName("getuser")),
 	async execute(interaction: ChatInputCommandInteraction) {
 		let userToGet = interaction.options.getUser("getuser");
 		if (!userToGet) { userToGet = interaction.user; }

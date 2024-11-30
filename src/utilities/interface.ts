@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
+import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, ModalSubmitInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, StringSelectMenuInteraction } from "discord.js";
 
 export enum EmbedColors {
 	"default" = "#ED4D84",
@@ -33,6 +33,7 @@ export interface ClientExtended extends Client {
 export interface I_Command {
 	data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
 	execute(interaction: ChatInputCommandInteraction): any;
+	customID?: string;
 	options?: {
 		botOwner?: boolean;
 		owner?: boolean;
@@ -42,6 +43,11 @@ export interface I_Command {
 		staff?: boolean;
 	};
 };
+
+export interface I_OtherCommand {
+	customID: string;
+	execute(ineraction: ButtonInteraction | AutocompleteInteraction | ModalSubmitInteraction | StringSelectMenuInteraction): void;
+}
 
 /**
  * Extends the base client CLASS, not interface.
