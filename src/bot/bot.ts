@@ -7,7 +7,8 @@ import { logError, logInfo } from "../utilities/utilities";
 
 // For quick testing if commands or events load. I don't want to login every time you see.
 const login: boolean = true;
-export let loadedEvents: I_BotEvent[] | void = [];
+export const loadedEvents= loadEvents();
+export const interactionCommands = loadCommands();
 
 /**
  * This will register events that the client will have to handle.
@@ -77,7 +78,6 @@ async function bot() {
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
-		loadedEvents = loadEvents();
 		if (!loadedEvents) {
 			logError("Unable to load events.");
 			return;

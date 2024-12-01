@@ -5,8 +5,8 @@ import { embedBuilder } from "../misc/builders";
 import { AppDataSource } from "../../database/datasource";
 import { findOrCreateDiscordServer } from "../../database/dao/guild";
 import { loadCommands, loadOtherCommands } from "../misc/loaders";
+import { interactionCommands } from "../bot";
 const embed = embedBuilder("Error", EmbedColors.error);
-export const interactionCommands = loadCommands();
 const otherCommands = loadOtherCommands();
 const errorEmbed = embedBuilder("Error", EmbedColors.error);
 

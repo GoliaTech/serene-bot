@@ -78,7 +78,7 @@ const messageCommandsEvent: I_BotEvent = {
 
 		console.log(message.mentions.users.find((u) => u.id == message.client.user.id));
 
-		if (!message.content.startsWith(commandStart) && message.mentions.users.size == 0 || !message.mentions.users.find((u) => u.id == message.client.user.id)) {
+		if (!message.content.startsWith(commandStart) && message.mentions.users.size == 0 || !message.mentions.users.find((u) => u.id == message.client.user.id) && message.mentions.users.size > 0) {
 			return;
 		}
 

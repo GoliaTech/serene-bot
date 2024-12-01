@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import { embedBuilder } from "../../misc/builders";
-import { interactionCommands } from "../../events/interaction";
-import { loadedEvents } from "../../bot";
+import { interactionCommands, loadedEvents } from "../../bot";
 
 const ping = {
 	data: {
