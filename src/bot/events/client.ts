@@ -3,6 +3,8 @@ import { I_BotEvent } from "../../utilities/interface";
 import { logError, logGeneral } from "../../utilities/utilities";
 import { embedBuilder } from "../misc/builders";
 import { randomInt } from "crypto";
+import path from "node:path";
+import { readFileSync } from "fs";
 
 /**
  * This will set a random presence.
@@ -47,7 +49,8 @@ const ready: I_BotEvent = {
 // I dont want to redeclare these when calling the function.
 const mainChannel = "792743975273889812";
 const devChannel = "1312517585224339517";
-const musicLinkList: {
+
+interface I_MusicList {
 	name: string;
 	artist: string;
 	ytmusic: string;
@@ -55,43 +58,7 @@ const musicLinkList: {
 	spotify?: string;
 	year?: number;
 	album?: string;
-	yt?: string;
-}[] = [
-		{
-			name: "Where's Your Head At",
-			artist: "Basement Jaxx",
-			ytmusic: "https://music.youtube.com/watch?v=omwXLXeTR4w&si=zKox8gmIYLt_fgOR",
-			spotify: "https://open.spotify.com/track/3cJh89D0za2SW705fNBo3b?si=d8045285e24c4d4e",
-			year: 2001,
-			album: "Rooty",
-			yt: "https://www.youtube.com/watch?v=5rAOyh7YmEc",
-			genre: "Dance/Electronic"
-		},
-		{
-			name: "Jerk",
-			artist: "Oliver Tree",
-			album: "Ugly Is Beautiful",
-			year: 2020,
-			ytmusic: "https://music.youtube.com/watch?v=CSmH6fSMeHY&si=BFi4gBedO6pIEqLw",
-			genre: "Alternative/Indie"
-		},
-		{
-			name: "96 Quite Bitter Beings",
-			artist: "CKY",
-			year: 1999,
-			album: "Volume 1",
-			ytmusic: "https://music.youtube.com/watch?v=aVdR6JeEyT8&si=4476TEwK1Kzqam5_",
-			genre: "Metal/Rock",
-		},
-		{
-			name: "Flesh Into Gear",
-			artist: "CKY",
-			year: 2002,
-			album: "Jackass The Movie",
-			ytmusic: "https://music.youtube.com/watch?v=GpzYqkzBvF8&si=HWFLYMybVRPtELDC",
-			genre: "Metal/Rock",
-		}
-	];
+}
 
 async function musicRecommendations(client: Client) {
 	let guild = await client.guilds.fetch(String(process.env.GUILD_ID));
@@ -102,7 +69,7 @@ async function musicRecommendations(client: Client) {
 		logError("No guild could be found for music recommendations....");
 		return;
 	}
-	console.log("guild:", guild);
+	// console.log("guild:", guild);
 	let channel = await guild.channels.fetch(devChannel);
 	if (!channel) {
 		channel = await guild.channels.fetch(devChannel);
@@ -116,7 +83,67 @@ async function musicRecommendations(client: Client) {
 		return;
 	}
 
-	const randomSong = musicLinkList[Math.floor(Math.random() * musicLinkList.length)];
+	const rootPath = path.join(__dirname, "../../../");
+	const songListPath = path.join(rootPath, "songlist.json");
+
+	const songListFile: I_MusicList[] = require(songListPath)["songs"];
+	if (!songListFile) {
+		console.error("Failed to load file");
+		try {
+			delete require.cache[require.resolve(songListPath)];
+			return;
+		} catch (err: any) {
+			logError(err.message);
+			return;
+		}
+	}
+
+	for (const song of songListFile) {
+		if (!song.name) {
+			console.error("Song name is null...");
+			console.log(song);
+			try {
+				delete require.cache[require.resolve(songListPath)];
+				return;
+			} catch (err: any) {
+				logError(err.message);
+				return;
+			}
+		}
+		if (!song.artist) {
+			console.error("Artist name is null...");
+			console.log(song);
+			try {
+				delete require.cache[require.resolve(songListPath)];
+				return;
+			} catch (err: any) {
+				logError(err.message);
+				return;
+			}
+		}
+		if (!song.ytmusic) {
+			console.error("YTMusic is null...");
+			console.log(song);
+			try {
+				delete require.cache[require.resolve(songListPath)];
+				return;
+			} catch (err: any) {
+				logError(err.message);
+				return;
+			}
+		}
+		if (!song.spotify) {
+			console.error(`Spotify is EMPTY for the song: "${song.name}"`);
+		}
+		if (!song.year) {
+			console.error(`Year is EMPTY for the song: "${song.name}"`);
+		}
+		if (!song.album) {
+			console.error(`Album is EMPTY for the song: "${song.name}"`);
+		}
+	}
+
+	const randomSong = songListFile[Math.floor(Math.random() * songListFile.length)];
 
 	const embed = embedBuilder("Music Suggestion")
 		.setDescription("I found this song in my music room, check it out if you want.")
@@ -144,6 +171,14 @@ async function musicRecommendations(client: Client) {
 
 	// stop being dumb TS. We are literally checking it on line 72.
 	await channel.send({ embeds: [embed] });
+
+	try {
+		delete require.cache[require.resolve(songListPath)];
+		return;
+	} catch (err: any) {
+		logError(err.message);
+		return;
+	}
 }
 
 const musicLinks: I_BotEvent = {
@@ -153,8 +188,9 @@ const musicLinks: I_BotEvent = {
 	 * @param {Client} client - The client.
 	 */
 	async execute(client: Client) {
-		// setInterval(async () => await musicRecommendations(client), randomInt(55, 95) * 60 * 1000);
-		setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
+		setInterval(async () => await musicRecommendations(client), randomInt(55, 95) * 60 * 1000);
+		// for testing
+		// setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
 	},
 	once: true,
 };
