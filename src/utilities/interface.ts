@@ -53,6 +53,9 @@ export interface I_MessageCommand {
 	data: {
 		name: string;
 	};
+	options?: {
+		botOwner?: boolean;
+	};
 	execute(message: Message): void;
 }
 

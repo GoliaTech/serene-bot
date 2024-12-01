@@ -6,7 +6,7 @@ import { AppDataSource } from "../../database/datasource";
 import { findOrCreateDiscordServer } from "../../database/dao/guild";
 import { loadCommands, loadOtherCommands } from "../misc/loaders";
 const embed = embedBuilder("Error", EmbedColors.error);
-const commands = loadCommands();
+export const interactionCommands = loadCommands();
 const otherCommands = loadOtherCommands();
 const errorEmbed = embedBuilder("Error", EmbedColors.error);
 
@@ -17,11 +17,11 @@ const errorEmbed = embedBuilder("Error", EmbedColors.error);
  */
 async function interaction_Command(interaction: ChatInputCommandInteraction) {
 	// Now check if the command provided is correct.
-	if (!commands) {
+	if (!interactionCommands) {
 		console.log("commands not loaded???");
 		return;
 	}
-	const command = commands.get(interaction.commandName);
+	const command = interactionCommands.get(interaction.commandName);
 	// console.log(commands);
 	// console.log(command);
 	if (!command) {

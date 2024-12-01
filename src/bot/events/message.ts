@@ -69,13 +69,12 @@ const emojisReact: I_BotEvent = {
  */
 const messageCommandsEvent: I_BotEvent = {
 	name: Events.MessageCreate,
-	disabled: false,
 	async execute(message: Message) {
 		if (message.author.bot) {
 			return;
 		}
 
-		const commandStart = "!Cuck";
+		const commandStart = "!!";
 
 		console.log(message.mentions.users.find((u) => u.id == message.client.user.id));
 
@@ -101,6 +100,11 @@ const messageCommandsEvent: I_BotEvent = {
 		console.log(`Command: ${command}`);
 		if (!command) {
 			message.reply(`Command not found: ${commandName}`);
+			return;
+		}
+
+		if (message.author.id != process.env.OWNER_ID && command.options?.botOwner) {
+			message.reply("You do not have required permissions.");
 			return;
 		}
 
