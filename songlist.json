@@ -66,6 +66,13 @@
 			"artist": "Metric",
 			"ytmusic": "https://music.youtube.com/watch?v=bbkAKfmWjsE&si=wVVVZH5A1K4RbIKb",
 			"genre": "Alternative/Indie"
+		},
+		{
+			"artist": "Ceasars",
+			"year": 2002,
+			"name": "Jerk It Out",
+			"album": "Love For The Streets",
+			"ytmusic": "https://music.youtube.com/watch?v=QPXQyks5d2Q&si=kA27FW-xz3tVgFRA"
 		}
 	]
 }

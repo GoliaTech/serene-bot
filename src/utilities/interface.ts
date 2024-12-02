@@ -56,7 +56,7 @@ export interface I_MessageCommand {
 	options?: {
 		botOwner?: boolean;
 	};
-	execute(message: Message): void;
+	execute(message: Message, splitMessage: string[]): void;
 }
 
 /**

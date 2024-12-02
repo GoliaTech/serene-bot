@@ -1,12 +1,13 @@
 import { Message } from "discord.js";
 import { embedBuilder } from "../../misc/builders";
 import { interactionCommands, loadedEvents } from "../../bot";
+import { I_MessageCommand } from "../../../utilities/interface";
 
-const ping = {
+const ping: I_MessageCommand = {
 	data: {
 		name: "disabled"
 	},
-	async execute(message: Message) {
+	async execute(message: Message, splitMessage: string[]) {
 		interactionCommands;
 		loadedEvents;
 
