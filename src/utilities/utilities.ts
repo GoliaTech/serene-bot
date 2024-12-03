@@ -86,7 +86,9 @@ export function getExecArgv(): string[] {
 	if (process.env.NODE_ENV === "production") {
 		return [
 			"--trace-warnings",
-			"--unhandled-rejections=strict"
+			"--unhandled-rejections=strict",
+			"-r",
+			"ts-node/register"
 		];
 	}
 	// If it is not production. You can modify this array however you want.

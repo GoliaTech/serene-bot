@@ -6,6 +6,9 @@ import path from "path";
 import { ActionRowBuilder, ButtonBuilder, ButtonComponent, ButtonStyle, Collection, orderedList } from "discord.js";
 import { overwriteSanta } from "../../bot";
 
+// for deplloying....
+// const overwriteSanta = new Collection<string, I_secretsanta>();
+
 function santaConstructor(id: string, likes: string, dislikes: string, funfact: string, emergencysanta: boolean): I_secretsanta {
 
 	// we have to spread the likes, dislikes...

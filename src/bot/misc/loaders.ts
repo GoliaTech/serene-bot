@@ -24,6 +24,8 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 	let commandsFolderPath = "";
 	if (process.env.NODE_ENV === nodeEnvEnum.development) {
 		commandsFolderPath = path.join(__dirname, "../commands");
+	} else {
+		commandsFolderPath = path.join(__dirname, "../commands");
 	}
 	// The commands folder.
 	const commandFolders = fs.readdirSync(commandsFolderPath);
@@ -36,11 +38,11 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 		const folderPath = path.join(commandsFolderPath, folder);
 		// const fileExtension = process.env.NODE_ENV === "development" ? "ts" : "js";
 		const fileExtension = "ts";
-		console.log(fileExtension);
+		// console.log(fileExtension);
 		// Filter just the files we care about inside the subfolder.
 		const files = fs.readdirSync(folderPath).filter((file) => file.endsWith(`.${fileExtension}`));
-		console.log(folderPath);
-		console.log(files);
+		console.log("folderPath: ", folderPath);
+		console.log("files: ", files);
 		// This will loop through --- the --- files, inside---- files???? Eh???
 		for (const file of files) {
 			// console.log("we are looping through file: ", file);
@@ -51,6 +53,7 @@ export function loadCommands(discordClient?: ClientExtended): Collection<string,
 
 			if (Object.keys(command).length == 0) {
 				logError(`WE can't iterate through a command, skipping...\nPath: ${filePath}`);
+				console.log("command: ", command);
 				return;
 			}
 			// I am so stupid. I forgot that I allowed multiple commands in a single file.
@@ -109,7 +112,7 @@ export function loadEvents(): I_BotEvent[] | void {
 	if (process.env.NODE_ENV === nodeEnvEnum.development) {
 		eventFolderPath = path.join(__dirname, "../events");
 	} else if (process.env.NODE_ENV === nodeEnvEnum.production) {
-		eventFolderPath = path.join(__dirname, "events");
+		eventFolderPath = path.join(__dirname, "../events");
 	}
 	// This is to ensure that during development we are using .ts extension.
 	// Because during development we are using tsx.

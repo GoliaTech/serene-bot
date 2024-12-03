@@ -4,5 +4,6 @@
 	  },
 	"watch": ["./src/"],
 	"ext": "ts",
-	"ignore": ["*.test.ts"]
+	"ignore": ["*.test.ts"],
+	"exec": "ts-node ./src/start.ts"
 }
