@@ -1,4 +1,4 @@
-import { EmbedBuilder, Locale, LocalizationMap, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, InteractionContextType, Locale, LocalizationMap, SlashCommandBuilder } from "discord.js";
 import { EmbedColors } from "../../utilities/interface";
 
 /**
@@ -47,14 +47,15 @@ export function commandBuilder(
 		// Set description.
 		.setDescription(description);
 
-	// We don't need to check if(nsfw) and so on, because we are already doing it in one line.
-	command
-		// Check if DM is provided and if it is, set DMs value, otherwise default to false.
-		// .setDMPermission(options?.dm ? options.dm : false)
-		.setContexts([0, 2])
+	// if a command has been set to nsfw
+	command.setNSFW(options?.nsfw ? options.nsfw : false);
 
-		// Same as DM.
-		.setNSFW(options?.nsfw ? options.nsfw : false);
+	// Thanks for updating contexts, I have to do this for now...
+	if (options?.dm == true) {
+		command.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel, InteractionContextType.BotDM]);
+	} else if (options?.dm == false || !options?.dm) {
+		command.setContexts([InteractionContextType.Guild]);
+	}
 
 	if (localization) {
 		// Loop through the localization for the name

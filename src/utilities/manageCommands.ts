@@ -71,6 +71,7 @@ async function handleCommands(development: string, choice: commandDecision, clie
 						console.log("Commands deployed successfully.");
 					} catch (e) {
 						console.error(e);
+						return;
 					}
 				}
 				else {
@@ -79,6 +80,7 @@ async function handleCommands(development: string, choice: commandDecision, clie
 						console.log("Commands deployed successfully.");
 					} catch (e) {
 						console.error(e);
+						return;
 					}
 				}
 				return;
@@ -86,9 +88,11 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				if (development == nodeEnvEnum.development) {
 					await rest.put(DiscordRoutes.applicationGuildCommands(clientId, guildId), { body: [] });
 					await rest.put(DiscordRoutes.applicationCommands(clientId), { body: [] });
+					console.log("Commands deleted successfully.");
 				}
 				else {
 					await rest.put(DiscordRoutes.applicationCommands(clientId), { body: [] });
+					console.log("Commands deleted successfully.");
 				}
 				return;
 			default:
