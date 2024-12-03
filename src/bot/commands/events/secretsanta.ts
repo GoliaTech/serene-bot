@@ -28,7 +28,10 @@ function santaConstructor(id: string, likes: string, dislikes: string, funfact: 
 const secretsanta: I_Command = {
 	data: commandBuilder(
 		"secretsanta",
-		"Use this to add yourself to secret santa!"
+		"Use this to add yourself to secret santa!",
+		{
+			dm: true
+		}
 	)
 		.addStringOption(input => input
 			.setName("likes")
