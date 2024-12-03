@@ -2,7 +2,7 @@ import { REST } from '@discordjs/rest';
 import { Routes as DiscordRoutes } from 'discord-api-types/v10';
 import { loadCommands } from '../bot/misc/loaders';
 import { getAppId, getGuildId, getToken, nodeEnv } from './utilities';
-import { nodeEnvEnum } from './interface';
+import { I_Command, nodeEnvEnum } from './interface';
 require("dotenv").config();
 
 /**
@@ -25,7 +25,7 @@ enum commandDecision {
  */
 async function handleCommands(development: string, choice: commandDecision, clientId: string, guildId: string, rest: REST) {
 	try {
-		let commands, sanitizedCommands;
+		let commands: any, sanitizedCommands;
 		switch (choice) {
 			case commandDecision.get:
 				if (development == nodeEnvEnum.development) {
@@ -34,7 +34,26 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				else {
 					commands = await rest.get(DiscordRoutes.applicationCommands(clientId));
 				}
-				console.log(commands);
+				if (!commands) {
+					return console.log("No commands were loaded");
+				}
+				for (const command of commands) {
+					// let reply = `name: ${command.name}\ndescription: ${command.description}`;
+					// if (command.guild_id) {
+					// 	reply += `\nguild_id: ${command.guild_id}`;
+					// }
+					// // command.options.map((option: any) => {
+					// // 	reply += `\n${option}`;
+					// // });
+					// // for (const option of command.options) {
+					// reply += `\n${command.options}`;
+					// // }
+					// console.log(reply);
+					// console.log("\n");
+
+
+					console.log(command);
+				}
 				return;
 			case commandDecision.deploy:
 				commands = loadCommands();
@@ -42,7 +61,7 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				if (!commands) {
 					throw new Error("Failed to load commands. Check 'loadCommands()' function and try again.");
 				}
-				sanitizedCommands = commands.map((command) => command.data.toJSON());
+				sanitizedCommands = commands.map((command: I_Command) => command.data.toJSON());
 				if (development == nodeEnvEnum.development) {
 					await rest.put(DiscordRoutes.applicationGuildCommands(clientId, guildId), { body: sanitizedCommands });
 				}
