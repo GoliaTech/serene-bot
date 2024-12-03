@@ -159,24 +159,24 @@ async function startBot() {
 startBot();
 
 // We need to process signals and handling process events here.
-// This is broken on JS, but works fine with TS.
-process.on("exit", async () => {
-	console.log("Got exit signal, quitting...");
-	await killShards();
-	await AppDataSource.destroy();
-	process.exit(1);
-});
+// This is broken on LINUX TMUX, but works fine with TS.
+// process.on("exit", async () => {
+// 	console.log("Got exit signal, quitting...");
+// 	await killShards();
+// 	await AppDataSource.destroy();
+// 	process.exit(1);
+// });
 
-process.on("SIGTERM", async () => {
-	console.log("Got SIGTERM signal, quitting...");
-	await killShards();
-	await AppDataSource.destroy();
-	process.exit(1);
-});
+// process.on("SIGTERM", async () => {
+// 	console.log("Got SIGTERM signal, quitting...");
+// 	await killShards();
+// 	await AppDataSource.destroy();
+// 	process.exit(1);
+// });
 
-process.on("SIGKILL", async () => {
-	console.log("Got SIGKILL signal, quitting...");
-	await killShards();
-	await AppDataSource.destroy();
-	process.exit(1);
-});
+// process.on("SIGKILL", async () => {
+// 	console.log("Got SIGKILL signal, quitting...");
+// 	await killShards();
+// 	await AppDataSource.destroy();
+// 	process.exit(1);
+// });
