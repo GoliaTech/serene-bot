@@ -69,17 +69,21 @@ const emojisReact: I_BotEvent = {
  */
 const messageCommandsEvent: I_BotEvent = {
 	name: Events.MessageCreate,
-	disabled: false,
 	async execute(message: Message) {
+		if (!messageCommands) {
+			console.error("No message commands have been loaded");
+			message.reply({ content: "It looks like commands failed to load. We are sorry." });
+			return;
+		}
 		if (message.author.bot) {
 			return;
 		}
 
-		const commandStart = "!Cuck";
+		const commandStart = "!!";
 
 		console.log(message.mentions.users.find((u) => u.id == message.client.user.id));
 
-		if (!message.content.startsWith(commandStart) && message.mentions.users.size == 0 || !message.mentions.users.find((u) => u.id == message.client.user.id)) {
+		if (!message.content.startsWith(commandStart) && message.mentions.users.size == 0 || !message.mentions.users.find((u) => u.id == message.client.user.id) && message.mentions.users.size > 0) {
 			return;
 		}
 
@@ -91,9 +95,6 @@ const messageCommandsEvent: I_BotEvent = {
 
 		if (!commandName) return;
 
-		// TS is an idiot and is screaming at me: "OOOO .get CANNOT BE MADE ON VOID."
-		// Okay bro, so why is it working on interaction.ts, the same exact command, you dumb stupid idiot.
-		// Ignore this error, TS is a stupid freak.
 		const command: I_MessageCommand | undefined = messageCommands.get(commandName);
 		console.log(`message content: 
 		${message.content}`);
@@ -104,7 +105,16 @@ const messageCommandsEvent: I_BotEvent = {
 			return;
 		}
 
-		command.execute(message);
+		if (message.author.id != process.env.OWNER_ID && command.options?.botOwner) {
+			message.reply("You do not have required permissions.");
+			return;
+		}
+
+		if (commandMessage.length > 1) {
+			command.execute(message, commandMessage);
+		} else {
+			command.execute(message);
+		}
 		return;
 	}
 };

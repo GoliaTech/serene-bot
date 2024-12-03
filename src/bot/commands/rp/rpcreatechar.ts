@@ -4,7 +4,7 @@ import { commandBuilder } from "../../misc/builders";
 
 const rpCreate: I_Command = {
 	data: commandBuilder(
-		"rpcreatetwo",
+		"rpcreatechar",
 		"Create your character. You can read more about races and naming conventions on the wiki.",
 		{
 			dm: true

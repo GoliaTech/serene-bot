@@ -5,8 +5,8 @@ import { embedBuilder } from "../misc/builders";
 import { AppDataSource } from "../../database/datasource";
 import { findOrCreateDiscordServer } from "../../database/dao/guild";
 import { loadCommands, loadOtherCommands } from "../misc/loaders";
+import { interactionCommands } from "../bot";
 const embed = embedBuilder("Error", EmbedColors.error);
-const commands = loadCommands();
 const otherCommands = loadOtherCommands();
 const errorEmbed = embedBuilder("Error", EmbedColors.error);
 
@@ -17,11 +17,11 @@ const errorEmbed = embedBuilder("Error", EmbedColors.error);
  */
 async function interaction_Command(interaction: ChatInputCommandInteraction) {
 	// Now check if the command provided is correct.
-	if (!commands) {
+	if (!interactionCommands) {
 		console.log("commands not loaded???");
 		return;
 	}
-	const command = commands.get(interaction.commandName);
+	const command = interactionCommands.get(interaction.commandName);
 	// console.log(commands);
 	// console.log(command);
 	if (!command) {
@@ -36,6 +36,12 @@ async function interaction_Command(interaction: ChatInputCommandInteraction) {
 		console.info(command);
 	}
 
+	if (command.options?.disabled) {
+		embed.setDescription("Sorry, but this command has been disabled for the time being.");
+		interaction.reply({ embeds: [embed], ephemeral: true });
+		return;
+	}
+
 	// Check if we are the bot owner.
 	if (command.options?.botOwner && interaction.user.id !== process.env.OWNER_ID) {
 		embed.setDescription("You are not allowed to use this command, only Bot Owner can.");
@@ -44,7 +50,6 @@ async function interaction_Command(interaction: ChatInputCommandInteraction) {
 	}
 
 	// we should check if this is dm or not, then check what role we have the right perms.
-
 	if (!interaction.channel?.isDMBased()) {
 		const guild = await interaction.client.guilds.fetch(String(interaction.guildId));
 		const serverSettings = await findOrCreateDiscordServer(guild.id);
@@ -80,18 +85,26 @@ async function interaction_Autocomplete(interaction: AutocompleteInteraction) {
 }
 
 async function interaction_Button(interaction: ButtonInteraction) {
+	// Check if we have even loaded any commands.
 	if (!otherCommands) {
 		console.log("commands not loaded???");
 		errorEmbed.setDescription("Button commands have not been loaded, they will not work at the moment.");
 		return;
 	}
+
+	// Get the custom ID
 	const customID = interaction.customId;
+	console.log(customID);
 	if (!customID) {
 		console.log("No custom ID provided.... bro what did you do.");
 		return;
 	}
-	const command = otherCommands.get(customID);
-	// console.log(command);
+
+	// Check the command.
+	const [action, data] = customID.split("|");
+	console.log("data: ", data);
+	const command = otherCommands.get(action);
+
 	if (!command) {
 		console.log("Command not found");
 		return;
@@ -100,7 +113,11 @@ async function interaction_Button(interaction: ButtonInteraction) {
 		console.info(command);
 	}
 
-	command.execute(interaction);
+	if (!data) {
+		command.execute(interaction);
+	} else {
+		command.execute(interaction, data);
+	}
 	return;
 }
 
@@ -146,13 +163,6 @@ const interaction: I_BotEvent = {
 	 */
 	async execute(interaction: any) {
 		try {
-			// If the command is not an interaction, return.
-			// if (!interaction.isCommand()) {
-			// 	// For development purposes, log it.
-			// 	if (process.env.NODE_ENV === "development") console.log(`[${new Date().toUTCString()}] - Command was not an interaction`);
-			// 	return;
-			// }
-
 			if (interaction.isChatInputCommand()) {
 				await interaction_Command(interaction);
 			} else if (interaction.isButton()) {

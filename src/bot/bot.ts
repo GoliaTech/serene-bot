@@ -1,12 +1,17 @@
 // This is where the actual bot code lives.
-import { GatewayIntentBits } from "discord.js";
-import { ClientExtended } from "../utilities/interface";
+import { Collection, GatewayIntentBits } from "discord.js";
+import { ClientExtended, I_secretsanta } from "../utilities/interface";
 import { loadCommands, loadEvents } from "./misc/loaders";
 import { AppDataSource } from "../database/datasource";
 import { logError, logInfo } from "../utilities/utilities";
 
 // For quick testing if commands or events load. I don't want to login every time you see.
 const login: boolean = true;
+export const loadedEvents = loadEvents();
+export const interactionCommands = loadCommands();
+
+
+export const overwriteSanta = new Collection<string, I_secretsanta>();
 
 /**
  * This will register events that the client will have to handle.
@@ -76,7 +81,6 @@ async function bot() {
 		// Here, before starting the bot, we have to define commands and all that stuff.
 		// We will have to pass commands into the event handlers, because these will call the commands.
 		// There probably is a better way to do this however.
-		const loadedEvents = loadEvents();
 		if (!loadedEvents) {
 			logError("Unable to load events.");
 			return;

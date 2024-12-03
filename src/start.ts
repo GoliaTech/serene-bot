@@ -2,8 +2,6 @@ import "reflect-metadata";
 import { Collection, Shard, ShardingManager } from "discord.js";
 import path from "path";
 import { getToken, nodeEnv, getExecArgv, logInfo, logError } from "./utilities/utilities";
-import { findOrCreateUser } from "./database/dao/user";
-import { findAllCharacters } from "./database/dao/character";
 import { AppDataSource } from "./database/datasource";
 
 require("dotenv").config();
@@ -16,13 +14,19 @@ const shards: Collection<number, Shard> = new Collection();
 
 /**
  * This will kill shard by shard.
+ *
+ * @function
+ * @async
+ * @returns {Promise<void>}
  */
-async function killShards() {
+async function killShards(): Promise<void> {
 	for (const shard of shards) {
 		try {
+			// Kill the shard.
 			logInfo(`Killing shard ${shard[1].id}`);
 			shard[1].kill();
 		} catch (e) {
+			// Log if killing the shard fails.
 			logError(`Unable to kill shard ${shard[1].id}\n${e}`);
 		}
 	}
@@ -30,35 +34,46 @@ async function killShards() {
 
 /**
  * This handles the setting up of the shards.
- * @param {ShardingManager} manager Parse the manager function here from startBot()
+ *
+ * @param {ShardingManager} manager - The ShardingManager used to create the shards.
+ *
+ * @listens ShardingManager#shardCreate
  */
-function setupShardEvents(manager: ShardingManager) {
+function setupShardEvents(manager: ShardingManager): void {
 	manager.on("shardCreate", (...args: [shard: Shard]) => {
 		shards.set(args[0].id, args[0]);
 		logInfo(`Launched shard ${args[0].id}`);
 	});
 }
 
+
 /**
  * This handles recurring shard events.
- * @param {Collection<number, Shard>} managedShards parse managedShards object here from startBot().
+ * @param {Collection<number, Shard>} managedShards - The Collection of Shard objects, where key is the shard ID and value is the Shard object.
+ * This is used to parse the managedShards object from the startBot() function.
  */
 function watchShardEvents(managedShards: Collection<number, Shard>) {
 	// For each Shard of managed shards.
 	for (const shard of managedShards.values()) {
+		// When a shard dies, restart it.
 		shard.on("death", () => handleShardDeath(shard));
+		// When a shard disconnects, print a message.
 		shard.on("disconnect", () => logInfo(`Shard ${shard.id} disconnected. Reconnecting...`));
+		// When a shard is ready, print a message.
 		shard.on("ready", () => logInfo(`Shard ${shard.id} is ready.`));
+		// When a shard is reconnecting, print a message.
 		shard.on("reconnecting", () => logInfo(`Shard ${shard.id} is reconnecting...`));
+		// When a shard spawns, print a message.
 		shard.on("spawn", () => logInfo(`Shard ${shard.id} spawned.`));
 
-		// This is in case you want to see how many events have been resumed.
+		// When a shard resumes, print a message.
 		// We have to apply the shard.on even as any, in order for it to function.
 		(shard.on as any)("resume", (replayed: number) => {
 			logInfo(`Shard ${shard.id} resumed. Replayed ${replayed} events.`);
 		});
 	}
 }
+
 
 /**
  * This will handle the death of a shard.
@@ -143,24 +158,25 @@ async function startBot() {
 // Then start the bot.
 startBot();
 
-// // We need to process signals and handling process events here.
-// process.on("exit", async () => {
-// 	console.log("Got exit signal, quitting...");
-// 	await killShards();
-// 	await AppDataSource.destroy();
-// 	process.exit(1);
-// });
+// We need to process signals and handling process events here.
+// This is broken on JS, but works fine with TS.
+process.on("exit", async () => {
+	console.log("Got exit signal, quitting...");
+	await killShards();
+	await AppDataSource.destroy();
+	process.exit(1);
+});
 
-// process.on("SIGTERM", async () => {
-// 	console.log("Got SIGTERM signal, quitting...");
-// 	await killShards();
-// 	await AppDataSource.destroy();
-// 	process.exit(1);
-// });
+process.on("SIGTERM", async () => {
+	console.log("Got SIGTERM signal, quitting...");
+	await killShards();
+	await AppDataSource.destroy();
+	process.exit(1);
+});
 
-// process.on("SIGKILL", async () => {
-// 	console.log("Got SIGKILL signal, quitting...");
-// 	await killShards();
-// 	await AppDataSource.destroy();
-// 	process.exit(1);
-// });
+process.on("SIGKILL", async () => {
+	console.log("Got SIGKILL signal, quitting...");
+	await killShards();
+	await AppDataSource.destroy();
+	process.exit(1);
+});

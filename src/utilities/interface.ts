@@ -33,7 +33,6 @@ export interface ClientExtended extends Client {
 export interface I_Command {
 	data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
 	execute(interaction: ChatInputCommandInteraction): any;
-	customID?: string;
 	options?: {
 		botOwner?: boolean;
 		owner?: boolean;
@@ -41,19 +40,28 @@ export interface I_Command {
 		admins?: boolean;
 		mods?: boolean;
 		staff?: boolean;
+		disabled?: boolean;
 	};
 };
 
+/**
+ * Use the execute(ineraction, data) for small data interaction.
+ */
 export interface I_OtherCommand {
 	customID: string;
-	execute(ineraction: ButtonInteraction | AutocompleteInteraction | ModalSubmitInteraction | StringSelectMenuInteraction): void;
+	/* Use data for small data interaction */
+	execute(ineraction: ButtonInteraction | AutocompleteInteraction | ModalSubmitInteraction | StringSelectMenuInteraction, data?: any): void;
+	disabled?: boolean;
 }
 
 export interface I_MessageCommand {
 	data: {
 		name: string;
 	};
-	execute(message: Message): void;
+	options?: {
+		botOwner?: boolean;
+	};
+	execute(message: Message, args?: string[]): void;
 }
 
 /**
@@ -192,3 +200,11 @@ export interface I_addedItem {
 	amount: number;
 	maxStack: number;
 };
+
+export interface I_secretsanta {
+	id: string;
+	likes: string[];
+	dislikes: string[];
+	funnyfaq: string;
+	emergencysanta: boolean;
+}
