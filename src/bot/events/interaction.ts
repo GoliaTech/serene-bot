@@ -36,6 +36,12 @@ async function interaction_Command(interaction: ChatInputCommandInteraction) {
 		console.info(command);
 	}
 
+	if (command.options?.disabled) {
+		embed.setDescription("Sorry, but this command has been disabled for the time being.");
+		interaction.reply({ embeds: [embed], ephemeral: true });
+		return;
+	}
+
 	// Check if we are the bot owner.
 	if (command.options?.botOwner && interaction.user.id !== process.env.OWNER_ID) {
 		embed.setDescription("You are not allowed to use this command, only Bot Owner can.");
@@ -44,7 +50,6 @@ async function interaction_Command(interaction: ChatInputCommandInteraction) {
 	}
 
 	// we should check if this is dm or not, then check what role we have the right perms.
-
 	if (!interaction.channel?.isDMBased()) {
 		const guild = await interaction.client.guilds.fetch(String(interaction.guildId));
 		const serverSettings = await findOrCreateDiscordServer(guild.id);
@@ -158,13 +163,6 @@ const interaction: I_BotEvent = {
 	 */
 	async execute(interaction: any) {
 		try {
-			// If the command is not an interaction, return.
-			// if (!interaction.isCommand()) {
-			// 	// For development purposes, log it.
-			// 	if (process.env.NODE_ENV === "development") console.log(`[${new Date().toUTCString()}] - Command was not an interaction`);
-			// 	return;
-			// }
-
 			if (interaction.isChatInputCommand()) {
 				await interaction_Command(interaction);
 			} else if (interaction.isButton()) {

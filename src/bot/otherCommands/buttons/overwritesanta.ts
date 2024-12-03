@@ -52,9 +52,7 @@ async function handleOverwriteSanta(interaction: ButtonInteraction, santaData: I
 const santaOverwrite: I_OtherCommand = {
 	customID: "overwrite_santa",
 	async execute(interaction: ButtonInteraction) {
-		console.log(overwriteSanta);
 		const data = overwriteSanta.get(interaction.user.id);
-		console.log("DATA: ", data);
 		if (data) {
 			await handleOverwriteSanta(interaction, data);
 		} else {

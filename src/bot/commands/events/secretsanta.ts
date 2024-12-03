@@ -49,8 +49,7 @@ const secretsanta: I_Command = {
 			.setName("emergencysanta")
 			.setDescription("In case someone doesn't get their present, are you available")
 			.setRequired(true)
-		)
-	,
+		),
 	async execute(interaction) {
 		// Get variables.
 		const likes = interaction.options.getString("likes", true);
