@@ -7,7 +7,7 @@ const ping: I_MessageCommand = {
 	data: {
 		name: "disabled"
 	},
-	async execute(message: Message, splitMessage: string[]) {
+	async execute(message: Message) {
 		interactionCommands;
 		loadedEvents;
 

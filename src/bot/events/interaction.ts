@@ -80,18 +80,26 @@ async function interaction_Autocomplete(interaction: AutocompleteInteraction) {
 }
 
 async function interaction_Button(interaction: ButtonInteraction) {
+	// Check if we have even loaded any commands.
 	if (!otherCommands) {
 		console.log("commands not loaded???");
 		errorEmbed.setDescription("Button commands have not been loaded, they will not work at the moment.");
 		return;
 	}
+
+	// Get the custom ID
 	const customID = interaction.customId;
+	console.log(customID);
 	if (!customID) {
 		console.log("No custom ID provided.... bro what did you do.");
 		return;
 	}
-	const command = otherCommands.get(customID);
-	// console.log(command);
+
+	// Check the command.
+	const [action, data] = customID.split("|");
+	console.log("data: ", data);
+	const command = otherCommands.get(action);
+
 	if (!command) {
 		console.log("Command not found");
 		return;
@@ -100,7 +108,11 @@ async function interaction_Button(interaction: ButtonInteraction) {
 		console.info(command);
 	}
 
-	command.execute(interaction);
+	if (!data) {
+		command.execute(interaction);
+	} else {
+		command.execute(interaction, data);
+	}
 	return;
 }
 

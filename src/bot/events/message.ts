@@ -110,7 +110,11 @@ const messageCommandsEvent: I_BotEvent = {
 			return;
 		}
 
-		command.execute(message, commandMessage);
+		if (commandMessage.length > 1) {
+			command.execute(message, commandMessage);
+		} else {
+			command.execute(message);
+		}
 		return;
 	}
 };

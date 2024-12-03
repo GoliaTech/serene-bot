@@ -44,9 +44,13 @@ export interface I_Command {
 	};
 };
 
+/**
+ * Use the execute(ineraction, data) for small data interaction.
+ */
 export interface I_OtherCommand {
 	customID: string;
-	execute(ineraction: ButtonInteraction | AutocompleteInteraction | ModalSubmitInteraction | StringSelectMenuInteraction): void;
+	/* Use data for small data interaction */
+	execute(ineraction: ButtonInteraction | AutocompleteInteraction | ModalSubmitInteraction | StringSelectMenuInteraction, data?: any): void;
 }
 
 export interface I_MessageCommand {
@@ -56,7 +60,7 @@ export interface I_MessageCommand {
 	options?: {
 		botOwner?: boolean;
 	};
-	execute(message: Message, splitMessage: string[]): void;
+	execute(message: Message, args?: string[]): void;
 }
 
 /**
@@ -195,3 +199,11 @@ export interface I_addedItem {
 	amount: number;
 	maxStack: number;
 };
+
+export interface I_secretsanta {
+	id: string;
+	likes: string[];
+	dislikes: string[];
+	funnyfaq: string;
+	emergencysanta: boolean;
+}
