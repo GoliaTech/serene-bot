@@ -30,6 +30,10 @@ async function handleCommands(development: string, choice: commandDecision, clie
 			case commandDecision.get:
 				if (development == nodeEnvEnum.development) {
 					commands = await rest.get(DiscordRoutes.applicationGuildCommands(clientId, guildId));
+					const commandsApp: any = await rest.get(DiscordRoutes.applicationCommands(clientId));
+					for (const command of commandsApp) {
+						console.log(command);
+					}
 				}
 				else {
 					commands = await rest.get(DiscordRoutes.applicationCommands(clientId));
@@ -50,8 +54,6 @@ async function handleCommands(development: string, choice: commandDecision, clie
 					// // }
 					// console.log(reply);
 					// console.log("\n");
-
-
 					console.log(command);
 				}
 				return;
@@ -63,10 +65,21 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				}
 				sanitizedCommands = commands.map((command: I_Command) => command.data.toJSON());
 				if (development == nodeEnvEnum.development) {
-					await rest.put(DiscordRoutes.applicationGuildCommands(clientId, guildId), { body: sanitizedCommands });
+					try {
+						await rest.put(DiscordRoutes.applicationGuildCommands(clientId, guildId), { body: sanitizedCommands });
+						await rest.put(DiscordRoutes.applicationCommands(clientId), { body: sanitizedCommands });
+						console.log("Commands deployed successfully.");
+					} catch (e) {
+						console.error(e);
+					}
 				}
 				else {
-					await rest.put(DiscordRoutes.applicationCommands(clientId), { body: sanitizedCommands });
+					try {
+						await rest.put(DiscordRoutes.applicationCommands(clientId), { body: sanitizedCommands });
+						console.log("Commands deployed successfully.");
+					} catch (e) {
+						console.error(e);
+					}
 				}
 				return;
 			case commandDecision.delete:

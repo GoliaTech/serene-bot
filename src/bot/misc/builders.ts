@@ -50,7 +50,9 @@ export function commandBuilder(
 	// We don't need to check if(nsfw) and so on, because we are already doing it in one line.
 	command
 		// Check if DM is provided and if it is, set DMs value, otherwise default to false.
-		.setDMPermission(options?.dm ? options.dm : false)
+		// .setDMPermission(options?.dm ? options.dm : false)
+		.setContexts([0, 2])
+
 		// Same as DM.
 		.setNSFW(options?.nsfw ? options.nsfw : false);
 
