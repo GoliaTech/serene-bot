@@ -69,7 +69,7 @@ async function musicRecommendations(client: Client) {
 		let guild: Guild | undefined;
 		if (process.env.NODE_ENV === "development") {
 			guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
-		} else if (process.env.NODE_ENV === "production") {
+		} else {
 			guild = await client.guilds.fetch(String(process.env.GUILD_ID));
 		}
 		if (!guild) {
@@ -77,7 +77,7 @@ async function musicRecommendations(client: Client) {
 			return;
 		}
 
-		// console.log("guild:", guild);
+		console.log("guild:", guild);
 		let channel = await guild.channels.fetch(devChannel);
 		if (!channel) {
 			channel = await guild.channels.fetch(devChannel);
