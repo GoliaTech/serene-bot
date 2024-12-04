@@ -47,7 +47,7 @@ const ready: I_BotEvent = {
 };
 
 // I dont want to redeclare these when calling the function.
-const mainChannel = "792743975273889812";
+const mainChannel = "792744027316944926";
 const devChannel = "1312517585224339517";
 
 interface I_MusicList {
