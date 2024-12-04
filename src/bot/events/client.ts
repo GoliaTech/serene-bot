@@ -66,22 +66,21 @@ async function musicRecommendations(client: Client) {
 	// 	guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
 	// }
 	try {
-		let guild: Guild | undefined;
+		let guild: Guild | undefined, musicChannel: string = "";
 		if (process.env.NODE_ENV === "development") {
 			guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
+			musicChannel = devChannel;
 		} else {
 			guild = await client.guilds.fetch(String(process.env.GUILD_ID));
+			musicChannel = mainChannel;
 		}
 		if (!guild) {
 			logError("No guild could be found for music recommendations....");
 			return;
 		}
 
-		console.log("guild:", guild);
-		let channel = await guild.channels.fetch(devChannel);
-		if (!channel) {
-			channel = await guild.channels.fetch(devChannel);
-		}
+		// console.log("guild:", guild);
+		let channel = await guild.channels.fetch(musicChannel);
 		if (!channel) {
 			logError("No channel could be found for music recommendations....");
 			return;
@@ -200,7 +199,7 @@ const musicLinks: I_BotEvent = {
 	 * @param {Client} client - The client.
 	 */
 	async execute(client: Client) {
-		setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
+		setInterval(async () => await musicRecommendations(client), randomInt(180, 240) * 60 * 1000);
 		// for testing
 		// setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
 	},
