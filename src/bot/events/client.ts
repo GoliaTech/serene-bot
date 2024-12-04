@@ -155,21 +155,21 @@ async function musicRecommendations(client: Client) {
 		const embed = embedBuilder("Music Suggestion")
 			.setDescription("I found this song in my music room, check it out if you want.")
 			.setFields(
-				{ name: "Name", value: randomSong.name },
-				{ name: "Artist", value: randomSong.artist }
+				{ name: "Name", value: randomSong.name, inline: true },
+				{ name: "Artist", value: randomSong.artist, inline: true }
 				// { name: "Spotify", value: randomSong.spotify }
 			);
 		// if (randomSong.yt) {
 		// 	embed.setDescription(randomSong.yt);
 		// }
 		if (randomSong.genre) {
-			embed.addFields({ name: "Genre", value: randomSong.genre });
+			embed.addFields({ name: "Genre", value: randomSong.genre, inline: true });
 		}
 		if (randomSong.year) {
-			embed.addFields({ name: "Year", value: String(randomSong.year) });
+			embed.addFields({ name: "Year", value: String(randomSong.year), inline: true });
 		}
 		if (randomSong.album) {
-			embed.addFields({ name: "Album", value: randomSong.album });
+			embed.addFields({ name: "Album", value: randomSong.album, inline: true });
 		}
 		embed.addFields({ name: "YouTube Music", value: randomSong.ytmusic });
 		if (randomSong.spotify) {
