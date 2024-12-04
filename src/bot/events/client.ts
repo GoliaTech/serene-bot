@@ -65,36 +65,121 @@ async function musicRecommendations(client: Client) {
 	// if (!guild) {
 	// 	guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
 	// }
-	let guild: Guild | undefined;
-	if (process.env.NODE_ENV === "development") {
-		guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
-	} else if (process.env.NODE_ENV === "production") {
-		guild = await client.guilds.fetch(String(process.env.GUILD_ID));
-	}
-	if (!guild) {
-		logError("No guild could be found for music recommendations....");
-		return;
-	}
-	// console.log("guild:", guild);
-	let channel = await guild.channels.fetch(devChannel);
-	if (!channel) {
-		channel = await guild.channels.fetch(devChannel);
-	}
-	if (!channel) {
-		logError("No channel could be found for music recommendations....");
-		return;
-	}
-	if (channel.type !== ChannelType.GuildText) {
-		logError("Music Recommendations channel is not a text channel.");
-		return;
-	}
+	try {
+		let guild: Guild | undefined;
+		if (process.env.NODE_ENV === "development") {
+			guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
+		} else if (process.env.NODE_ENV === "production") {
+			guild = await client.guilds.fetch(String(process.env.GUILD_ID));
+		}
+		if (!guild) {
+			logError("No guild could be found for music recommendations....");
+			return;
+		}
 
-	const rootPath = path.join(__dirname, "../../../");
-	const songListPath = path.join(rootPath, "songlist.json");
+		// console.log("guild:", guild);
+		let channel = await guild.channels.fetch(devChannel);
+		if (!channel) {
+			channel = await guild.channels.fetch(devChannel);
+		}
+		if (!channel) {
+			logError("No channel could be found for music recommendations....");
+			return;
+		}
+		if (channel.type !== ChannelType.GuildText) {
+			logError("Music Recommendations channel is not a text channel.");
+			return;
+		}
 
-	const songListFile: I_MusicList[] = require(songListPath)["songs"];
-	if (!songListFile) {
-		console.error("Failed to load file");
+		const rootPath = path.join(__dirname, "../../../");
+		const songListPath = path.join(rootPath, "songlist.json");
+
+		const songListFile: I_MusicList[] = require(songListPath)["songs"];
+		if (!songListFile) {
+			console.error("Failed to load file");
+			try {
+				delete require.cache[require.resolve(songListPath)];
+				return;
+			} catch (err: any) {
+				logError(err.message);
+				return;
+			}
+		}
+
+		for (const song of songListFile) {
+			if (!song.name) {
+				console.error("Song name is null...");
+				console.log(song);
+				try {
+					delete require.cache[require.resolve(songListPath)];
+					return;
+				} catch (err: any) {
+					logError(err.message);
+					return;
+				}
+			}
+			if (!song.artist) {
+				console.error("Artist name is null...");
+				console.log(song);
+				try {
+					delete require.cache[require.resolve(songListPath)];
+					return;
+				} catch (err: any) {
+					logError(err.message);
+					return;
+				}
+			}
+			if (!song.ytmusic) {
+				console.error("YTMusic is null...");
+				console.log(song);
+				try {
+					delete require.cache[require.resolve(songListPath)];
+					return;
+				} catch (err: any) {
+					logError(err.message);
+					return;
+				}
+			}
+			if (!song.spotify) {
+				console.error(`Spotify is EMPTY for the song: "${song.name}"`);
+			}
+			if (!song.year) {
+				console.error(`Year is EMPTY for the song: "${song.name}"`);
+			}
+			if (!song.album) {
+				console.error(`Album is EMPTY for the song: "${song.name}"`);
+			}
+		}
+
+		const randomSong = songListFile[Math.floor(Math.random() * songListFile.length)];
+
+		const embed = embedBuilder("Music Suggestion")
+			.setDescription("I found this song in my music room, check it out if you want.")
+			.setFields(
+				{ name: "Name", value: randomSong.name },
+				{ name: "Artist", value: randomSong.artist }
+				// { name: "Spotify", value: randomSong.spotify }
+			);
+		// if (randomSong.yt) {
+		// 	embed.setDescription(randomSong.yt);
+		// }
+		if (randomSong.genre) {
+			embed.addFields({ name: "Genre", value: randomSong.genre });
+		}
+		if (randomSong.year) {
+			embed.addFields({ name: "Year", value: String(randomSong.year) });
+		}
+		if (randomSong.album) {
+			embed.addFields({ name: "Album", value: randomSong.album });
+		}
+		embed.addFields({ name: "YouTube Music", value: randomSong.ytmusic });
+		if (randomSong.spotify) {
+			embed.addFields({ name: "Spotify", value: randomSong.spotify });
+		}
+
+		// stop being dumb TS. We are literally checking it on line 72.
+		await channel.send({ embeds: [embed] });
+
 		try {
 			delete require.cache[require.resolve(songListPath)];
 			return;
@@ -102,87 +187,8 @@ async function musicRecommendations(client: Client) {
 			logError(err.message);
 			return;
 		}
-	}
-
-	for (const song of songListFile) {
-		if (!song.name) {
-			console.error("Song name is null...");
-			console.log(song);
-			try {
-				delete require.cache[require.resolve(songListPath)];
-				return;
-			} catch (err: any) {
-				logError(err.message);
-				return;
-			}
-		}
-		if (!song.artist) {
-			console.error("Artist name is null...");
-			console.log(song);
-			try {
-				delete require.cache[require.resolve(songListPath)];
-				return;
-			} catch (err: any) {
-				logError(err.message);
-				return;
-			}
-		}
-		if (!song.ytmusic) {
-			console.error("YTMusic is null...");
-			console.log(song);
-			try {
-				delete require.cache[require.resolve(songListPath)];
-				return;
-			} catch (err: any) {
-				logError(err.message);
-				return;
-			}
-		}
-		if (!song.spotify) {
-			console.error(`Spotify is EMPTY for the song: "${song.name}"`);
-		}
-		if (!song.year) {
-			console.error(`Year is EMPTY for the song: "${song.name}"`);
-		}
-		if (!song.album) {
-			console.error(`Album is EMPTY for the song: "${song.name}"`);
-		}
-	}
-
-	const randomSong = songListFile[Math.floor(Math.random() * songListFile.length)];
-
-	const embed = embedBuilder("Music Suggestion")
-		.setDescription("I found this song in my music room, check it out if you want.")
-		.setFields(
-			{ name: "Name", value: randomSong.name },
-			{ name: "Artist", value: randomSong.artist }
-			// { name: "Spotify", value: randomSong.spotify }
-		);
-	// if (randomSong.yt) {
-	// 	embed.setDescription(randomSong.yt);
-	// }
-	if (randomSong.genre) {
-		embed.addFields({ name: "Genre", value: randomSong.genre });
-	}
-	if (randomSong.year) {
-		embed.addFields({ name: "Year", value: String(randomSong.year) });
-	}
-	if (randomSong.album) {
-		embed.addFields({ name: "Album", value: randomSong.album });
-	}
-	embed.addFields({ name: "YouTube Music", value: randomSong.ytmusic });
-	if (randomSong.spotify) {
-		embed.addFields({ name: "Spotify", value: randomSong.spotify });
-	}
-
-	// stop being dumb TS. We are literally checking it on line 72.
-	await channel.send({ embeds: [embed] });
-
-	try {
-		delete require.cache[require.resolve(songListPath)];
-		return;
-	} catch (err: any) {
-		logError(err.message);
+	} catch (e: any) {
+		logError(e);
 		return;
 	}
 }
