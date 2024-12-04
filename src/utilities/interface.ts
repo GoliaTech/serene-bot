@@ -208,3 +208,24 @@ export interface I_secretsanta {
 	funnyfaq: string;
 	emergencysanta: boolean;
 }
+
+export interface I_MusicList {
+	name: string;
+	artist: string;
+	ytmusic: string;
+	genre: GenreType[];
+	spotify?: string;
+	year?: number;
+	album?: string;
+	rating?: number; // Added rating field
+}
+
+export enum GenreType {
+	Electronic = "Electronic",
+	Indie = "Indie",
+	Dance = "Dance",
+	Alternative = "Alternative",
+	Metal = "Metal",
+	Rock = "Rock",
+	Pop = "Pop",
+}

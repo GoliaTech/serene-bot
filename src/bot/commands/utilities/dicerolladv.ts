@@ -4,8 +4,8 @@ import { commandBuilder, embedBuilder } from "../../misc/builders";
 
 const rpdiceroll: I_Command = {
 	data: commandBuilder(
-		"rpdiceroll",
-		"Roll thy dice. Customize the number of dice, sides, and display.",
+		"dicerolladv",
+		"Roll thy dice. Advanced with more options and display settings.",
 		{
 			dm: false
 		}

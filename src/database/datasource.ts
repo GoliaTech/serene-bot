@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource, DefaultNamingStrategy, NamingStrategyInterface } from "typeorm";
-import { Card, Discord, RPG, User } from "./entity/index";
+import { Card, Discord, RPG, User, Music } from "./entity/index";
 import { logInfo, nodeEnv } from "../utilities/utilities";
 require("dotenv").config();
 
@@ -48,7 +48,10 @@ export const AppDataSource = new DataSource({
 		RPG.CharacterCore,
 		RPG.Class,
 		RPG.Race,
-		Discord.Server
+		Discord.Server,
+		Music.Music,
+		Music.USI,
+		Music.Genre
 	],
 	subscribers: [],
 	migrations: [],

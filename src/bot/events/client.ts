@@ -1,10 +1,11 @@
-import { ChannelType, Client, Events, Guild } from "discord.js";
-import { I_BotEvent } from "../../utilities/interface";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, Events, Guild, TextChannel } from "discord.js";
+import { I_BotEvent, I_MusicList } from "../../utilities/interface";
 import { logError, logGeneral } from "../../utilities/utilities";
 import { embedBuilder } from "../misc/builders";
 import { randomInt } from "crypto";
 import path from "node:path";
-import { readFileSync } from "fs";
+import { Music, USI } from "../../database/entity/music";
+import { AppDataSource } from "../../database/datasource";
 
 /**
  * This will set a random presence.
@@ -46,151 +47,192 @@ const ready: I_BotEvent = {
 	once: true,
 };
 
-// I dont want to redeclare these when calling the function.
-const mainChannel = "792744027316944926";
-const devChannel = "1312517585224339517";
-
-interface I_MusicList {
-	name: string;
-	artist: string;
-	ytmusic: string;
-	genre?: string;
-	spotify?: string;
-	year?: number;
-	album?: string;
-}
-
-async function musicRecommendations(client: Client) {
-	// let guild = await client.guilds.fetch(String(process.env.GUILD_ID));
-	// if (!guild) {
-	// 	guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
-	// }
+async function musicRecommendations(client: Client): Promise<void> {
 	try {
-		let guild: Guild | undefined, musicChannel: string = "";
-		if (process.env.NODE_ENV === "development") {
-			guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
-			musicChannel = devChannel;
-		} else {
-			guild = await client.guilds.fetch(String(process.env.GUILD_ID));
-			musicChannel = mainChannel;
+		// Determine guild and channel based on environment
+		const isDev = process.env.NODE_ENV === "development";
+		const guildId = isDev ? process.env.DEV_GUILD_ID : process.env.GUILD_ID;
+		const channelId = isDev ? process.env.DEV_MUSIC_CHANNEL : process.env.MAIN_MUSIC_CHANNEL;
+
+		if (!guildId || !channelId) {
+			throw new Error("Missing environment variables for guild or channel.");
 		}
+
+		const guild = await client.guilds.fetch(guildId);
 		if (!guild) {
-			logError("No guild could be found for music recommendations....");
+			logError("No guild found for music recommendations.");
 			return;
 		}
 
-		// console.log("guild:", guild);
-		let channel = await guild.channels.fetch(musicChannel);
-		if (!channel) {
-			logError("No channel could be found for music recommendations....");
-			return;
-		}
-		if (channel.type !== ChannelType.GuildText) {
-			logError("Music Recommendations channel is not a text channel.");
+		const channel = await guild.channels.fetch(channelId);
+		if (!channel || channel.type !== ChannelType.GuildText) {
+			logError("Music Recommendations channel is invalid or not a text channel.");
 			return;
 		}
 
-		const rootPath = path.join(__dirname, "../../../");
-		const songListPath = path.join(rootPath, "songlist.json");
+		const musicChannel = channel as TextChannel;
 
-		const songListFile: I_MusicList[] = require(songListPath)["songs"];
-		if (!songListFile) {
-			console.error("Failed to load file");
-			try {
-				delete require.cache[require.resolve(songListPath)];
+		// Fetch song list from database.
+		const musicManager = AppDataSource.manager;
+		const interactionManager = AppDataSource.manager;
+
+		// Load song list
+		// const songListPath = path.resolve(__dirname, "../../../songlist.json");
+		// const songList = loadSongList(songListPath);
+
+		const songList = await musicManager.find(Music);
+		if (!songList || songList.length === 0) {
+			logError("Song list is empty or failed to load.");
+			return;
+		}
+
+		// Validate song entries
+		validateSongs(songList);
+
+		// Pick a random song and build the embed
+		const randomSong = songList[Math.floor(Math.random() * songList.length)];
+		if (!randomSong) {
+			logError("Random song is null.");
+			return;
+		}
+		const embed = buildMusicEmbed(randomSong);
+
+		// Add Like and Dislike buttons
+		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+			new ButtonBuilder().setCustomId("like").setLabel("👍 Like").setStyle(ButtonStyle.Success),
+			new ButtonBuilder().setCustomId("dislike").setLabel("👎 Dislike").setStyle(ButtonStyle.Danger)
+		);
+
+		const message = await musicChannel.send({ embeds: [embed], components: [row] });
+
+		// Create a button interaction collector
+		const collector = message.createMessageComponentCollector({
+			time: 1 * 60 * 1000, // Collect interactions for 1 minute. Adjust the 1.
+		});
+
+		collector.on("collect", async (interaction: ButtonInteraction) => {
+			if (!interaction.isButton()) return;
+
+			const userId = interaction.user.id;
+
+			const existingInteraction = await interactionManager.findOne(USI, {
+				where: {
+					user_id: userId,
+					song: randomSong,
+				},
+			});
+
+			if (existingInteraction) {
+				await interaction.reply({
+					content: "You've already rated this song!",
+					ephemeral: true,
+				});
 				return;
-			} catch (err: any) {
-				logError(err.message);
+			}
+
+			// Handle Like and Dislike interactions
+			let interactionType: "like" | "dislike";
+			if (interaction.customId === "like") {
+				randomSong.rating += 1;
+				interactionType = "like";
+			} else if (interaction.customId === "dislike") {
+				randomSong.rating -= 1;
+				interactionType = "dislike";
+			} else {
 				return;
 			}
-		}
 
-		for (const song of songListFile) {
-			if (!song.name) {
-				console.error("Song name is null...");
-				console.log(song);
-				try {
-					delete require.cache[require.resolve(songListPath)];
-					return;
-				} catch (err: any) {
-					logError(err.message);
-					return;
-				}
-			}
-			if (!song.artist) {
-				console.error("Artist name is null...");
-				console.log(song);
-				try {
-					delete require.cache[require.resolve(songListPath)];
-					return;
-				} catch (err: any) {
-					logError(err.message);
-					return;
-				}
-			}
-			if (!song.ytmusic) {
-				console.error("YTMusic is null...");
-				console.log(song);
-				try {
-					delete require.cache[require.resolve(songListPath)];
-					return;
-				} catch (err: any) {
-					logError(err.message);
-					return;
-				}
-			}
-			if (!song.spotify) {
-				console.error(`Spotify is EMPTY for the song: "${song.name}"`);
-			}
-			if (!song.year) {
-				console.error(`Year is EMPTY for the song: "${song.name}"`);
-			}
-			if (!song.album) {
-				console.error(`Album is EMPTY for the song: "${song.name}"`);
-			}
-		}
+			// interactionUsers.add(userId);
 
-		const randomSong = songListFile[Math.floor(Math.random() * songListFile.length)];
+			// // Update the embed with the new rating
+			// const updatedEmbed = buildMusicEmbed(randomSong);
+			// await interaction.update({ embeds: [updatedEmbed] });
 
-		const embed = embedBuilder("Music Suggestion")
-			.setDescription("I found this song in my music room, check it out if you want.")
-			.setFields(
-				{ name: "Name", value: randomSong.name, inline: true },
-				{ name: "Artist", value: randomSong.artist, inline: true }
-				// { name: "Spotify", value: randomSong.spotify }
-			);
-		// if (randomSong.yt) {
-		// 	embed.setDescription(randomSong.yt);
-		// }
-		if (randomSong.genre) {
-			embed.addFields({ name: "Genre", value: randomSong.genre, inline: true });
-		}
-		if (randomSong.year) {
-			embed.addFields({ name: "Year", value: String(randomSong.year), inline: true });
-		}
-		if (randomSong.album) {
-			embed.addFields({ name: "Album", value: randomSong.album, inline: true });
-		}
-		embed.addFields({ name: "YouTube Music", value: randomSong.ytmusic });
-		if (randomSong.spotify) {
-			embed.addFields({ name: "Spotify", value: randomSong.spotify });
-		}
+			// Save the interaction to the database
+			const newInteraction = interactionManager.create(USI, {
+				user_id: userId,
+				song: randomSong,
+				interaction_type: interactionType,
+			});
+			await interactionManager.save(USI, newInteraction);
 
-		// stop being dumb TS. We are literally checking it on line 72.
-		await channel.send({ embeds: [embed] });
+			// Update the song rating in the database.
+			await musicManager.save(Music, randomSong);
 
-		try {
-			delete require.cache[require.resolve(songListPath)];
-			return;
-		} catch (err: any) {
-			logError(err.message);
-			return;
-		}
-	} catch (e: any) {
-		logError(e);
-		return;
+			// Update the embed with the new rating.
+			const updatedEmbed = buildMusicEmbed(randomSong);
+			await interaction.update({ embeds: [updatedEmbed] });
+		});
+
+		collector.on("end", () => {
+			// Clean up interaction state
+			// No need to clear anything since its in the DB.
+		});
+
+		// No longer needed.
+		// clearCache(songListPath);
+	} catch (error: any) {
+		logError(`Music Recommendations Error: ${error.message}`);
 	}
 }
+
+// Helper to load the song list
+// function loadSongList(filePath: string): I_MusicList[] {
+// 	try {
+// 		return require(filePath)["songs"];
+// 	} catch (err: any) {
+// 		logError(`Failed to load song list: ${err.message}`);
+// 		return [];
+// 	}
+// }
+
+// Helper to validate songs
+function validateSongs(songs: Music[]): void {
+	for (const song of songs) {
+		if (!song.name) logError("Song name is missing.");
+		if (!song.artist) logError(`Artist is missing for song: "${song.name}"`);
+		if (!song.ytmusic) logError(`YouTube Music link is missing for song: "${song.name}"`);
+		if (!song.spotify) logError(`Spotify link is missing for song: "${song.name}"`);
+		if (!song.year) logError(`Year is missing for song: "${song.name}"`);
+		if (!song.album) logError(`Album is missing for song: "${song.name}"`);
+	}
+}
+
+// Helper to build embed
+function buildMusicEmbed(song: Music) {
+	const embed = embedBuilder("Music Suggestion")
+		.setDescription("I found this song in my music room, check it out if you want.")
+		.addFields(
+			{ name: "Name", value: song.name, inline: true },
+			{ name: "Artist", value: song.artist, inline: true }
+		);
+
+	// if (song.genre) embed.addFields({ name: "Genre", value: song.genre, inline: true });
+	if (song.genres && song.genres.length > 0) {
+		embed.addFields({
+			name: "Genre",
+			value: song.genres.map((genre) => genre.name).join(", "),
+			inline: true
+		});
+	}
+	if (song.year) embed.addFields({ name: "Year", value: String(song.year), inline: true });
+	if (song.album) embed.addFields({ name: "Album", value: song.album, inline: true });
+	embed.addFields({ name: "YouTube Music", value: song.ytmusic });
+	if (song.spotify) embed.addFields({ name: "Spotify", value: song.spotify });
+	embed.addFields({ name: "Rating", value: String(song.rating), inline: true });
+
+	return embed;
+}
+
+// Helper to clear cache
+// No longer needed since it happens in the database.
+// function clearCache(filePath: string): void {
+// 	try {
+// 		delete require.cache[require.resolve(filePath)];
+// 	} catch (err: any) {
+// 		logError(`Failed to clear cache: ${err.message}`);
+// 	}
+// }
 
 const musicLinks: I_BotEvent = {
 	name: Events.ClientReady,
@@ -199,9 +241,9 @@ const musicLinks: I_BotEvent = {
 	 * @param {Client} client - The client.
 	 */
 	async execute(client: Client) {
-		setInterval(async () => await musicRecommendations(client), randomInt(180, 240) * 60 * 1000);
+		// setInterval(async () => await musicRecommendations(client), randomInt(180, 240) * 60 * 1000);
 		// for testing
-		// setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
+		setInterval(async () => await musicRecommendations(client), 1 * 60 * 1000);
 	},
 	once: true,
 };
