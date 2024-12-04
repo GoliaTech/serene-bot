@@ -1,4 +1,4 @@
-import { ChannelType, Client, Events } from "discord.js";
+import { ChannelType, Client, Events, Guild } from "discord.js";
 import { I_BotEvent } from "../../utilities/interface";
 import { logError, logGeneral } from "../../utilities/utilities";
 import { embedBuilder } from "../misc/builders";
@@ -61,9 +61,15 @@ interface I_MusicList {
 }
 
 async function musicRecommendations(client: Client) {
-	let guild = await client.guilds.fetch(String(process.env.GUILD_ID));
-	if (!guild) {
+	// let guild = await client.guilds.fetch(String(process.env.GUILD_ID));
+	// if (!guild) {
+	// 	guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
+	// }
+	let guild: Guild | undefined;
+	if (process.env.NODE_ENV === "development") {
 		guild = await client.guilds.fetch(String(process.env.DEV_GUILD_ID));
+	} else if (process.env.NODE_ENV === "production") {
+		guild = await client.guilds.fetch(String(process.env.GUILD_ID));
 	}
 	if (!guild) {
 		logError("No guild could be found for music recommendations....");
@@ -188,7 +194,7 @@ const musicLinks: I_BotEvent = {
 	 * @param {Client} client - The client.
 	 */
 	async execute(client: Client) {
-		setInterval(async () => await musicRecommendations(client), randomInt(120, 180) * 60 * 1000);
+		setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
 		// for testing
 		// setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
 	},
