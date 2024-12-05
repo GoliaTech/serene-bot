@@ -1,9 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, Events, Guild, TextChannel } from "discord.js";
-import { I_BotEvent, I_MusicList } from "../../utilities/interface";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, Events, TextChannel } from "discord.js";
+import { I_BotEvent } from "../../utilities/interface";
 import { logError, logGeneral } from "../../utilities/utilities";
 import { embedBuilder } from "../misc/builders";
 import { randomInt } from "crypto";
-import path from "node:path";
 import { Music, USI } from "../../database/entity/music";
 import { AppDataSource } from "../../database/datasource";
 
@@ -104,7 +103,7 @@ async function musicRecommendations(client: Client): Promise<void> {
 
 		// Create a button interaction collector
 		const collector = message.createMessageComponentCollector({
-			time: 1 * 60 * 1000, // Collect interactions for 1 minute
+			time: 5 * 60 * 1000, // Collect interactions for 5 minutes; adjust the first number to adjust the time.
 		});
 
 		collector.on("collect", async (interaction: ButtonInteraction) => {
@@ -168,23 +167,37 @@ async function musicRecommendations(client: Client): Promise<void> {
 // Helper to validate songs
 function validateSongs(songs: Music[]): void {
 	for (const song of songs) {
-		if (!song.name) logError("Song name is missing.");
-		if (!song.artist || !song.artist.name) logError(`Artist is missing for song: "${song.name}"`);
-		if (!song.ytmusic) logError(`YouTube Music link is missing for song: "${song.name}"`);
-		if (!song.spotify) logError(`Spotify link is missing for song: "${song.name}"`);
-		if (!song.year) logError(`Year is missing for song: "${song.name}"`);
-		if (!song.album || !song.album.name) logError(`Album is missing for song: "${song.name}"`);
+		if (!song.name) console.log("Song name is missing.");
+		if (!song.spotify) console.log(`Spotify link is missing for song: "${song.name}"`);
+		if (!song.year) console.log(`Year is missing for song: "${song.name}"`);
+		if (!song.album || !song.album.name) console.log(`Album is missing for song: "${song.name}"`);
 	}
+}
+
+function convertYouTubeMusicLinkToThumbnail(link: string) {
+	// Extract the video ID from the YouTube Music URL
+	const url = new URL(link); // Parse the URL
+	const videoId = url.searchParams.get('v'); // Get the value of the 'v' parameter
+
+	if (!videoId) {
+		throw new Error("Invalid YouTube Music link");
+	}
+
+	// Construct the thumbnail URL
+	const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+
+	return thumbnailUrl;
 }
 
 // Helper to build embed
 function buildMusicEmbed(song: Music) {
 	const embed = embedBuilder("Music Suggestion")
-		.setDescription("I found this song in my music room, check it out if you want.")
+		.setDescription("Check out this song I found in my music collection!\nGenres and styles from: https://discogs.com/ and https://musicbrainz.org/")
 		.addFields(
 			{ name: "Name", value: song.name, inline: true },
 			{ name: "Artist", value: song.artist.name, inline: true }
-		);
+		)
+		.setImage(convertYouTubeMusicLinkToThumbnail(song.ytmusic));
 
 	if (song.genres && song.genres.length > 0) {
 		embed.addFields({
@@ -204,7 +217,7 @@ function buildMusicEmbed(song: Music) {
 	if (song.album) embed.addFields({ name: "Album", value: song.album.name, inline: true });
 	embed.addFields({ name: "YouTube Music", value: song.ytmusic });
 	if (song.spotify) embed.addFields({ name: "Spotify", value: song.spotify });
-	embed.addFields({ name: "Rating", value: String(song.rating), inline: true });
+	embed.addFields({ name: "User Rating", value: String(song.rating) });
 
 	return embed;
 }
@@ -216,9 +229,9 @@ const musicLinks: I_BotEvent = {
 	 * @param {Client} client - The client.
 	 */
 	async execute(client: Client) {
-		// setInterval(async () => await musicRecommendations(client), randomInt(180, 240) * 60 * 1000);
+		setInterval(async () => await musicRecommendations(client), randomInt(240, 300) * 60 * 1000);
 		// for testing
-		setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
+		// setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
 	},
 	once: true,
 };
