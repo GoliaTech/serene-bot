@@ -116,6 +116,13 @@ async function uploadSongs() {
 			genre: [MusicGenres.Electronic, MusicGenres.Rock, MusicGenres.Pop],
 			styles: [MusicStyles.IndieRock, MusicStyles.AlternativeRock],
 			ytmusic: "https://music.youtube.com/watch?v=snNuQZ1UnQY&si=Szd6283eXmV2vW3Y"
+		}, {
+			ytmusic: "https://music.youtube.com/watch?v=crpRvkYzrtE&si=PuoviDSO-OaIooHn",
+			name: "Can I Kick It?",
+			artist: "A Tribe Called Quest",
+			year: 1990,
+			album: "People's Instinctive Travels and the Paths of Rhythm (25th Anniversary Edition)",
+			genre: [MusicGenres.HipHop]
 		}
 	];
 	// songs.push(song);
