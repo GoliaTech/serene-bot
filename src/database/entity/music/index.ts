@@ -1,3 +1,6 @@
-export { UserSongInteraction as USI } from "./user";
+export { UserSongInteraction as USI } from "./musicuser";
 export { Music as Music } from "./music";
-export { Genre } from "./genre";
+export { Genre } from "./musicgenre";
+export { Artist } from "./musicartist";
+export { Style } from "./musicstyle";
+export { Album } from "./musicalbum";

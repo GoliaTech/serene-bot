@@ -51,7 +51,10 @@ export const AppDataSource = new DataSource({
 		Discord.Server,
 		Music.Music,
 		Music.USI,
-		Music.Genre
+		Music.Genre,
+		Music.Artist,
+		Music.Style,
+		Music.Album
 	],
 	subscribers: [],
 	migrations: [],

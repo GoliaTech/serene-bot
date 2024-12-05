@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Music } from "./music";
 
-@Entity({ name: "genres" })
+@Entity({ name: "music_genre" })
 export class Genre {
 	@PrimaryGeneratedColumn()
 	id!: number;

@@ -213,14 +213,15 @@ export interface I_MusicList {
 	name: string;
 	artist: string;
 	ytmusic: string;
-	genre: GenreType[];
+	genre?: MusicGenres[];
 	spotify?: string;
 	year?: number;
 	album?: string;
 	rating?: number; // Added rating field
+	styles?: MusicStyles[];
 }
 
-export enum GenreType {
+export enum MusicGenres {
 	Electronic = "Electronic",
 	Indie = "Indie",
 	Dance = "Dance",
@@ -228,4 +229,30 @@ export enum GenreType {
 	Metal = "Metal",
 	Rock = "Rock",
 	Pop = "Pop",
+	HipHop = "Hip-Hop",
+	Rap = "Rap",
+	IndieRock = "Indie Rock",
+	Punk = "Punk",
+}
+
+export enum MusicStyles {
+	IndieRock = "Indie Rock",
+	AlternativeRock = "Alternative Rock",
+	HipHop = "Hip-Hop",
+	Trap = "Trap",
+	DancePop = "Dance-Pop",
+	Punk = "Punk",
+	Metal = "Metal",
+	HardRock = "Hard Rock",
+	Rock = "Rock",
+	Ragga = "Ragga",
+	Pop = "Pop",
+	IndiePop = "Indie Pop",
+	Indie = "Indie",
+	Trance = "Trance",
+	House = "House",
+	Eurodance = "Eurodance",
+	HardHouse = "Hard House",
+	HardTrance = "Hard Trance",
+	Breaks = "Breaks",
 }

@@ -5,14 +5,14 @@ import { logError, nodeEnv } from "./utilities/utilities";
 
 async function uploadSongs() {
 	const song: I_MusicList = {
-		name: "Song title",
-		artist: "Artist name",
+		name: "Where's Your Head At",
+		artist: "Basement Jaxx",
 		ytmusic: "https://music.youtube.com/watch?v=video_id",
-		genre: [GenreType.Electronic, GenreType.Indie],
-		spotify: "https://open.spotify.com/track/track_id",
-		year: 2022,
-		album: "Album title",
-		rating: 5
+		genre: [GenreType.Electronic, GenreType.Dance],
+		spotify: "https://music.youtube.com/watch?v=omwXLXeTR4w&si=zKox8gmIYLt_fgOR",
+		year: 2001,
+		album: "Rooty",
+		rating: 0
 	};
 	const songs: I_MusicList[] = [];
 	songs.push(song);

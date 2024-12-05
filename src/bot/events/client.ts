@@ -72,15 +72,12 @@ async function musicRecommendations(client: Client): Promise<void> {
 
 		const musicChannel = channel as TextChannel;
 
-		// Fetch song list from database.
+		// Fetch song list from database
 		const musicManager = AppDataSource.manager;
-		const interactionManager = AppDataSource.manager;
 
-		// Load song list
-		// const songListPath = path.resolve(__dirname, "../../../songlist.json");
-		// const songList = loadSongList(songListPath);
-
-		const songList = await musicManager.find(Music);
+		const songList = await musicManager.find(Music, {
+			relations: ["artist", "album", "genres", "styles"], // Include all necessary relations
+		});
 		if (!songList || songList.length === 0) {
 			logError("Song list is empty or failed to load.");
 			return;
@@ -107,7 +104,7 @@ async function musicRecommendations(client: Client): Promise<void> {
 
 		// Create a button interaction collector
 		const collector = message.createMessageComponentCollector({
-			time: 1 * 60 * 1000, // Collect interactions for 1 minute. Adjust the 1.
+			time: 1 * 60 * 1000, // Collect interactions for 1 minute
 		});
 
 		collector.on("collect", async (interaction: ButtonInteraction) => {
@@ -115,10 +112,10 @@ async function musicRecommendations(client: Client): Promise<void> {
 
 			const userId = interaction.user.id;
 
-			const existingInteraction = await interactionManager.findOne(USI, {
+			const existingInteraction = await musicManager.findOne(USI, {
 				where: {
 					user_id: userId,
-					song: randomSong,
+					song: { id: randomSong.id },
 				},
 			});
 
@@ -142,59 +139,41 @@ async function musicRecommendations(client: Client): Promise<void> {
 				return;
 			}
 
-			// interactionUsers.add(userId);
-
-			// // Update the embed with the new rating
-			// const updatedEmbed = buildMusicEmbed(randomSong);
-			// await interaction.update({ embeds: [updatedEmbed] });
-
 			// Save the interaction to the database
-			const newInteraction = interactionManager.create(USI, {
+			const newInteraction = musicManager.create(USI, {
 				user_id: userId,
 				song: randomSong,
 				interaction_type: interactionType,
 			});
-			await interactionManager.save(USI, newInteraction);
+			await musicManager.save(USI, newInteraction);
 
-			// Update the song rating in the database.
+			// Update the song rating in the database
 			await musicManager.save(Music, randomSong);
 
-			// Update the embed with the new rating.
+			// Update the embed with the new rating
 			const updatedEmbed = buildMusicEmbed(randomSong);
 			await interaction.update({ embeds: [updatedEmbed] });
 		});
 
 		collector.on("end", () => {
 			// Clean up interaction state
-			// No need to clear anything since its in the DB.
+			// No need to clear anything since it's in the DB
 		});
-
-		// No longer needed.
-		// clearCache(songListPath);
 	} catch (error: any) {
 		logError(`Music Recommendations Error: ${error.message}`);
 	}
 }
 
-// Helper to load the song list
-// function loadSongList(filePath: string): I_MusicList[] {
-// 	try {
-// 		return require(filePath)["songs"];
-// 	} catch (err: any) {
-// 		logError(`Failed to load song list: ${err.message}`);
-// 		return [];
-// 	}
-// }
 
 // Helper to validate songs
 function validateSongs(songs: Music[]): void {
 	for (const song of songs) {
 		if (!song.name) logError("Song name is missing.");
-		if (!song.artist) logError(`Artist is missing for song: "${song.name}"`);
+		if (!song.artist || !song.artist.name) logError(`Artist is missing for song: "${song.name}"`);
 		if (!song.ytmusic) logError(`YouTube Music link is missing for song: "${song.name}"`);
 		if (!song.spotify) logError(`Spotify link is missing for song: "${song.name}"`);
 		if (!song.year) logError(`Year is missing for song: "${song.name}"`);
-		if (!song.album) logError(`Album is missing for song: "${song.name}"`);
+		if (!song.album || !song.album.name) logError(`Album is missing for song: "${song.name}"`);
 	}
 }
 
@@ -204,35 +183,31 @@ function buildMusicEmbed(song: Music) {
 		.setDescription("I found this song in my music room, check it out if you want.")
 		.addFields(
 			{ name: "Name", value: song.name, inline: true },
-			{ name: "Artist", value: song.artist, inline: true }
+			{ name: "Artist", value: song.artist.name, inline: true }
 		);
 
-	// if (song.genre) embed.addFields({ name: "Genre", value: song.genre, inline: true });
 	if (song.genres && song.genres.length > 0) {
 		embed.addFields({
 			name: "Genre",
 			value: song.genres.map((genre) => genre.name).join(", "),
-			inline: true
+			inline: true,
+		});
+	}
+	if (song.styles && song.styles.length > 0) {
+		embed.addFields({
+			name: "Style",
+			value: song.styles.map((style) => style.name).join(", "),
+			inline: true,
 		});
 	}
 	if (song.year) embed.addFields({ name: "Year", value: String(song.year), inline: true });
-	if (song.album) embed.addFields({ name: "Album", value: song.album, inline: true });
+	if (song.album) embed.addFields({ name: "Album", value: song.album.name, inline: true });
 	embed.addFields({ name: "YouTube Music", value: song.ytmusic });
 	if (song.spotify) embed.addFields({ name: "Spotify", value: song.spotify });
 	embed.addFields({ name: "Rating", value: String(song.rating), inline: true });
 
 	return embed;
 }
-
-// Helper to clear cache
-// No longer needed since it happens in the database.
-// function clearCache(filePath: string): void {
-// 	try {
-// 		delete require.cache[require.resolve(filePath)];
-// 	} catch (err: any) {
-// 		logError(`Failed to clear cache: ${err.message}`);
-// 	}
-// }
 
 const musicLinks: I_BotEvent = {
 	name: Events.ClientReady,
@@ -243,7 +218,7 @@ const musicLinks: I_BotEvent = {
 	async execute(client: Client) {
 		// setInterval(async () => await musicRecommendations(client), randomInt(180, 240) * 60 * 1000);
 		// for testing
-		setInterval(async () => await musicRecommendations(client), 1 * 60 * 1000);
+		setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
 	},
 	once: true,
 };
