@@ -7,6 +7,9 @@ const ping: I_MessageCommand = {
 	data: {
 		name: "disabled"
 	},
+	options: {
+		botOwner: true,
+	},
 	async execute(message: Message) {
 		interactionCommands;
 		loadedEvents;

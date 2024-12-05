@@ -229,9 +229,11 @@ const musicLinks: I_BotEvent = {
 	 * @param {Client} client - The client.
 	 */
 	async execute(client: Client) {
-		setInterval(async () => await musicRecommendations(client), randomInt(240, 300) * 60 * 1000);
-		// for testing
-		// setInterval(async () => await musicRecommendations(client), 1 * 10 * 1000);
+		if (process.env.NODE_ENV === "production") {
+			setInterval(async () => await musicRecommendations(client), 240 * 60 * 1000);
+		} else {
+			setInterval(async () => await musicRecommendations(client), 30 * 60 * 1000);
+		}
 	},
 	once: true,
 };

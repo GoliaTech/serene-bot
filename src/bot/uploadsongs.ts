@@ -116,6 +116,22 @@ export async function uploadSongs() {
 			artist: "K.Flay",
 			album: "Every Where Is Some Where (Deluxe Version)",
 			year: 2017
+		}, {
+			ytmusic: "https://music.youtube.com/watch?v=E3yqv2PGugs&si=El3nH6YykyNw8bP6",
+			name: "Corset Theme",
+			artist: "TeddyLoid",
+			year: 2010,
+			album: "Panty & Stocking With Garterbelt The Original Soundtrack",
+			genre: [MusicGenres.Electronic, MusicGenres.Pop, MusicGenres.StageScreen],
+			styles: [MusicStyles.Jpop, MusicStyles.Electro, MusicStyles.SynthPop, MusicStyles.House, MusicStyles.Anison, MusicStyles.Soundtrack]
+		}, {
+			ytmusic: "https://music.youtube.com/watch?v=ZCut2rFo1bk&si=yBTV4p5W7nvDcsQq",
+			name: "Theme for Scanty & Knee Socks",
+			artist: "TeddyLoid",
+			year: 2010,
+			album: "Panty & Stocking With Garterbelt The Original Soundtrack",
+			genre: [MusicGenres.Electronic, MusicGenres.Pop, MusicGenres.StageScreen],
+			styles: [MusicStyles.Jpop, MusicStyles.Electro, MusicStyles.SynthPop, MusicStyles.House, MusicStyles.Anison, MusicStyles.Soundtrack]
 		}
 	];
 	// songs.push(song);

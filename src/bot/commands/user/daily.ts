@@ -1,10 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { E_CurrencyTypes, EmbedColors, I_Command, lootboxKeys, rarities, Reward, rewardTypes } from "../../../utilities/interface";
 import { commandBuilder, embedBuilder, errorEmbedBuilder } from "../../misc/builders";
-import { AppDataSource } from "../../../database/datasource";
-import { User } from "../../../database/entity";
 import { findOrCreateUser, findOrCreateUserDaily, setNewDaily, userCurrencyIncrease, userItemsDistribute, userLevelXpAdd } from "../../../database/dao/user";
-import { capitalizeEachWord, capitalizeFirstLetter, logError } from "../../../utilities/utilities";
+import { capitalizeFirstLetter, logError } from "../../../utilities/utilities";
 
 /**
  * At one point, we will move the rewardPool into a database.
