@@ -70,20 +70,22 @@ const emojisReact: I_BotEvent = {
 const messageCommandsEvent: I_BotEvent = {
 	name: Events.MessageCreate,
 	async execute(message: Message) {
-		if (!messageCommands) {
-			console.error("No message commands have been loaded");
-			message.reply({ content: "It looks like commands failed to load. We are sorry." });
-			return;
-		}
+
 		if (message.author.bot) {
 			return;
 		}
 
 		const commandStart = "!!";
 
-		console.log(message.mentions.users.find((u) => u.id == message.client.user.id));
+		// console.log(message.mentions.users.find((u) => u.id == message.client.user.id));
 
 		if (!message.content.startsWith(commandStart) && message.mentions.users.size == 0 || !message.mentions.users.find((u) => u.id == message.client.user.id) && message.mentions.users.size > 0) {
+			return;
+		}
+
+		if (!messageCommands) {
+			console.error("No message commands have been loaded");
+			message.reply({ content: "It looks like commands failed to load. We are sorry." });
 			return;
 		}
 

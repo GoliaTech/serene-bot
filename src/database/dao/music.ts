@@ -92,26 +92,51 @@ export async function DAO_AddMusic(songs: I_MusicList[]) {
 	return feedback;
 }
 
-export async function DAO_GetSongs() {
+export async function DAO_GetSongs(page: number = 1, limit: number = 10) {
 	const musicManager = AppDataSource.manager;
 
-	// Load all songs with their genres
-	const songs = await musicManager.find(Music, { relations: ["genres", "album", "artist", "styles"] });
+	// Calculate pagination
+	const skip = (page - 1) * limit;
 
-	songs.forEach((song) => {
-		console.log(`Song: ${song.name}`);
-		if (song.album) {
-			console.log(`Album: ${song.album.name}`);
-		}
-		if (song.artist) {
-			console.log(`Artist: ${song.artist.name}`);
-		}
-		if (song.genres) {
-			console.log(`Genres: ${song.genres.map((g) => g.name).join(", ")}`);
-		}
-		if (song.styles) {
-			console.log(`Styles: ${song.styles.map((g) => g.name).join(", ")}`);
-		}
-		// console.log(`Genres: ${song.genres.map((g) => g.name).join(", ")}`);
+	// Load songs with pagination
+	const songs = await musicManager.find(Music, {
+		relations: ["genres", "album", "artist", "styles"],
+		skip,
+		take: limit,
 	});
+
+	// Consolidated feedback output
+	const feedback = songs.map((song, index) => {
+		let songInfo = `#${index + 1 + skip}: ${song.name}\n`;
+		if (song.album) songInfo += `  Album: ${song.album.name}\n`;
+		if (song.artist) songInfo += `  Artist: ${song.artist.name}\n`;
+		if (song.genres) songInfo += `  Genres: ${song.genres.map((g) => g.name).join(", ")}\n`;
+		if (song.styles) songInfo += `  Styles: ${song.styles.map((s) => s.name).join(", ")}\n`;
+		return songInfo;
+	}).join("\n");
+
+	console.log(feedback);
+
+	// Return songs and feedback for use in the embed
+	return { songs, feedback };
+}
+
+export async function DAO_GetSong(genre?: string) {
+	const musicManager = AppDataSource.manager;
+
+	let songs;
+	if (genre) {
+		songs = await musicManager.find(Music, {
+			relations: ["genres", "album", "artist", "styles"],
+			where: { genres: { name: genre } },
+		});
+	} else {
+		songs = await musicManager.find(Music, {
+			relations: ["genres", "album", "artist", "styles"],
+		});
+	}
+
+	const randomSong = songs[Math.floor(Math.random() * songs.length)];
+
+	return randomSong;
 }

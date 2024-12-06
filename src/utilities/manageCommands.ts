@@ -67,7 +67,7 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				if (development == nodeEnvEnum.development) {
 					try {
 						await rest.put(DiscordRoutes.applicationGuildCommands(clientId, guildId), { body: sanitizedCommands });
-						await rest.put(DiscordRoutes.applicationCommands(clientId), { body: sanitizedCommands });
+						// await rest.put(DiscordRoutes.applicationCommands(clientId), { body: sanitizedCommands });
 						console.log("Commands deployed successfully.");
 					} catch (e) {
 						console.error(e);

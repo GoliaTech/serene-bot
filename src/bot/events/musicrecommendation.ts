@@ -4,6 +4,7 @@ import { USI, Music } from "../../database/entity/music";
 import { I_BotEvent } from "../../utilities/interface";
 import { logError } from "../../utilities/utilities";
 import { embedBuilder } from "../misc/builders";
+import { buildMusicEmbed } from "../misc/utilities";
 
 async function musicRecommendations(client: Client): Promise<void> {
 	try {
@@ -185,54 +186,6 @@ function validateSongs(songs: Music[]): void {
 		if (!song.year) console.log(`Year is missing for song: "${song.name}"`);
 		if (!song.album || !song.album.name) console.log(`Album is missing for song: "${song.name}"`);
 	}
-}
-
-function convertYouTubeMusicLinkToThumbnail(link: string) {
-	// Extract the video ID from the YouTube Music URL
-	const url = new URL(link); // Parse the URL
-	const videoId = url.searchParams.get('v'); // Get the value of the 'v' parameter
-
-	if (!videoId) {
-		throw new Error("Invalid YouTube Music link");
-	}
-
-	// Construct the thumbnail URL
-	const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-
-	return thumbnailUrl;
-}
-
-// Helper to build embed
-function buildMusicEmbed(song: Music) {
-	const embed = embedBuilder("Music Suggestion")
-		.setDescription("Check out this song I found in my music collection!\nGenres and styles from: https://discogs.com/ and https://musicbrainz.org/")
-		.addFields(
-			{ name: "Name", value: song.name, inline: true },
-			{ name: "Artist", value: song.artist.name, inline: true }
-		)
-		.setImage(convertYouTubeMusicLinkToThumbnail(song.ytmusic));
-
-	if (song.genres && song.genres.length > 0) {
-		embed.addFields({
-			name: "Genre",
-			value: song.genres.map((genre) => genre.name).join(", "),
-			inline: true,
-		});
-	}
-	if (song.styles && song.styles.length > 0) {
-		embed.addFields({
-			name: "Style",
-			value: song.styles.map((style) => style.name).join(", "),
-			inline: true,
-		});
-	}
-	if (song.year) embed.addFields({ name: "Year", value: String(song.year), inline: true });
-	if (song.album) embed.addFields({ name: "Album", value: song.album.name, inline: true });
-	embed.addFields({ name: "YouTube Music", value: song.ytmusic });
-	if (song.spotify) embed.addFields({ name: "Spotify", value: song.spotify });
-	embed.addFields({ name: "User Rating", value: String(song.rating) });
-
-	return embed;
 }
 
 const musicLinks: I_BotEvent = {
