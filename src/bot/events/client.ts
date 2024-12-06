@@ -5,6 +5,8 @@ import { embedBuilder } from "../misc/builders";
 import { randomInt } from "crypto";
 import { Music, USI } from "../../database/entity/music";
 import { AppDataSource } from "../../database/datasource";
+import { writeFile } from "fs";
+import path from "path";
 
 /**
  * This will set a random presence.
@@ -99,7 +101,33 @@ async function musicRecommendations(client: Client): Promise<void> {
 			new ButtonBuilder().setCustomId("dislike").setLabel("👎 Dislike").setStyle(ButtonStyle.Danger)
 		);
 
+		// const timeSent = Date.now();
+		const timethingpath = path.resolve(__dirname, "../../../timething.json");
+		const settings = require(timethingpath);
+		const musicRec = settings["musicRec"];
+		const lastTimeSent = Number(musicRec["lastSent"]);
+
+		const timeToWaitUntil = lastTimeSent + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
+		if (timeToWaitUntil > Date.now()) {
+			console.log(`MUSIC RECOMMNEDATION\n4 hours have to pass. They have not passed yet.`);
+			try {
+				delete require.cache[require.resolve("../../../timething.json")];
+				return;
+			}
+			catch (err: any) {
+				logError(err.message);
+				return;
+			}
+		}
+
 		const message = await musicChannel.send({ embeds: [embed], components: [row] });
+
+		const newTime = Date.now();
+		writeFile(timethingpath, JSON.stringify({ musicRec: { lastSent: newTime } }), "utf8", (err) => {
+			if (err) {
+				logError(`Error writing to timething.json: ${err.message}`);
+			}
+		});
 
 		// Create a button interaction collector
 		const collector = message.createMessageComponentCollector({
