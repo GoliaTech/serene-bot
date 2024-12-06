@@ -92,7 +92,7 @@ async function bot() {
 		eventHandlers(discordClient, loadedEvents);
 
 		await AppDataSource.initialize();
-		await uploadSongs();
+		// await uploadSongs();
 		// await DAO_GetSongs();
 		if (login) {
 			// I don't think we need a try here, but it is probably a smart idea to do it anyway.
