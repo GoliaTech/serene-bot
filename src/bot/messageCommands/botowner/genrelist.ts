@@ -25,7 +25,7 @@ const ping: I_MessageCommand = {
 			styleList.push(style);
 		});
 
-		message.reply({ content: `Genres: ${genreList.join(", ")}\n\nStyles: ${styleList.join(", ")}` });
+		message.reply({ content: `**Genres:**\n${genreList.join(", ")}\n\n**Styles:**\n${styleList.join(", ")}`, options: { ephemeral: true } });
 		return;
 	}
 };

@@ -1,7 +1,7 @@
 import { DAO_AddMusic } from "../../../database/dao/music";
-import { AppDataSource } from "../../../database/datasource";
-import { I_Command, I_MusicList } from "../../../utilities/interface";
-import { commandBuilder } from "../../misc/builders";
+import { Music } from "../../../database/entity/music";
+import { EmbedColors, I_Command, I_MusicList } from "../../../utilities/interface";
+import { commandBuilder, embedBuilder } from "../../misc/builders";
 
 const bo_AddMusic: I_Command = {
 	data: commandBuilder(
@@ -42,12 +42,12 @@ const bo_AddMusic: I_Command = {
 		.addStringOption((spotify) => spotify
 			.setName("spotify")
 			.setDescription("Spotify URL")
-			.setRequired(false))
-	,
+			.setRequired(false)),
 	options: {
 		botOwner: true
 	},
 	async execute(interaction) {
+		const embed = embedBuilder("Add Music");
 		const ytmusic = interaction.options.getString("ytmusic", true);
 		const name = interaction.options.getString("name", true);
 		const artist = interaction.options.getString("artist", true);
@@ -69,19 +69,67 @@ const bo_AddMusic: I_Command = {
 			spotify: spotify ? spotify : undefined,
 		};
 
+		const feedback = validateSongs(newSong);
+
+		let reply = "";
 		const songs: I_MusicList[] = [];
 		songs.push(newSong);
 		try {
 			await DAO_AddMusic(songs);
-			interaction.reply({ content: "Song added!" });
+			reply = "Song added!";
+			if (feedback) {
+				reply += `\n${feedback}`;
+			}
+			embed.setDescription(reply).setColor(EmbedColors.success);
+			interaction.reply({ embeds: [embed], ephemeral: true });
 			return;
-		} catch (error) {
-			interaction.reply({ content: "Error adding song." });
-			console.error(error);
+		} catch (error: any) {
+			reply = "Error adding song.";
+			if (feedback) {
+				reply += `\n${feedback}\n${error.message}`;
+			}
+			embed.setDescription(reply).setColor(EmbedColors.error);
+			interaction.reply({ embeds: [embed], ephemeral: true });
 			return;
 		}
 	},
 };
+
+// Helper to validate songs
+function validateSongs(song: I_MusicList): string {
+	let feedback = "";
+	if (!song.spotify) {
+		const text = `Spotify link is missing for song: "${song.name}"`;
+		feedback += text;
+		console.log(text);
+	}
+
+	if (!song.year) {
+		const text = `Year is missing for song: "${song.name}"`;
+		feedback += text;
+		console.log(text);
+	}
+
+	if (!song.album || !song.album) {
+		const text = `Album is missing for song: "${song.name}"`;
+		feedback += text;
+		console.log(text);
+	}
+
+	if (!song.genre || song.genre.length > 0) {
+		const text = `Genres are missing for song: "${song.name}"`;
+		feedback += text;
+		console.log(text);
+	}
+
+	if (!song.styles || song.styles.length > 0) {
+		const text = `Styles are missing for song: "${song.name}"`;
+		feedback += text;
+		console.log(text);
+	}
+
+	return feedback;
+}
 
 module.exports = [
 	bo_AddMusic
