@@ -263,4 +263,10 @@ export enum MusicStyles {
 	Anison = "Anison",
 	Jpop = "J-Pop",
 	Soundtrack = "Soundtrack",
+	GarageRock = "Garage Rock",
+	BigBeat = "Big Beat",
+	Ambient = "Ambient",
+	Breakbeat = "Breakbeat",
+	Downtempo = "Downtempo",
+	Rap = "Rap",
 }
