@@ -190,7 +190,7 @@ function validateSongs(songs: Music[]): void {
 
 const musicLinks: I_BotEvent = {
 	name: Events.ClientReady,
-	disabled: true,
+	disabled: false,
 	/**
 	 * This will do things when the bot is ready to launch. Run it once.
 	 * @param {Client} client - The client.

@@ -56,6 +56,9 @@ const secretsanta: I_Command = {
 			.setDescription("In case someone doesn't get their present, are you available")
 			.setRequired(true)
 		),
+	options: {
+		disabled: true
+	},
 	async execute(interaction) {
 		// Get variables.
 		const likes = interaction.options.getString("likes", true);
