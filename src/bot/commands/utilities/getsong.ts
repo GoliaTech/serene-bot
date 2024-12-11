@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, TextChannel } from "discord.js";
 import { DAO_GetSong } from "../../../database/dao/music";
-import { I_Command, MusicGenres } from "../../../utilities/interface";
-import { commandBuilder } from "../../misc/builders";
+import { EmbedColors, I_Command, MusicGenres } from "../../../utilities/interface";
+import { commandBuilder, embedBuilder } from "../../misc/builders";
 import { buildMusicEmbed } from "../../misc/utilities";
 import { AppDataSource } from "../../../database/datasource";
 import { Music, USI } from "../../../database/entity/music";
@@ -21,6 +21,8 @@ const getSong: I_Command = {
 	async execute(interaction) {
 		const genre = interaction.options.getString("genre");
 
+		const embed = embedBuilder("Get Song", EmbedColors.error);
+
 		let song;
 		if (genre) {
 			song = await DAO_GetSong(genre);
@@ -29,9 +31,11 @@ const getSong: I_Command = {
 		}
 
 		if (!song) {
-			interaction.reply({ content: "No music found. This genre probably has no music yet.", ephemeral: true });
+			embed.setDescription("No music found. This genre probably has no music yet.");
+			interaction.reply({ embeds: [embed], ephemeral: true });
+			return;
 		}
-		const songEmbed = buildMusicEmbed(song);
+		const songEmbed = buildMusicEmbed(song, "Get Song");
 
 		const textChannel = interaction.channel as TextChannel;
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -59,10 +63,8 @@ const getSong: I_Command = {
 			});
 
 			if (existingInteraction) {
-				await interaction.reply({
-					content: "You've already rated this song!",
-					ephemeral: true,
-				});
+				embed.setDescription("You've already rated this song!");
+				await interaction.reply({ embeds: [embed], ephemeral: true });
 				return;
 			}
 
@@ -93,10 +95,8 @@ const getSong: I_Command = {
 			await musicManager.save(Music, song);
 
 			// Reply to the user
-			await interaction.reply({
-				content: responseMessage,
-				ephemeral: true,
-			});
+			embed.setDescription(responseMessage).setColor(EmbedColors.success);
+			await interaction.reply({ embeds: [embed], ephemeral: true });
 
 			// Update the embed with the new rating
 			const updatedEmbed = buildMusicEmbed(song);
@@ -111,6 +111,7 @@ const getSong: I_Command = {
 				console.error("Failed to update message to remove buttons:", error);
 			}
 		});
+		return;
 	},
 };
 

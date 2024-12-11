@@ -1,7 +1,7 @@
 import { Client, ChannelType, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, Events } from "discord.js";
 import { AppDataSource } from "../../database/datasource";
 import { USI, Music } from "../../database/entity/music";
-import { I_BotEvent } from "../../utilities/interface";
+import { EmbedColors, I_BotEvent } from "../../utilities/interface";
 import { logError } from "../../utilities/utilities";
 import { embedBuilder } from "../misc/builders";
 import { buildMusicEmbed } from "../misc/utilities";
@@ -64,6 +64,8 @@ async function musicRecommendations(client: Client): Promise<void> {
 
 		const musicChannel = channel as TextChannel;
 
+		const musicEmbed = embedBuilder("Music Recommendations", EmbedColors.success);
+
 		// Fetch song list from database
 		const musicManager = AppDataSource.manager;
 
@@ -119,10 +121,8 @@ async function musicRecommendations(client: Client): Promise<void> {
 			});
 
 			if (existingInteraction) {
-				await interaction.reply({
-					content: "You've already rated this song!",
-					ephemeral: true,
-				});
+				musicEmbed.setDescription("You've already rated this song!").setColor(EmbedColors.error);
+				await interaction.reply({ embeds: [musicEmbed], ephemeral: true, });
 				return;
 			}
 
@@ -153,10 +153,8 @@ async function musicRecommendations(client: Client): Promise<void> {
 			await musicManager.save(Music, randomSong);
 
 			// Reply to the user
-			await interaction.reply({
-				content: responseMessage,
-				ephemeral: true,
-			});
+			musicEmbed.setDescription(responseMessage).setColor(EmbedColors.success);
+			await interaction.reply({ embeds: [musicEmbed], ephemeral: true });
 
 			// Update the embed with the new rating
 			const updatedEmbed = buildMusicEmbed(randomSong);
@@ -169,11 +167,13 @@ async function musicRecommendations(client: Client): Promise<void> {
 				await message.edit({ components: [] });
 			} catch (error) {
 				console.error("Failed to update message to remove buttons:", error);
+				return;
 			}
 		});
-
+		return;
 	} catch (error: any) {
 		logError(`Music Recommendations Error: ${error.message}`);
+		return;
 	}
 }
 

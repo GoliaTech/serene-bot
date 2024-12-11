@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Message, MessageActionRow
 import { DAO_GetSongs } from "../../../database/dao/music";
 import { AppDataSource } from "../../../database/datasource";
 import { Music } from "../../../database/entity/music";
-import { I_MessageCommand } from "../../../utilities/interface";
+import { EmbedColors, I_MessageCommand } from "../../../utilities/interface";
 import { embedBuilder } from "../../misc/builders";
 
 const getMusic: I_MessageCommand = {
@@ -10,6 +10,7 @@ const getMusic: I_MessageCommand = {
 		name: "getmusic"
 	},
 	async execute(interaction) {
+		const embedReply = embedBuilder("Music List");
 		let currentPage = 1;
 		const limit = 10;
 
@@ -17,7 +18,8 @@ const getMusic: I_MessageCommand = {
 		const { songs, feedback } = await DAO_GetSongs(currentPage, limit);
 
 		if (!songs.length) {
-			return interaction.reply({ content: "No songs found.", options: { ephemeral: true } });
+			embedReply.setColor(EmbedColors.error).setDescription("No songs found.");
+			return interaction.reply({ embeds: [embedReply], options: { ephemeral: true } });
 		}
 
 		const totalSongs = await AppDataSource.manager.count(Music);
@@ -39,13 +41,17 @@ const getMusic: I_MessageCommand = {
 
 		collector.on("collect", async (btnInteraction) => {
 			if (btnInteraction.user.id !== interaction.author.id) {
-				return btnInteraction.reply({ content: "This button is not for you.", ephemeral: true });
+				embedReply.setColor(EmbedColors.error).setDescription("You cannot use this button.");
+				await btnInteraction.reply({ embeds: [embedReply], ephemeral: true });
+				return;
 			}
 
 			if (btnInteraction.customId === "cancel") {
 				collector.stop("User canceled");
 				await message.delete();
-				return btnInteraction.reply({ content: "Canceled the interaction.", ephemeral: true });
+				embedReply.setColor(EmbedColors.error).setDescription("Action canceled.");
+				await btnInteraction.reply({ embeds: [embedReply], ephemeral: true });
+				return;
 			}
 
 			if (btnInteraction.customId === "next") {
@@ -69,6 +75,7 @@ const getMusic: I_MessageCommand = {
 				return;
 			}
 		});
+		return;
 	},
 };
 

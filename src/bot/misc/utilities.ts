@@ -17,9 +17,9 @@ function convertYouTubeMusicLinkToThumbnail(link: string) {
 }
 
 // Helper to build embed
-export function buildMusicEmbed(song: Music) {
-	const embed = embedBuilder("Music Suggestion")
-		.setDescription("Check out this song I found in my music collection!\nGenres and styles from: https://discogs.com/ and https://musicbrainz.org/")
+export function buildMusicEmbed(song: Music, title?: string) {
+	const embed = embedBuilder(title ? title : "Music Suggestion")
+		.setDescription("Check out this song I found in my music collection!\nGenres and styles from: https://discogs.com/\nhttps://musicbrainz.org/")
 		.addFields(
 			{ name: "Name", value: song.name, inline: true },
 			{ name: "Artist", value: song.artist.name, inline: true }

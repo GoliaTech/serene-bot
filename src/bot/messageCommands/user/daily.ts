@@ -331,11 +331,9 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 }
 
 const daily: I_MessageCommand = {
-	data:
-	{
+	data: {
 		name: "daily",
-	}
-	,
+	},
 	/**
 	 * This is the daily command.
 	 * @param interaction Discord interaction with command.
@@ -343,13 +341,13 @@ const daily: I_MessageCommand = {
 	 */
 	async execute(interaction) {
 		const now = new Date();
-		const embed = embedBuilder();
+		const embed = embedBuilder("Daily");
 
 		const userInfo = await findOrCreateUser(interaction.author.id);
 		// this should never happen, as that thing above finds OR creates a user.
 		if (userInfo.error || typeof (userInfo.data) == "string") {
-			const errorEmbed = errorEmbedBuilder(userInfo.data);
-			await interaction.reply({ embeds: [errorEmbed], options: { ephemeral: true, } });
+			const errorEmbed = errorEmbedBuilder(userInfo.data, "Daily");
+			await interaction.reply({ embeds: [errorEmbed], options: {ephemeral:true}});
 			return;
 		}
 
@@ -365,8 +363,8 @@ const daily: I_MessageCommand = {
 
 		// This should never happen as we already tried to find, then created and found the user again.
 		if (getUserDaily.error || typeof (getUserDaily.data) == "string") {
-			const errorEmbed = errorEmbedBuilder(getUserDaily.data);
-			await interaction.reply({ embeds: [errorEmbed], options: { ephemeral: true, } });
+			const errorEmbed = errorEmbedBuilder(getUserDaily.data, "Daily");
+			await interaction.reply({ embeds: [errorEmbed], options: {ephemeral:true}});
 			return;
 		}
 
@@ -390,13 +388,12 @@ const daily: I_MessageCommand = {
 			const minutesUntilDeadline = Math.floor((timeUntilDeadline % (1000 * 60 * 60)) / (1000 * 60));
 
 			embed
-				.setTitle("You have to wait.")
 				.setColor(EmbedColors.pending)
 				.setDescription(`You can claim your next daily reward after **${nextClaim.toLocaleString()}**.\n\n` +
 					`**Time left until rewards are ready:** ${hoursUntilReady}h ${minutesUntilReady}m\n` +
 					`**Time left to claim your reward:** ${hoursUntilDeadline}h ${minutesUntilDeadline}m\n` +
 					`**Claim deadline:** ${claimDeadline?.toLocaleString()}`);
-			await interaction.reply({ embeds: [embed], options: { ephemeral: true, } });
+			await interaction.reply({ embeds: [embed], options: {ephemeral:true}});
 			return;
 		}
 
@@ -434,7 +431,7 @@ const daily: I_MessageCommand = {
 		const distribution = await distributeRewards(rewards, userInfo.data.discordID);
 		if (distribution.error || typeof (distribution.data) == "string") {
 			const errorEmbed = errorEmbedBuilder(distribution.data);
-			await interaction.reply({ embeds: [errorEmbed], options: { ephemeral: true, } });
+			await interaction.reply({ embeds: [errorEmbed], options: {ephemeral:true}});
 			return;
 		}
 
@@ -444,7 +441,7 @@ const daily: I_MessageCommand = {
 		embed
 			.setColor(EmbedColors.success)
 			.setDescription(`## Congratulations!\nHere are your rewards:\n\n${formatRewards}\n\n**Your streak:** ${getUserDaily.data.daily_streak}.`);
-		await interaction.reply({ embeds: [embed], options: { ephemeral: true, } });
+		await interaction.reply({ embeds: [embed], options: {ephemeral:true}});
 		return;
 	},
 };

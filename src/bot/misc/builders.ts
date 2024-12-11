@@ -1,5 +1,6 @@
 import { EmbedBuilder, InteractionContextType, Locale, LocalizationMap, SlashCommandBuilder } from "discord.js";
 import { EmbedColors } from "../../utilities/interface";
+import { logError } from "../../utilities/utilities";
 
 /**
  * This creates a basic command, converts name to lowercases,
@@ -128,9 +129,10 @@ export function embedBuilder(title?: string, color?: EmbedColors) {
 	return embed;
 }
 
-export function errorEmbedBuilder(error: any) {
-	const embed = embedBuilder("**ERROR**", EmbedColors.error);
+export function errorEmbedBuilder(error: any, title?: string) {
+	const embed = embedBuilder(title ? title : "**ERROR**", EmbedColors.error);
 	embed.setDescription(String(error));
 
+	logError(error);
 	return embed;
 }

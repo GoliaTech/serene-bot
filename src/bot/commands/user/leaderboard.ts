@@ -26,6 +26,7 @@ const user: I_Command = {
 			.setChoices({ name: "Descending", value: "desc" }, { name: "Ascending", value: "asc" })
 			.setRequired(false)),
 	async execute(interaction: ChatInputCommandInteraction) {
+		const embed = embedBuilder("🏆 Leaderboard");
 		try {
 			let leaderboardType = interaction.options.getString("leaderboardtype", true);
 			let leaderboardSort: string | null = "DESC";
@@ -78,20 +79,20 @@ const user: I_Command = {
 				}
 			} catch (error: any) {
 				logError(error);
-				return interaction.reply({
-					content: "There was an error fetching the leaderboard. Please try again later.",
-					ephemeral: true,
-				});
+				embed.setColor(EmbedColors.error)
+					.setDescription("There was an error fetching the leaderboard. Please try again later.");
+				await interaction.reply({ embeds: [embed], ephemeral: true, });
+				return;
 			}
 
 			console.log("users:", users);
 			console.log(JSON.stringify(users));
 
 			if (users.length === 0) {
-				return interaction.reply({
-					content: "No users found for this leaderboard.",
-					ephemeral: true,
-				});
+				embed.setColor(EmbedColors.error)
+					.setDescription("No users found for this leaderboard.");
+				await interaction.reply({ embeds: [embed], ephemeral: true, });
+				return;
 			}
 
 			// const ldDisplay: string[] = [];
@@ -118,18 +119,17 @@ const user: I_Command = {
 			console.log(leaderboardDisplay);
 			// console.log(ldDisplay);
 
-			const embed = embedBuilder("Leaderboard")
-				.setColor(EmbedColors.success)
-				.setTitle("🏆 Leaderboard")
-				.setDescription(leaderboardDisplay.join("\n\n"));
+			embed.setDescription(leaderboardDisplay.join("\n\n"));
 
-			return interaction.reply({ embeds: [embed] });
+			await interaction.reply({ embeds: [embed] });
+			return;
 		} catch (e: any) {
 			logError(e);
-			const embed = embedBuilder("Error", EmbedColors.error)
-				.setDescription("Something done goofed in the database. Contact the developer.");
+			embed.setDescription("Something done goofed in the database. Contact the developer.")
+				.setColor(EmbedColors.error);
 
-			return interaction.reply({ embeds: [embed] });
+			await interaction.reply({ embeds: [embed] });
+			return;
 		}
 	}
 };
