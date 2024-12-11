@@ -234,6 +234,11 @@ export enum MusicGenres {
 	IndieRock = "Indie Rock",
 	Punk = "Punk",
 	StageScreen = "Stage & Screen",
+	Reggae = "Reggae",
+	FunkSlashSoul = "Funk/Soul",
+	Country = "Country",
+	World = "World",
+	Folk = "Folk",
 }
 
 export enum MusicStyles {
@@ -269,4 +274,16 @@ export enum MusicStyles {
 	Breakbeat = "Breakbeat",
 	Downtempo = "Downtempo",
 	Rap = "Rap",
+	NuMetal = "Nu Metal",
+	HeavyMetal = "Heavy Metal",
+	ProgRock = "Prog Rock",
+	Hardcore = "Hardcore",
+	FolkMetal = "Folk Metal",
+	PirateMetal = "PirateMetal",
+	PowerMetal = "PowerMetal",
+	SymphonicMetal = "Symphonic Metal",
+	Conscious = "Conscious",
+	NeoSoul = "Neo Soul",
+	Folk = "Folk",
+	FunkMetal = "Funk Metal",
 }
