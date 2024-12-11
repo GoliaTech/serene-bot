@@ -64,7 +64,6 @@ const emojisReact: I_BotEvent = {
 
 /**
  * This will handle message commands.
- * One caveat: they cannot handle ephemeral messages.
  * You can disable it by adding the `disabled: true` property.
  */
 const messageCommandsEvent: I_BotEvent = {
@@ -94,12 +93,12 @@ const messageCommandsEvent: I_BotEvent = {
 			commandMessage = commandMessage.slice(1);
 		}
 		const commandName = commandMessage[0];
+		console.log(`CommandMessage = ${commandMessage}`);
 
 		if (!commandName) return;
 
 		const command: I_MessageCommand | undefined = messageCommands.get(commandName);
-		console.log(`message content: 
-		${message.content}`);
+		// console.log(`message content: ${message.content}`);
 
 		console.log(`Command: ${command}`);
 		if (!command) {
@@ -112,6 +111,7 @@ const messageCommandsEvent: I_BotEvent = {
 			return;
 		}
 
+		console.log(`commandMessage.length: ${commandMessage.length}`);
 		if (commandMessage.length > 1) {
 			command.execute(message, commandMessage);
 		} else {
