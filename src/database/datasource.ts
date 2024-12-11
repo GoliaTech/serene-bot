@@ -33,6 +33,7 @@ export const AppDataSource = new DataSource({
 	database: database.name,
 	synchronize: false,
 	logging: process.env.NODE_ENV == "development" ? true : false,
+	// logging: false,
 	entities: [
 		User.Core,
 		User.Level,

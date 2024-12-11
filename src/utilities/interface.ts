@@ -194,11 +194,11 @@ export interface I_findOrCreateUser {
 export interface I_addedItem {
 	id: number;
 	uuid: string;
-	name: string;
-	description: string;
-	lore: string;
+	// name: string;
+	// description: string;
+	// lore: string;
 	amount: number;
-	maxStack: number;
+	// maxStack: number;
 };
 
 export interface I_secretsanta {

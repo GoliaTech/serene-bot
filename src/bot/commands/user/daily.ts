@@ -354,8 +354,15 @@ const daily: I_Command = {
 			return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
 		}
 
+		// console.log(`User info: ${JSON.stringify(userInfo.data)}`);
+
 		// Fetch user's daily table.
 		const getUserDaily = await findOrCreateUserDaily(userInfo.data.discordID);
+		// if (typeof getUserDaily.data == "string") {
+		// 	console.log(`Getuser daily: ${getUserDaily.data}`);
+		// } else {
+		// 	console.log(`Getuser daily Stringified: ${JSON.stringify(getUserDaily.data)}`);
+		// }
 
 		// This should never happen as we already tried to find, then created and found the user again.
 		if (getUserDaily.error || typeof (getUserDaily.data) == "string") {
@@ -364,9 +371,12 @@ const daily: I_Command = {
 		}
 
 		// Check if the user can claim their reward;
-		const lastClaimed = getUserDaily.data.daily_timestamp ? new Date(getUserDaily.data.daily_timestamp) : null;
+		const getLastTime = getUserDaily.data.daily_timestamp ? new Date(getUserDaily.data.daily_timestamp) : null;
+		const lastClaimed = getLastTime ? new Date(getLastTime.getTime()) : null;
 		const nextClaim = lastClaimed ? new Date(lastClaimed.getTime() + 24 * 60 * 60 * 1000) : null;
 		const claimDeadline = lastClaimed ? new Date(lastClaimed.getTime() + 36 * 60 * 60 * 1000) : null;
+
+		// console.log(`lastClaimed: ${lastClaimed}\nnextClaim: ${nextClaim}\nclaimDeadline: ${claimDeadline}`);
 
 		if (nextClaim && now < nextClaim) {
 			// Calculate time left until rewards are ready
@@ -390,15 +400,22 @@ const daily: I_Command = {
 		}
 
 		// Check if the streak continues or resets.
+		let dailyStreak = getUserDaily.data.daily_streak;
 		if (lastClaimed && now.getTime() - lastClaimed.getTime() > 36 * 60 * 60 * 1000) {
+			// console.log(`lastClaimed: ${lastClaimed}\nnow.getTime(): ${now.getTime()}\nlastClaimed.getTime(): ${lastClaimed.getTime()}\nnow time - lastClaimed: ${now.getTime() - lastClaimed.getTime()}`);
 			// This resets the streak if more than 36 hours have passed.
 			// That is, 24 to be able to claim, then 12 hours on top so the user has time to actually claim them.
-			getUserDaily.data.daily_streak = 0;
+			dailyStreak = 0;
 		}
 
-		getUserDaily.data.daily_streak += 1;
-		getUserDaily.data.daily_timestamp = now;
-		await setNewDaily(getUserDaily.data.uuid, getUserDaily.data.daily_streak, getUserDaily.data.daily_timestamp);
+		dailyStreak += 1;
+		const newTime = new Date(now.getTime());
+		// console.log(`newTime: ${newTime}, newtime get time: ${newTime.getTime()}`);
+		// console.log(`getUserDaily: ${getUserDaily.data.uuid}`);
+		const newDaily = await setNewDaily(userInfo.data.discordID, dailyStreak, newTime);
+		// if (typeof newDaily.data != "string") {
+		// 	console.log(`newDaily: ${newDaily.data.uuid} | ${newDaily.data.daily_streak} | ${newDaily.data.daily_timestamp}`);
+		// }
 
 		// Determine reward multipliers.
 		// God I love/hate modulo.

@@ -603,8 +603,13 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 				};
 			}
 
+			// Typescript.... Really? We  have it a few lines above!!
+			if (typeof (userInfo.data) == "string") {
+				return;
+			}
+
 			// Try finding the item first.
-			let userItem = await findOrCreateUserInventoryItem(user, item.reward.type);
+			let userItem = await findOrCreateUserInventoryItem(userInfo.data.uuid, item.reward.type);
 			if (userItem.error) {
 				return {
 					data: userItem.data,
@@ -638,11 +643,11 @@ export async function userItemsDistribute(user: string, items: Reward[]) {
 			const addedItem = {
 				id: newItem.item_id,
 				uuid: newItem.user_uuid,
-				name: newItem.item.name,
-				description: newItem.item.description,
-				lore: newItem.item.lore,
+				// name: newItem.item.name,
+				// description: newItem.item.description,
+				// lore: newItem.item.lore,
 				amount: newItem.amount,
-				maxStack: newItem.item.max_stack
+				// maxStack: newItem.item.max_stack
 			};
 
 			itemsAdded.push(addedItem);
@@ -712,7 +717,7 @@ export async function findOrCreateUserDaily(user: string, streak?: number, times
 	}
 }
 
-export async function setNewDaily(user: string, streak?: number, timestamp?: Date) {
+export async function setNewDaily(user: string, streak?: number, timestamp?: Date): Promise<{ data: any; error: any; } | { data: { uuid: string, daily_streak: number, daily_timestamp: Date; }; }> {
 	try {
 		let userDaily = await findOrCreateUserDaily(user);
 		if (userDaily.error) {
