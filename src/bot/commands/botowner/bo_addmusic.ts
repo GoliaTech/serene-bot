@@ -1,6 +1,5 @@
 import { DAO_AddMusic } from "../../../database/dao/music";
-import { Music } from "../../../database/entity/music";
-import { EmbedColors, I_Command, I_MusicList } from "../../../utilities/interface";
+import { EmbedColors, I_Command, I_MusicList, MusicGenres, MusicStyles } from "../../../utilities/interface";
 import { commandBuilder, embedBuilder } from "../../misc/builders";
 
 const bo_AddMusic: I_Command = {
@@ -47,30 +46,83 @@ const bo_AddMusic: I_Command = {
 		botOwner: true
 	},
 	async execute(interaction) {
+		// Create a new embed
 		const embed = embedBuilder("Add Music");
+
+		// Get the options that we know for sure are going to be there.
 		const ytmusic = interaction.options.getString("ytmusic", true);
 		const name = interaction.options.getString("name", true);
 		const artist = interaction.options.getString("artist", true);
 
+		// Get the options that we don't know for sure are going to be there.
 		let album = interaction.options.getString("album");
 		let year = interaction.options.getString("year");
 		let genres = interaction.options.getString("genres");
 		let styles = interaction.options.getString("styles");
 		let spotify = interaction.options.getString("spotify");
 
+		// Validate that the styles and genres are valid.
+		// If genre is not valid, skip that genre
+		let validGenres:string[] = [];
+		let nonValidGenres:string[] = [];
+		if(genres){
+			// Split genres by comma.
+			const genreNames = genres.split(",");
+			// Loop through the genres.
+			for (const genreName of genreNames) {
+				// But we also have to loop through the enum....
+				Object.values(MusicGenres).forEach((genre) => {
+					// Check if the genre does not match.
+					if (genre != genreName) {
+						nonValidGenres.push(genre);
+						return;
+					}
+					// If it does match, add to validated genres.
+					else {
+						validGenres.push(genre);
+					}
+				})
+			}
+		}
+
+		let validStyles:string[] = [];
+		let nonValidStyles:string[] = [];
+		if(styles){
+			// Split genres by comma.
+			const styleNames = styles.split(",");
+			// Loop through the genres.
+			for (const styleName of styleNames) {
+				// But we also have to loop through the enum....
+				Object.values(MusicStyles).forEach((style) => {
+					// Check if the genre does not match.
+					if (style != styleName) {
+						nonValidStyles.push(style);
+						return;
+					}
+					// If it does match, add to validated genres.
+					else {
+						validStyles.push(style);
+					}
+				})
+			}
+		}
+
+		// Create a new song object and apply our options.
 		const newSong: I_MusicList = {
 			name: name,
 			artist: artist,
 			ytmusic: ytmusic,
 			album: album ? album : undefined,
 			year: year ? parseInt(year) : undefined,
-			genre: genres ? genres.split(",") : undefined,
-			styles: styles ? styles.split(",") : undefined,
+			genre: validGenres ? validGenres : undefined,
+			styles: validStyles ? validStyles : undefined,
 			spotify: spotify ? spotify : undefined,
 		};
 
+		// Validate the song.
 		const feedback = validateSongs(newSong);
 
+		// Add the song to the database.
 		let reply = "";
 		const songs: I_MusicList[] = [];
 		songs.push(newSong);
@@ -79,6 +131,12 @@ const bo_AddMusic: I_Command = {
 			reply = "Song added!";
 			if (feedback) {
 				reply += `\n${feedback}`;
+			}
+			if(nonValidGenres.length > 0){
+				reply += `\nInvalid genres you tried to input: ${nonValidGenres.join(", ")}`;
+			}
+			if(nonValidStyles.length > 0){
+				reply += `\nInvalid styles you tried to input: ${nonValidStyles.join(", ")}`;
 			}
 			embed.setDescription(reply).setColor(EmbedColors.success);
 			interaction.reply({ embeds: [embed], ephemeral: true });
@@ -99,31 +157,31 @@ const bo_AddMusic: I_Command = {
 function validateSongs(song: I_MusicList): string {
 	let feedback = "";
 	if (!song.spotify) {
-		const text = `Spotify link is missing for song: "${song.name}"`;
+		const text = `\nSpotify link is missing for song: "${song.name}"`;
 		feedback += text;
 		console.log(text);
 	}
 
 	if (!song.year) {
-		const text = `Year is missing for song: "${song.name}"`;
+		const text = `\nYear is missing for song: "${song.name}"`;
 		feedback += text;
 		console.log(text);
 	}
 
 	if (!song.album || !song.album) {
-		const text = `Album is missing for song: "${song.name}"`;
+		const text = `\nAlbum is missing for song: "${song.name}"`;
 		feedback += text;
 		console.log(text);
 	}
 
 	if (!song.genre || song.genre.length > 0) {
-		const text = `Genres are missing for song: "${song.name}"`;
+		const text = `\nGenres are missing for song: "${song.name}"`;
 		feedback += text;
 		console.log(text);
 	}
 
 	if (!song.styles || song.styles.length > 0) {
-		const text = `Styles are missing for song: "${song.name}"`;
+		const text = `\nStyles are missing for song: "${song.name}"`;
 		feedback += text;
 		console.log(text);
 	}
