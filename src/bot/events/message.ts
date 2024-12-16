@@ -47,8 +47,8 @@ const emojisReact: I_BotEvent = {
 			return;
 		}
 		const messageContent = message.content;
-		const settingsPath = "../../../settings.json";
-		const emojiMap: I_Emojis[] = require(settingsPath)["emojis"];
+		const emojisPath = "../../../settings/emojis.json";
+		const emojiMap: I_Emojis[] = require(emojisPath)["emojis"];
 
 		for (const map of emojiMap) {
 			if (map.keywords.some((keyword: any) => messageContent.includes(keyword))) {

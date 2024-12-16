@@ -1,0 +1,5 @@
+{
+	"messageCommands": false,
+	"musicRecommendations": true,
+	"customPresence": true
+}

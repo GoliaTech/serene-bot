@@ -1,7 +1,8 @@
 import { Message } from "discord.js";
 import { embedBuilder } from "../../misc/builders";
+import { I_MessageCommand } from "../../../utilities/interface";
 
-const ping = {
+const ping: I_MessageCommand = {
 	data: {
 		name: "ping"
 	},

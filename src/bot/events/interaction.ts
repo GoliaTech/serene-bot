@@ -1,10 +1,9 @@
 import { Events, ChatInputCommandInteraction, ButtonInteraction, AutocompleteInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
-import { I_BotEvent, CommandInteractionExtended, EmbedColors } from "../../utilities/interface";
+import { I_BotEvent, EmbedColors } from "../../utilities/interface";
 // import { commands } from "../misc/loaders";
 import { embedBuilder } from "../misc/builders";
-import { AppDataSource } from "../../database/datasource";
 import { findOrCreateDiscordServer } from "../../database/dao/guild";
-import { loadCommands, loadOtherCommands } from "../misc/loaders";
+import { loadOtherCommands } from "../misc/loaders";
 import { interactionCommands } from "../bot";
 const embed = embedBuilder("Error", EmbedColors.error);
 const otherCommands = loadOtherCommands();

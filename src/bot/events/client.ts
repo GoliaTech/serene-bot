@@ -1,12 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, Events, TextChannel } from "discord.js";
+import {  Client, Events } from "discord.js";
 import { I_BotEvent } from "../../utilities/interface";
 import { logError, logGeneral } from "../../utilities/utilities";
-import { embedBuilder } from "../misc/builders";
 import { randomInt } from "crypto";
-import { Music, USI } from "../../database/entity/music";
-import { AppDataSource } from "../../database/datasource";
-import { writeFile } from "fs";
-import path from "path";
 
 /**
  * This will set a random presence.
@@ -15,7 +10,7 @@ import path from "path";
 function setPresence(event: Client) {
 	// At the moment we are getting them from a .json file.
 	// The goal is to get them from our database instead.
-	const settingsPath = "../../../settings.json";
+	const settingsPath = "../../../settings/presences.json";
 	const customPresence: string[] = require(settingsPath)["presence"];
 	const randomIndex = Math.floor(Math.random() * customPresence.length);
 	const randomPresence = customPresence[randomIndex];
