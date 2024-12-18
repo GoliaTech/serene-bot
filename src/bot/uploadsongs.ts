@@ -396,6 +396,30 @@ export async function uploadSongs() {
 			name: "Shut Me Up",
 			genre: [MusicGenres.Rock, MusicGenres.Electronic],
 			styles: [MusicStyles.SynthPop, MusicStyles.Punk, MusicStyles.FunkMetal],
+		},{
+			ytmusic: "https://music.youtube.com/watch?v=TnRLuCER32U&si=2w8FWYDCqOWQN5N0",
+			name: "Alive (PH Electro Mix)",
+			album: "Waka Waka Dance Party, Vol. 2",
+			year: 2010,
+			artist: "Mondotek",
+			genre: [MusicGenres.Electronic],
+			styles: [MusicStyles.Electro, MusicStyles.House],
+		},{
+			ytmusic: "https://music.youtube.com/watch?v=xkQ_pEfCULQ&si=rvF7buoUVktTlRla",
+			name: "Showdown",
+			album: "Showdown",
+			artist: "F.O.O.L",
+			year: 2016,
+			genre: [MusicGenres.Electronic],
+			styles: [MusicStyles.ElectroHouse]
+		}, {
+			ytmusic: "https://music.youtube.com/watch?v=2QH6QpEzR_s&si=HfsjrHRosuk_1JJF",
+			name: "BassMarck (feat. R5on11c)",
+			artist: "Alan Aztec",
+			album: "BassMarck",
+			year: 2021,
+			genre: [MusicGenres.Electronic],
+			styles: [MusicStyles.Hardbass, MusicStyles.GermanHardbass],
 		}
 	];
 	// songs.push(song);

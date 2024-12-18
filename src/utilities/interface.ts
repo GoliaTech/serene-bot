@@ -286,4 +286,7 @@ export enum MusicStyles {
 	NeoSoul = "Neo Soul",
 	Folk = "Folk",
 	FunkMetal = "Funk Metal",
+	ElectroHouse = "Electro House",
+	Hardbass = "Hardbass",
+	GermanHardbass = "German Hardbass",
 }
