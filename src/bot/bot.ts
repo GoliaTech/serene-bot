@@ -5,6 +5,7 @@ import { loadCommands, loadEvents } from "./misc/loaders";
 import { AppDataSource } from "../database/datasource";
 import { logError, logInfo } from "../utilities/utilities";
 import { uploadSongs } from "./uploadsongs";
+import { uploadWaifus } from "./uploadwaifus";
 
 // For quick testing if commands or events load. I don't want to login every time you see.
 const login: boolean = true;
@@ -93,6 +94,7 @@ async function bot() {
 
 		await AppDataSource.initialize();
 		await uploadSongs();
+		await uploadWaifus();
 		// await DAO_GetSongs();
 		if (login) {
 			// I don't think we need a try here, but it is probably a smart idea to do it anyway.

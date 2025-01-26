@@ -30,6 +30,7 @@
 		"javascript.referencesCodeLens.enabled": true,
 		"javascript.referencesCodeLens.showOnAllFunctions": true,
 		"javascript.suggest.completeFunctionCalls": true,
-		"javascript.updateImportsOnFileMove.enabled": "always"
+		"javascript.updateImportsOnFileMove.enabled": "always",
+		"editor.formatOnSave": true
 	}
 }

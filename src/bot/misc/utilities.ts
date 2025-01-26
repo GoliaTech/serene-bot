@@ -1,5 +1,11 @@
 import { Music } from "../../database/entity/music";
+import { Waifu } from "../../database/entity"
+import { Repository } from "typeorm";
 import { embedBuilder } from "./builders";
+import fs from "fs";
+import path from "path";
+import Canvas from "canvas";
+import { CanvasTextWrapper } from "canvas-text-wrapper";
 
 function convertYouTubeMusicLinkToThumbnail(link: string) {
 	// Extract the video ID from the YouTube Music URL
@@ -47,4 +53,55 @@ export function buildMusicEmbed(song: Music, title?: string) {
 	embed.addFields({ name: "User Rating", value: String(song.rating) });
 
 	return embed;
+}
+
+/**
+ * Returns a random waifu from the database
+ */
+export async function getRandomWaifu(waifuRepo: Repository<Waifu.Core>): Promise<Waifu.Core> {
+	const count = await waifuRepo.count();
+	if (count === 0) {
+		throw new Error("No waifus in the database!");
+	}
+	const randomOffset = Math.floor(Math.random() * count);
+
+	// pick one waifu at random
+	const [waifu] = await waifuRepo.find({
+		skip: randomOffset,
+		take: 1,
+	});
+	console.log(waifu);
+	return waifu;
+}
+
+/**
+ * Utility to get image file paths from a folder
+ */
+function getImagesFromFolder(folderPath: string): string[] {
+	try {
+		return fs
+			.readdirSync(folderPath)
+			.filter((file) => file.match(/\.(png|jpe?g|gif)$/i))
+			.map((file) => path.join(folderPath, file));
+	} catch (err) {
+		// folder might not exist
+		return [];
+	}
+}
+
+/**
+ * Returns an array of file paths (SFW images, and NSFW if channel is NSFW)
+ */
+export function getAllRelevantImages(waifu: Waifu.Core, isChannelNSFW: boolean): string[] {
+	// const sfwImages = getImagesFromFolder(waifu.imgpath);
+	if (!isChannelNSFW) {
+		const sfwImages = getImagesFromFolder(waifu.imgpath);
+		console.log("THIS IS SFW CHANNEL")
+		return sfwImages;
+	} else {
+		console.log("THIS IS NSFW CHANNEL")
+		const nsfwImages = getImagesFromFolder(waifu.nsfwImgpath);
+		// return [...sfwImages, ...nsfwImages];
+		return nsfwImages
+	}
 }

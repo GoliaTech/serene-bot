@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource, DefaultNamingStrategy, NamingStrategyInterface } from "typeorm";
-import { Card, Discord, RPG, User, Music } from "./entity/index";
+import * as entity from "./entity/index";
 import { logInfo, nodeEnv } from "../utilities/utilities";
 require("dotenv").config();
 
@@ -35,27 +35,35 @@ export const AppDataSource = new DataSource({
 	logging: process.env.NODE_ENV == "development" ? true : false,
 	// logging: false,
 	entities: [
-		User.Core,
-		User.Level,
-		User.Currency,
-		User.LevelName,
-		User.PrestigeName,
-		User.Daily,
-		User.Item,
-		User.Inventory,
-		Card.Core,
-		Card.Set,
-		Card.Rewards,
-		RPG.CharacterCore,
-		RPG.Class,
-		RPG.Race,
-		Discord.Server,
-		Music.Music,
-		Music.USI,
-		Music.Genre,
-		Music.Artist,
-		Music.Style,
-		Music.Album
+		// user
+		entity.User.Core,
+		entity.User.Level,
+		entity.User.Currency,
+		entity.User.LevelName,
+		entity.User.PrestigeName,
+		entity.User.Daily,
+		entity.User.Item,
+		entity.User.Inventory,
+		// cards
+		entity.Card.Core,
+		entity.Card.Set,
+		entity.Card.Rewards,
+		// rpg
+		entity.RPG.CharacterCore,
+		entity.RPG.Class,
+		entity.RPG.Race,
+		// discord
+		entity.Discord.Server,
+		// music
+		entity.Music.Music,
+		entity.Music.USI,
+		entity.Music.Genre,
+		entity.Music.Artist,
+		entity.Music.Style,
+		entity.Music.Album,
+		// waifu
+		entity.Waifu.Core,
+		entity.Waifu.Vote
 	],
 	subscribers: [],
 	migrations: [],
