@@ -425,7 +425,7 @@ export async function createFakeTinderCard(
 	ctx.font = "20px 'Open Sans'";
 	ctx.fillStyle = "#FFFFFF";
 	ctx.fillText(
-		`${index}/${totalImages}`,
+		`${index+1}/${totalImages}`,
 		w / 2,
 		totalHeight - bottomMargin - 20
 	);
@@ -434,6 +434,155 @@ export async function createFakeTinderCard(
 	await drawLikes(ctx, waifu.likes || 0, 10, totalHeight - bottomMargin - 20);
 	ctx.textAlign = "right";
 	await drawDislikes(ctx, waifu.dislikes || 0, w - 10, totalHeight - bottomMargin - 20);
+
+	// 10) Export final PNG
+	return canvas.toBuffer("image/png");
+}
+
+
+/**
+ * createFakeTinderCard
+ * 
+ * Generates a PNG where:
+ *  - We add extra space at the top & bottom beyond the waifu image
+ *  - Top area: black gradient -> Name, Age, Race, Location
+ *  - Middle: actual waifu image
+ *  - Bottom area: black gradient -> multiline description, plus an "artist" credit in the corner
+ *
+ * @param baseImagePath Path to the waifu image
+ * @param waifu Data for the waifu (name, age, race, location, description, artist, etc.)
+ */
+export async function createFakeTinderCardHorizontal(
+	waifu: Waifu.Core,
+	imagePath: string,
+	index: number,
+	totalImages: number
+): Promise<Buffer> {
+
+	// 1) Load base image
+	const baseImage = await Canvas.loadImage(imagePath);
+	const w = baseImage.width;
+	const h = baseImage.height;
+
+	// 2) Decide how much space to add on top/bottom
+
+	// 2) Decide how much space to add on top/bottom
+	const leftMargin = 500;
+	// const bottomMargin = 200;
+
+	// Final canvas size
+	const totalWidth = w + leftMargin;
+	const totalHeight = h;
+
+	// 3) Create the canvas
+	const canvas = Canvas.createCanvas(totalWidth, totalHeight);
+	const ctx = canvas.getContext("2d");
+
+	// Fill entire background with black (or your chosen color)
+	ctx.fillStyle = "#fff";
+	ctx.fillRect(0, 0, totalWidth, totalHeight);
+	// 5) Draw the base image starting below the top gradient
+	ctx.drawImage(baseImage, leftMargin, 0);
+
+	// draw gradient over the top of the image
+	const imageTopGradient = ctx.createLinearGradient(0, 0, 0, h * 0.15);
+	imageTopGradient.addColorStop(0, "rgb(0, 0, 0)"); // fully black at top
+	imageTopGradient.addColorStop(1, "rgba(0,0,0,0)"); // transparent by the time we reach the image
+	ctx.fillStyle = imageTopGradient;
+	ctx.fillRect(leftMargin, 0, totalWidth - leftMargin, h * 0.15);
+
+
+
+	// 6) Draw a bottom gradient (transparent near base image, fully black at bottom)
+	// const bottomStartY = topMargin + h - 0; // just below the bottom of the base image
+
+	// draw gradient over the bottom of the image
+	const imageBottomGradient = ctx.createLinearGradient(0, totalHeight - 150, 0, totalHeight);
+	imageBottomGradient.addColorStop(0, "rgba(0, 0, 0, 0)"); // fully black at top
+	imageBottomGradient.addColorStop(1, "rgb(0, 0, 0)"); // transparent by the time we reach the image
+	ctx.fillStyle = imageBottomGradient;
+	ctx.fillRect(leftMargin, totalHeight - 150, totalWidth, 300);
+
+	// 7) Text at the top: Big name & age, smaller sub-lines (gender/race/location)
+	ctx.fillStyle = "#000";
+	ctx.textAlign = "left";
+
+	// Big name + age
+	ctx.font = "bold 36px 'Open Sans'";
+	const topTextX = 20;
+	const lineGap = 36; // space between lines
+	let textY = 50; // about ~1/3 into the topMargin
+
+	ctx.fillText(`${waifu.name}, ${waifu.age}`, topTextX, textY);
+
+	// Additional lines
+	ctx.font = "28px 'Open Sans'";
+	textY += lineGap;
+
+	ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
+	ctx.fillText(`${waifu.gender}, ${waifu.race}`, topTextX, textY);
+	textY += lineGap;
+	if (waifu.location) {
+		// ctx.fillText(`Location: ${waifu.location}`, topTextX, textY);
+		await drawGlobe(ctx, waifu.location, topTextX, textY);
+		textY += lineGap;
+	}
+	ctx.save();
+
+
+	const startX = 20;
+	const startY = (h / 2) * 0.4; // for example, just above your description
+	const gap = 10;     // spacing between badges horizontally
+	const maxRowWidth = leftMargin - 40; // leave 20px margin on right as well
+
+	// If your waifu has an interests array
+	if (waifu.interests && waifu.interests.length > 0) {
+		// await drawInterestsRow(ctx, waifu.interests, startX, startY);
+		await drawInterestsWrapped(ctx, waifu.interests, startX, startY, maxRowWidth);
+	}
+	ctx.restore();
+	// 8) Description at the bottom
+	const descX = 20;
+	const descY = (h / 2) * 0.7; // some padding from the bottom image edge
+	const descMaxWidth = leftMargin - 40;
+	const descLineHeight = 30;
+	ctx.font = "24px 'Open Sans'";
+	ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+	wrapText(
+		ctx,
+		waifu.description ||
+		"No description available. She is a mysterious figure from a distant land…",
+		descX,
+		descY,
+		descMaxWidth,
+		descLineHeight
+	);
+
+	// 9) Artist credit in bottom-right corner
+	ctx.textAlign = "right";
+	ctx.font = "14px 'Open Sans'";
+	ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+	ctx.fillText(
+		`Art: ${"Unknown"}`,
+		totalWidth - 10,
+		20
+	);
+
+	// create page numbering, for amount of images and which image (in index) we are on.
+	ctx.textAlign = "center";
+	ctx.font = "20px 'Open Sans'";
+	ctx.fillStyle = "#FFFFFF";
+	ctx.fillText(
+		`${index+1}/${totalImages}`,
+		(w / 2) + leftMargin,
+		totalHeight - 20
+	);
+
+	// likes and dislikes
+	ctx.textAlign = "left";
+	await drawLikes(ctx, waifu.likes, leftMargin + 20, totalHeight - 20);
+	ctx.textAlign = "right";
+	await drawDislikes(ctx, waifu.dislikes, totalWidth - 20, totalHeight - 20);
 
 	// 10) Export final PNG
 	return canvas.toBuffer("image/png");

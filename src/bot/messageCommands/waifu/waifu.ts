@@ -1,7 +1,7 @@
 import { AppDataSource } from "../../../database/datasource"; // Import your data source
 import { Waifu } from "../../../database/entity";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, TextChannel } from "discord.js";
-import { createFakeTinderCard, getAllRelevantImages, getRandomWaifu } from "../../misc/waifuThing";
+import { createFakeTinderCard, createFakeTinderCardHorizontal, getAllRelevantImages, getRandomWaifu } from "../../misc/waifuThing";
 import { I_MessageCommand } from "../../../utilities/interface";
 import { ObjectLiteral } from "typeorm";
 import { UserWaifuInteraction } from "../../../database/entity/waifu/vote";
@@ -69,7 +69,7 @@ const waifuCommand: I_MessageCommand = {
 				);
 			};
 
-			const compositeImageBuffer = await createFakeTinderCard(waifu, images[currentIndex], currentIndex, images.length);
+			const compositeImageBuffer = await createFakeTinderCardHorizontal(waifu, images[currentIndex], currentIndex, images.length);
 
 			// console.log("WE have created the composite image.")
 
