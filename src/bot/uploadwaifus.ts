@@ -4,12 +4,15 @@ export async function uploadWaifus() {
 	const waifus = [
 		{
 			name: "Sora",
-			race: "Human",
+			location: "Canterlot",
+			job: "Princess",
 			age: 24,
-			description: "Sora is a human who loves to play games. She is a member of the guild.",
+			race: "Human",
 			gender: "Female",
-			imgpath: path.join(__dirname, "../assets/waifu/twilight_sparkle/sfw"),
-			nsfwImgpath: path.join(__dirname, "../assets/waifu/twilight_sparkle/nsfw"),
+			description: "Sora is a human who loves to play games. She is a member of the guild.",
+			interests: ["Princess", "Cosplay", "Gaming", "Cats", "Cock"],
+			sfw_images: String(path.join(__dirname, "../assets/waifu/twilight_sparkle/sfw")),
+			nsfw_imagepath: String(path.join(__dirname, "../assets/waifu/twilight_sparkle/nsfw")),
 		}
 	];
 	const feedback = await DAO_AddWaifu(waifus);

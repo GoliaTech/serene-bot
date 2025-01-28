@@ -1,15 +1,6 @@
 import { AppDataSource } from "../datasource";
 import { Waifu } from "../entity";
-
-interface I_Waifu {
-	name: string;
-	imgpath: string;
-	nsfwImgpath: string;
-	race: string;
-	age: number;
-	description: string;
-	gender: string;
-}
+import { I_Waifu } from "../../utilities/interface";
 
 export async function DAO_AddWaifu(waifus: I_Waifu[]) {
 	const waifuManager = AppDataSource.manager;
@@ -30,15 +21,24 @@ export async function DAO_AddWaifu(waifus: I_Waifu[]) {
 			continue; // skip to next
 		}
 
-		const newWaifu = waifuManager.create(Waifu.Core, {
+		const waifuObject = {
 			name: waifu.name,
+			location: waifu.location,
+			job: waifu.job,
 			age: waifu.age,
 			race: waifu.race,
 			gender: waifu.gender,
+			interests: waifu.interests,
 			description: waifu.description,
-			imgpath: waifu.imgpath,
-			nsfwImgpath: waifu.nsfwImgpath
-		});
+			sfwImages: waifu.sfw_images,
+			nsfwImages: waifu.nsfw_imagepath
+		}
+
+		console.log(waifuObject)
+		const newWaifu = waifuManager.create(Waifu.Core, waifuObject);
+
+		console.log(waifu);
+		console.log(newWaifu)
 
 		await waifuManager.save(Waifu.Core, newWaifu);
 

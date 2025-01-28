@@ -1,15 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-@Entity({ name: "waifu_votes" })
-export class WaifuVote {
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
+import { Waifu } from "./core";
+
+@Entity({ name: "user_waifu_interaction" })
+export class UserWaifuInteraction {
 	@PrimaryGeneratedColumn()
 	id!: number;
 
-	@Column()
-	user_id!: string; // Discord user ID
+	@Column({ name: "user_id" })
+	userId!: string; // e.g. Discord user ID
 
-	@Column()
-	waifu_id!: number;
+	@Column({ name: "waifu_id" })
+	waifuId!: number;
 
+	@ManyToOne(() => Waifu, { onDelete: "CASCADE" })
+	@JoinColumn()
+	waifu!: Waifu;
+
+	// 'like' | 'dislike' | 'superlike'
 	@Column()
-	vote!: string; // 'like' or 'dislike'
+	rating!: string;
 }

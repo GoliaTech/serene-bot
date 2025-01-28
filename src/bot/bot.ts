@@ -93,7 +93,7 @@ async function bot() {
 		eventHandlers(discordClient, loadedEvents);
 
 		await AppDataSource.initialize();
-		await uploadSongs();
+		// await uploadSongs();
 		await uploadWaifus();
 		// await DAO_GetSongs();
 		if (login) {

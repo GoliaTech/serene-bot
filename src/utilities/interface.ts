@@ -1,5 +1,22 @@
 import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, ClientOptions, Collection, CommandInteraction, Message, ModalSubmitInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, StringSelectMenuInteraction } from "discord.js";
 
+export interface I_Waifu {
+	name: string;
+	location: string;
+	job: string;
+	age: number;
+	race: string;
+	gender: string;
+	description: string;
+	interests: string[];
+	sfw_images: string;
+	nsfw_imagepath: string;
+	likes?: number;
+	dislikes?: number;
+	id?: number;
+	artist?: string;
+}
+
 export enum EmbedColors {
 	"default" = "#ED4D84",
 	"success" = "#A5D6A7",

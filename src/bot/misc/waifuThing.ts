@@ -1,9 +1,64 @@
 import Canvas from "canvas";
 import path from "path";
+import fs from "fs";
+import { Waifu } from "../../database/entity"
+import { Repository } from "typeorm";
+import { I_Waifu } from "../../utilities/interface";
 Canvas.registerFont(path.join(__dirname, "../../assets/waifu/misc", "Lato-Bold.ttf"), { family: "Open Sans", weight: "bold" });
 Canvas.registerFont(path.join(__dirname, "../../assets/waifu/misc", "Lato-Regular.ttf"), { family: "Open Sans" });
 // Canvas.registerFont(path.join(__dirname, "../assets", "Roboto-Bold.ttf"), { family: "Open Sans", weight: "bold" });
 // Canvas.registerFont(path.join(__dirname, "../assets", "Roboto-Regular.ttf"), { family: "Open Sans" });
+/**
+ * Returns a random waifu from the database
+ */
+export async function getRandomWaifu(waifuRepo: Repository<Waifu.Core>): Promise<Waifu.Core> {
+	const count = await waifuRepo.count();
+	if (count === 0) {
+		throw new Error("No waifus in the database!");
+	}
+	const randomOffset = Math.floor(Math.random() * count);
+
+	// pick one waifu at random
+	const [waifu] = await waifuRepo.find({
+		skip: randomOffset,
+		take: 1,
+	});
+	console.log(waifu);
+	return waifu;
+}
+
+/**
+ * Utility to get image file paths from a folder
+ */
+function getImagesFromFolder(folderPath: string): string[] {
+	try {
+		return fs
+			.readdirSync(folderPath)
+			.filter((file) => file.match(/\.(png|jpe?g|gif)$/i))
+			.map((file) => path.join(folderPath, file));
+	} catch (err) {
+		// folder might not exist
+		return [];
+	}
+}
+
+/**
+ * Returns an array of file paths (SFW images, and NSFW if channel is NSFW)
+ */
+export function getAllRelevantImages(waifu: Waifu.Core, isChannelNSFW: boolean): string[] {
+	// const sfwImages = getImagesFromFolder(waifu.imgpath);
+	if (!isChannelNSFW) {
+		const sfwImages = getImagesFromFolder(waifu.sfwImages);
+		console.log("THIS IS SFW CHANNEL")
+		return sfwImages;
+	} else {
+		console.log("THIS IS NSFW CHANNEL")
+		const nsfwImages = getImagesFromFolder(waifu.nsfwImages);
+		// return [...sfwImages, ...nsfwImages];
+		return nsfwImages
+	}
+}
+
 
 // We'll reuse our wrapText from earlier
 function wrapText(
@@ -249,13 +304,14 @@ function drawInterestsWrapped(
  * @param waifu Data for the waifu (name, age, race, location, description, artist, etc.)
  */
 export async function createFakeTinderCard(
-	baseImagePath: string,
-	waifu: any,
-	index: number, totalImages: number
+	waifu: Waifu.Core,
+	imagePath: string,
+	index: number,
+	totalImages: number
 ): Promise<Buffer> {
 
 	// 1) Load base image
-	const baseImage = await Canvas.loadImage(baseImagePath);
+	const baseImage = await Canvas.loadImage(imagePath);
 	const w = baseImage.width;
 	const h = baseImage.height;
 
@@ -358,7 +414,8 @@ export async function createFakeTinderCard(
 	ctx.font = "14px 'Open Sans'";
 	ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
 	ctx.fillText(
-		`Art: ${waifu.artist || "Unknown"}`,
+		// `Art: ${waifu.artist || "Unknown"}`,
+		`Art: ${"Unknown"}`,
 		w - 10,
 		topMargin + 20
 	);
@@ -374,9 +431,9 @@ export async function createFakeTinderCard(
 	);
 
 	ctx.textAlign = "left";
-	await drawLikes(ctx, waifu.likes, 10, totalHeight - bottomMargin - 20);
+	await drawLikes(ctx, waifu.likes || 0, 10, totalHeight - bottomMargin - 20);
 	ctx.textAlign = "right";
-	await drawDislikes(ctx, waifu.dislikes, w - 10, totalHeight - bottomMargin - 20);
+	await drawDislikes(ctx, waifu.dislikes || 0, w - 10, totalHeight - bottomMargin - 20);
 
 	// 10) Export final PNG
 	return canvas.toBuffer("image/png");

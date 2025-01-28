@@ -1,2 +1,2 @@
 export { Waifu as Core } from "./core";
-export { WaifuVote as Vote } from "./vote";
+export { UserWaifuInteraction as Vote } from "./vote";
