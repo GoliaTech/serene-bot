@@ -376,6 +376,12 @@ export async function createFakeTinderCard(
 		await drawGlobe(ctx, waifu.location, topTextX, textY);
 		textY += lineGap;
 	}
+	if (waifu.job) {
+		// ctx.fillText(`Location: ${waifu.location}`, topTextX, textY);
+		// ctx.fillText("Princess", topTextX, textY);
+		await drawBriefcase(ctx, waifu.job, topTextX, textY);
+		textY += lineGap;
+	}
 
 
 
@@ -425,7 +431,7 @@ export async function createFakeTinderCard(
 	ctx.font = "20px 'Open Sans'";
 	ctx.fillStyle = "#FFFFFF";
 	ctx.fillText(
-		`${index+1}/${totalImages}`,
+		`${index + 1}/${totalImages}`,
 		w / 2,
 		totalHeight - bottomMargin - 20
 	);
@@ -437,6 +443,24 @@ export async function createFakeTinderCard(
 
 	// 10) Export final PNG
 	return canvas.toBuffer("image/png");
+}
+
+async function drawBriefcase(
+	ctx: Canvas.CanvasRenderingContext2D,
+	location: string,
+	x: number,
+	y: number
+) {
+	// Load or cache the icon depending on the gender
+	const iconPath = path.join(__dirname, "../../assets/waifu/misc", "briefcase.svg");
+	const icon = await Canvas.loadImage(iconPath);
+	const iconSize = 32;
+	ctx.drawImage(icon, x, y - iconSize + 5, iconSize, iconSize);
+
+	// Draw text next to it
+	// ctx.font = "28px Sans";
+	// ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
+	ctx.fillText(` ${location}`, x + iconSize + 10, y);
 }
 
 
@@ -527,6 +551,12 @@ export async function createFakeTinderCardHorizontal(
 		await drawGlobe(ctx, waifu.location, topTextX, textY);
 		textY += lineGap;
 	}
+	if (waifu.job) {
+		// ctx.fillText(`Location: ${waifu.location}`, topTextX, textY);
+		// ctx.fillText("Princess", topTextX, textY);
+		await drawBriefcase(ctx, waifu.job, topTextX, textY);
+		textY += lineGap;
+	}
 	ctx.save();
 
 
@@ -573,7 +603,7 @@ export async function createFakeTinderCardHorizontal(
 	ctx.font = "20px 'Open Sans'";
 	ctx.fillStyle = "#FFFFFF";
 	ctx.fillText(
-		`${index+1}/${totalImages}`,
+		`${index + 1}/${totalImages}`,
 		(w / 2) + leftMargin,
 		totalHeight - 20
 	);
