@@ -16,6 +16,15 @@ export interface I_Waifu {
 	id?: number;
 	artist?: string;
 }
+/**
+ * This takes a prompt and returns a response as a Promise.
+ *
+ * @export
+ * @interface IApiAdapter
+ */
+export interface IApiAdapter {
+	generateResponse(prompt: string): Promise<string>;
+}
 
 export enum EmbedColors {
 	"default" = "#ED4D84",
@@ -78,7 +87,7 @@ export interface I_MessageCommand {
 	options?: {
 		botOwner?: boolean;
 	};
-	execute(message: Message, args?: string[]): void;
+	execute(message: Message, args?: string[] | string): void;
 }
 
 /**

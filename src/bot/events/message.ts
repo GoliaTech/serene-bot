@@ -112,6 +112,14 @@ const messageCommandsEvent: I_BotEvent = {
 		}
 
 		console.log(`commandMessage.length: ${commandMessage.length}`);
+
+		// Special case just for AI Chat.
+		if (message.content.startsWith(`${commandStart}chat`)) {
+			const startLength = Number(commandStart + String("chat").length) + 1
+			const sanitaizedContent = message.content.slice(startLength);
+			command.execute(message, sanitaizedContent)
+			return;
+		}
 		if (commandMessage.length > 1) {
 			command.execute(message, commandMessage);
 		} else {

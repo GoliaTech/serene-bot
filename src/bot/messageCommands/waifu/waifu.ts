@@ -3,7 +3,6 @@ import { Waifu } from "../../../database/entity";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, TextChannel } from "discord.js";
 import { createFakeTinderCard, createFakeTinderCardHorizontal, getAllRelevantImages, getRandomWaifu } from "../../misc/waifuThing";
 import { I_MessageCommand } from "../../../utilities/interface";
-import { ObjectLiteral } from "typeorm";
 import { UserWaifuInteraction } from "../../../database/entity/waifu/vote";
 
 const waifuCommand: I_MessageCommand = {
@@ -29,22 +28,25 @@ const waifuCommand: I_MessageCommand = {
 			let currentIndex = 0;
 
 			// Fetch user's previous interaction with this waifu
-			let previousInteraction: UserWaifuInteraction | null
-			try {
-				previousInteraction = await interactionRepo.findOne({
-					// where: { userId: interaction.author.id },
-					where: { userId: interaction.author.id, waifu: { id: waifu.id } },
-					// relations: ["waifu"],
+			let previousInteraction: UserWaifuInteraction | null;
+			// try {
+			// 	previousInteraction = await interactionRepo.findOne({
+			// 		// where: { userId: interaction.author.id },
+			// 		where: { userId: interaction.author.id, waifu: { id: waifu.id } },
+			// 		// relations: ["waifu"],
+			// 	});
+			// } catch (err: any) {
+			// 	console.error(err);
+			// 	interaction.reply("Error fetching previous interaction.");
+			// 	return;
+			// }
+
+			console.log("WE have found all interactions.");
+
+			const buttons = async (userId: string) => {
+				const previousInteraction = await interactionRepo.findOne({
+					where: { userId: userId, waifu: { id: waifu.id } },
 				});
-			} catch (err: any) {
-				console.error(err);
-				interaction.reply("Error fetching previous interaction.");
-				return;
-			}
-
-			console.log("WE have found all interactions.")
-
-			const buttons = () => {
 				return new ActionRowBuilder<ButtonBuilder>().addComponents(
 					new ButtonBuilder()
 						.setCustomId("like")
@@ -56,6 +58,11 @@ const waifuCommand: I_MessageCommand = {
 						.setLabel("Dislike")
 						.setStyle(ButtonStyle.Danger)
 						.setDisabled(previousInteraction?.rating === "dislike"),
+
+				);
+			};
+			const imageButtons = () => {
+				return new ActionRowBuilder<ButtonBuilder>().addComponents(
 					new ButtonBuilder()
 						.setCustomId("previous")
 						.setLabel("Previous")
@@ -81,7 +88,7 @@ const waifuCommand: I_MessageCommand = {
 			const message = await interaction.reply({
 				embeds: [embed],
 				files: [{ attachment: compositeImageBuffer, name: "waifu.png" }],
-				components: [buttons()],
+				components: [await buttons(interaction.author.id), imageButtons()],
 				// fetchReply: true,
 			});
 
@@ -91,45 +98,42 @@ const waifuCommand: I_MessageCommand = {
 
 			// The collection has an issue:
 			// Sure, it checks what our previous interaction was, but it never re-checks it.
-			// Furthermore, everytime we like or dislike, a new row gets added.
+			// Furthermore, everytime we like or dislike, a new row gets added in the table.
 			collector.on("collect", async (i) => {
 				if (i.user.id !== interaction.author.id) {
 					i.reply({ content: "This interaction is not for you!", ephemeral: true });
 					return;
 				}
 
-				if (i.customId === "like") {
-					// Update database
-					if (!previousInteraction || previousInteraction.rating !== "like") {
-						await interactionRepo.save({
-							userId: interaction.author.id,
-							waifu: waifu,
-							rating: "like",
-						});
+				const previousInteraction = await interactionRepo.findOne({
+					where: { userId: i.user.id, waifu: { id: waifu.id } },
+				});
 
-						waifu.likes++;
-						if (previousInteraction?.rating === "dislike") waifu.dislikes--;
-						await waifuRepo.save(waifu);
-					}
-				} else if (i.customId === "dislike") {
-					if (!previousInteraction || previousInteraction.rating !== "dislike") {
-						await interactionRepo.save({
-							userId: interaction.author.id,
-							waifu: waifu,
-							rating: "dislike",
-						});
-
-						waifu.dislikes++;
-						if (previousInteraction?.rating === "like") waifu.likes--;
-						await waifuRepo.save(waifu);
-					}
+				if (i.customId === "like" && (!previousInteraction || previousInteraction.rating !== "like")) {
+					await interactionRepo.save({
+						userId: i.user.id,
+						waifu: waifu,
+						rating: "like",
+					});
+					waifu.likes++;
+					if (previousInteraction?.rating === "dislike") waifu.dislikes--;
+					await waifuRepo.save(waifu);
+				} else if (i.customId === "dislike" && (!previousInteraction || previousInteraction.rating !== "dislike")) {
+					await interactionRepo.save({
+						userId: i.user.id,
+						waifu: waifu,
+						rating: "dislike",
+					});
+					waifu.dislikes++;
+					if (previousInteraction?.rating === "like") waifu.likes--;
+					await waifuRepo.save(waifu);
 				} else if (i.customId === "next") {
 					currentIndex++;
 				} else if (i.customId === "previous") {
 					currentIndex--;
 				}
 
-				const newCompositeImageBuffer = await createFakeTinderCard(waifu, images[currentIndex], currentIndex, images.length);
+				const newCompositeImageBuffer = await createFakeTinderCardHorizontal(waifu, images[currentIndex], currentIndex, images.length);
 
 				const newEmbed = new EmbedBuilder()
 					.setColor("Random")
@@ -139,37 +143,39 @@ const waifuCommand: I_MessageCommand = {
 					embeds: [newEmbed],
 					files: [{ attachment: newCompositeImageBuffer, name: "waifu.png" }],
 					// files: [{ attachment: newCompositeImageBuffer, name: "waifu.png" }],
-					components: [buttons()],
+					components: [await buttons(i.user.id), imageButtons()],
 				});
 			});
 
-			collector.on("end", () => {
-				const disabledButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-					new ButtonBuilder()
-						.setCustomId("like")
-						.setLabel("Like")
-						.setStyle(ButtonStyle.Success)
-						.setDisabled(true),
-					new ButtonBuilder()
-						.setCustomId("dislike")
-						.setLabel("Dislike")
-						.setStyle(ButtonStyle.Danger)
-						.setDisabled(true),
-					new ButtonBuilder()
-						.setCustomId("previous")
-						.setLabel("Previous")
-						.setStyle(ButtonStyle.Primary)
-						.setDisabled(true),
-					new ButtonBuilder()
-						.setCustomId("next")
-						.setLabel("Next")
-						.setStyle(ButtonStyle.Primary)
-						.setDisabled(true)
-				);
+			collector.on("end", async () => {
+				// const disabledButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+				// 	new ButtonBuilder()
+				// 		.setCustomId("like")
+				// 		.setLabel("Like")
+				// 		.setStyle(ButtonStyle.Success)
+				// 		.setDisabled(true),
+				// 	new ButtonBuilder()
+				// 		.setCustomId("dislike")
+				// 		.setLabel("Dislike")
+				// 		.setStyle(ButtonStyle.Danger)
+				// 		.setDisabled(true),
+				// 	new ButtonBuilder()
+				// 		.setCustomId("previous")
+				// 		.setLabel("Previous")
+				// 		.setStyle(ButtonStyle.Primary)
+				// 		.setDisabled(true),
+				// 	new ButtonBuilder()
+				// 		.setCustomId("next")
+				// 		.setLabel("Next")
+				// 		.setStyle(ButtonStyle.Primary)
+				// 		.setDisabled(true)
+				// );
 
-				message.edit({
-					components: [disabledButtons],
-				});
+				// message.edit({
+				// 	components: [disabledButtons],
+				// });
+
+				await message.delete();
 			});
 		} catch (error) {
 			console.error(error);
@@ -178,4 +184,4 @@ const waifuCommand: I_MessageCommand = {
 	},
 };
 
-module.exports = [waifuCommand]
+module.exports = [waifuCommand];
