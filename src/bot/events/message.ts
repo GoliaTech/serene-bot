@@ -135,7 +135,7 @@ const messageCommandsEvent: I_BotEvent = {
 		}
 
 		if (process.env.NODE_ENV === "development") console.log(`commandMessage.length: ${commandMessage.length}`);
-		if(commandName == "chat"){
+		if (commandName == "chat") {
 			const sanitizedContent = message.content.slice(commandStart.length + commandName.length + 1).trim();
 			command.execute(message, sanitizedContent);
 		}
