@@ -116,7 +116,7 @@ const messageCommandsEvent: I_BotEvent = {
 
 
 
-		if (command.options?.cooldown) {
+		if (command.options?.cooldown && message.author.id !== process.env.OWNER_ID) {
 			const cooldownKey: string = `${message.author.id}-${commandName}`;
 			const cooldownAmount: number = command.options.cooldown * 1000;
 
@@ -135,9 +135,11 @@ const messageCommandsEvent: I_BotEvent = {
 		}
 
 		if (process.env.NODE_ENV === "development") console.log(`commandMessage.length: ${commandMessage.length}`);
+		// Special case for handling AI chat.
 		if (commandName == "chat") {
 			const sanitizedContent = message.content.slice(commandStart.length + commandName.length + 1).trim();
 			command.execute(message, sanitizedContent);
+			return;
 		}
 		if (commandMessage.length > 1) {
 			command.execute(message, commandMessage);

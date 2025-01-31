@@ -5,7 +5,11 @@ import { aiconfig as config, chatService } from "../../misc/openai";
 
 const aichat: I_MessageCommand = {
 	data: {
-		name: "chat"
+		name: "chat",
+		description: "This will let you caht with the AI bot."
+	},
+	options: {
+		cooldown: 30,
 	},
 	async execute(message: Message, content: string) {
 		if (message.author.bot) return;

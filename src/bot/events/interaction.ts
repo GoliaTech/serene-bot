@@ -76,7 +76,7 @@ async function interaction_Command(interaction: ChatInputCommandInteraction) {
 	}
 
 	// cooldown handling per command and user
-	if (command.options?.cooldown) {
+	if (command.options?.cooldown && interaction.user.id !== process.env.OWNER_ID) {
 		const cooldownKey: string = `${interaction.user.id}-${interaction.commandName}`;
 		const cooldownAmount: number = command.options.cooldown * 1000;
 

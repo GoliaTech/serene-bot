@@ -18,8 +18,8 @@ const helpCommand: I_Command = {
 		// })
 
 		let displayCommands = messageCommands.map((c) => {
-			if(c.options?.disabled) return;
-			if(c.options?.botOwner && interaction.user.id !== process.env.BOT_OWNER) return;
+			if (c.options?.disabled) return;
+			if (c.options?.botOwner && interaction.user.id !== process.env.BOT_OWNER) return;
 			const command = c.data;
 			let display = `\`${messageCommandPrefix}${command.name}`
 			switch (command.usage) {
@@ -27,6 +27,12 @@ const helpCommand: I_Command = {
 					break;
 				default:
 					display += ` ${command.usage}`
+			}
+			switch (c.options?.cooldown) {
+				case undefined:
+					break;
+				default:
+					display += ` - Cooldown: ${c.options!.cooldown} seconds.`
 			}
 			switch (command.description) {
 				case undefined:
