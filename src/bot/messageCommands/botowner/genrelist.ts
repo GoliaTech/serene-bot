@@ -5,7 +5,8 @@ import { I_MessageCommand, MusicGenres, MusicStyles } from "../../../utilities/i
 
 const ping: I_MessageCommand = {
 	data: {
-		name: "genrelist"
+		name: "genrelist",
+		description: "This will list all genres available in the music selection."
 	},
 	options: {
 		botOwner: true,

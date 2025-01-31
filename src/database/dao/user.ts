@@ -762,3 +762,51 @@ export async function setNewDaily(user: string, streak?: number, timestamp?: Dat
 		};
 	}
 }
+
+export async function findOrCreateUserPancake(user: string) {
+	try {
+		const userCore = await findOrCreateUser(user);
+		if (userCore.error) {
+			return {
+				data: "We were unable to find or create a user.",
+				error: userCore.error
+			};
+		}
+		if (typeof (userCore.data) == "string") {
+			return {
+				data: "We were unable to find or create a user.",
+				error: userCore.error
+			};
+		}
+
+		let userPancake = await AppDataSource.manager.findOne(User.Pancakes, {
+			where: {
+				userID: userCore.data.uuid
+			}
+		});
+		if (!userPancake) {
+			userPancake = new User.Pancakes();
+			userPancake.userID = userCore.data.uuid;
+			userPancake = await AppDataSource.manager.save(User.Pancakes, userPancake);
+		}
+		return {
+			data: {
+				id: userPancake.id,
+				userID: userPancake.userID,
+				pancakesBaked: userPancake.pancakesBaked,
+				lifetimePancakes: userPancake.lifetimePancakes,
+				flour: userPancake.flour,
+				milk: userPancake.milk,
+				eggs: userPancake.eggs,
+				whippedCream: userPancake.whippedCream
+			}
+		}
+	}
+	catch (e: any) {
+		logError(e);
+		return {
+			data: "Something terrible happened whilst trying to access database. Contact the developer.",
+			error: true,
+		};
+	}
+}

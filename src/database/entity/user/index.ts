@@ -6,3 +6,4 @@ export { UserCurrency as Currency } from "./currency";
 export { UserDaily as Daily } from "./daily";
 export { UserInventory as Inventory } from "./inventory";
 export { Item } from "./item";
+export { UserPancakes as Pancakes } from "./pancakes";	

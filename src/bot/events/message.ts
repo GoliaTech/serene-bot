@@ -1,6 +1,8 @@
 import { Collection, Events, GuildEmoji, Message, MessageMentions } from "discord.js";
-import { I_BotEvent, I_MessageCommand } from "../../utilities/interface";
+import { EmbedColors, I_BotEvent, I_MessageCommand } from "../../utilities/interface";
 import { messageCommandLoader } from "../misc/loaders";
+import { embedBuilder } from "../misc/builders";
+const cooldowns = new Collection<string, number>();
 
 /**
  * This is a simple interface for the emojis.
@@ -81,9 +83,10 @@ const messageCommandsEvent: I_BotEvent = {
 		if (!message.content.startsWith(commandStart) && message.mentions.users.size == 0 || !message.mentions.users.find((u) => u.id == message.client.user.id) && message.mentions.users.size > 0) {
 			return;
 		}
+		const embed = embedBuilder("Error").setColor(EmbedColors.error)
 
 		if (!messageCommands) {
-			console.error("No message commands have been loaded");
+			if (process.env.NODE_ENV === "development") console.error("No message commands have been loaded");
 			message.reply({ content: "It looks like commands failed to load. We are sorry." });
 			return;
 		}
@@ -93,14 +96,14 @@ const messageCommandsEvent: I_BotEvent = {
 			commandMessage = commandMessage.slice(1);
 		}
 		const commandName = commandMessage[0];
-		console.log(`CommandMessage = ${commandMessage}`);
+		if (process.env.NODE_ENV === "development") console.log(`CommandMessage = ${commandMessage}`);
 
 		if (!commandName) return;
 
 		const command: I_MessageCommand | undefined = messageCommands.get(commandName);
 		// console.log(`message content: ${message.content}`);
 
-		console.log(`Command: ${command}`);
+		if (process.env.NODE_ENV === "development") console.log(`Command: ${command}`);
 		if (!command) {
 			message.reply(`Command not found: ${commandName}`);
 			return;
@@ -111,7 +114,31 @@ const messageCommandsEvent: I_BotEvent = {
 			return;
 		}
 
-		console.log(`commandMessage.length: ${commandMessage.length}`);
+
+
+		if (command.options?.cooldown) {
+			const cooldownKey: string = `${message.author.id}-${commandName}`;
+			const cooldownAmount: number = command.options.cooldown * 1000;
+
+			if (cooldowns.has(cooldownKey)) {
+				const expirationTime: number = cooldowns.get(cooldownKey)!;
+				if (Date.now() < expirationTime) {
+					const timeLeft: number = (expirationTime - Date.now()) / 1000;
+					embed.setDescription(`Please wait ${timeLeft.toFixed(1)} seconds before using ${commandName} again.`).setColor(EmbedColors.warning)
+					message.reply({ embeds: [embed], options: { ephemeral: true } });
+					return;
+				}
+			}
+
+			cooldowns.set(cooldownKey, Date.now() + cooldownAmount);
+			setTimeout(() => cooldowns.delete(cooldownKey), cooldownAmount);
+		}
+
+		if (process.env.NODE_ENV === "development") console.log(`commandMessage.length: ${commandMessage.length}`);
+		if(commandName == "chat"){
+			const sanitizedContent = message.content.slice(commandStart.length + commandName.length + 1).trim();
+			command.execute(message, sanitizedContent);
+		}
 		if (commandMessage.length > 1) {
 			command.execute(message, commandMessage);
 		} else {

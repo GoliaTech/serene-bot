@@ -5,7 +5,8 @@ import { I_MessageCommand } from "../../../utilities/interface";
 
 const ping: I_MessageCommand = {
 	data: {
-		name: "disabled"
+		name: "disabled",
+		description: "This will show all disabled commands and events."
 	},
 	options: {
 		botOwner: true,

@@ -58,6 +58,8 @@ async function handleCommands(development: string, choice: commandDecision, clie
 				}
 				return;
 			case commandDecision.deploy:
+				// BEFORE DEPLOYING
+				// DISABLE A HTING IN THE SECRET SANTA EVENT COMMAND
 				commands = loadCommands();
 				console.log(commands);
 				if (!commands) {

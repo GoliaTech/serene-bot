@@ -53,7 +53,11 @@ export function getAllRelevantImages(waifu: Waifu.Core, isChannelNSFW: boolean):
 		return sfwImages;
 	} else {
 		console.log("THIS IS NSFW CHANNEL")
-		const nsfwImages = getImagesFromFolder(waifu.nsfwImages);
+		let nsfwImages = getImagesFromFolder(waifu.nsfwImages);
+		// In case we have no NSFW images.
+		if (nsfwImages.length === 0) {
+			nsfwImages = getImagesFromFolder(waifu.sfwImages);
+		}
 		// return [...sfwImages, ...nsfwImages];
 		return nsfwImages
 	}

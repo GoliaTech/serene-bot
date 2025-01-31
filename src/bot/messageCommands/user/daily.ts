@@ -333,6 +333,7 @@ async function distributeRewards(rewardsList: Reward[], user: string) {
 const daily: I_MessageCommand = {
 	data: {
 		name: "daily",
+		description: "Get your daily reward! Literally the same as `/daily`.",
 	},
 	/**
 	 * This is the daily command.

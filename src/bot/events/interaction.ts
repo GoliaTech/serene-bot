@@ -1,4 +1,4 @@
-import { Events, ChatInputCommandInteraction, ButtonInteraction, AutocompleteInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
+import { Events, ChatInputCommandInteraction, ButtonInteraction, AutocompleteInteraction, ModalSubmitInteraction, StringSelectMenuInteraction, Collection } from "discord.js";
 import { I_BotEvent, EmbedColors } from "../../utilities/interface";
 // import { commands } from "../misc/loaders";
 import { embedBuilder } from "../misc/builders";
@@ -8,6 +8,7 @@ import { interactionCommands } from "../bot";
 const embed = embedBuilder("Error", EmbedColors.error);
 const otherCommands = loadOtherCommands();
 const errorEmbed = embedBuilder("Error", EmbedColors.error);
+const cooldowns = new Collection<string, number>();
 
 /**
  * This will process standard commands used by users, for example: /help, /leaderboard, etc.
@@ -72,6 +73,25 @@ async function interaction_Command(interaction: ChatInputCommandInteraction) {
 			interaction.reply({ embeds: [embed], ephemeral: true });
 			return;
 		}
+	}
+
+	// cooldown handling per command and user
+	if (command.options?.cooldown) {
+		const cooldownKey: string = `${interaction.user.id}-${interaction.commandName}`;
+		const cooldownAmount: number = command.options.cooldown * 1000;
+
+		if (cooldowns.has(cooldownKey)) {
+			const expirationTime: number = cooldowns.get(cooldownKey)!;
+			if (Date.now() < expirationTime) {
+				const timeLeft: number = (expirationTime - Date.now()) / 1000;
+				embed.setDescription(`Please wait ${timeLeft.toFixed(1)} seconds before using ${interaction.commandName} again.`);
+				interaction.reply({ embeds: [embed], ephemeral: true });
+				return;
+			}
+		}
+
+		cooldowns.set(cooldownKey, Date.now() + cooldownAmount);
+		setTimeout(() => cooldowns.delete(cooldownKey), cooldownAmount);
 	}
 
 	command.execute(interaction);

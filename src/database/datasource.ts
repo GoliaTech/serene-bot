@@ -34,37 +34,38 @@ export const AppDataSource = new DataSource({
 	synchronize: false,
 	logging: process.env.NODE_ENV == "development" ? true : false,
 	// logging: false,
-	entities: [
-		// user
-		entity.User.Core,
-		entity.User.Level,
-		entity.User.Currency,
-		entity.User.LevelName,
-		entity.User.PrestigeName,
-		entity.User.Daily,
-		entity.User.Item,
-		entity.User.Inventory,
-		// cards
-		entity.Card.Core,
-		entity.Card.Set,
-		entity.Card.Rewards,
-		// rpg
-		entity.RPG.CharacterCore,
-		entity.RPG.Class,
-		entity.RPG.Race,
-		// discord
-		entity.Discord.Server,
-		// music
-		entity.Music.Music,
-		entity.Music.USI,
-		entity.Music.Genre,
-		entity.Music.Artist,
-		entity.Music.Style,
-		entity.Music.Album,
-		// waifu
-		entity.Waifu.Core,
-		entity.Waifu.Vote
-	],
+	entities: Object.values(entity).flatMap(category=>Object.values(category)),
+	// [
+	// 	// user
+	// 	entity.User.Core,
+	// 	entity.User.Level,
+	// 	entity.User.Currency,
+	// 	entity.User.LevelName,
+	// 	entity.User.PrestigeName,
+	// 	entity.User.Daily,
+	// 	entity.User.Item,
+	// 	entity.User.Inventory,
+	// 	// cards
+	// 	entity.Card.Core,
+	// 	entity.Card.Set,
+	// 	entity.Card.Rewards,
+	// 	// rpg
+	// 	entity.RPG.CharacterCore,
+	// 	entity.RPG.Class,
+	// 	entity.RPG.Race,
+	// 	// discord
+	// 	entity.Discord.Server,
+	// 	// music
+	// 	entity.Music.Music,
+	// 	entity.Music.USI,
+	// 	entity.Music.Genre,
+	// 	entity.Music.Artist,
+	// 	entity.Music.Style,
+	// 	entity.Music.Album,
+	// 	// waifu
+	// 	entity.Waifu.Core,
+	// 	entity.Waifu.Vote
+	// ],
 	subscribers: [],
 	migrations: [],
 	namingStrategy: new naminngStrategy(),

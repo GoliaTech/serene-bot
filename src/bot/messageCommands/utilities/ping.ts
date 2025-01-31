@@ -4,7 +4,8 @@ import { I_MessageCommand } from "../../../utilities/interface";
 
 const ping: I_MessageCommand = {
 	data: {
-		name: "ping"
+		name: "ping",
+		description: "This will ping the bot to test if it's working."
 	},
 	async execute(message: Message) {
 		const embed = embedBuilder("Pong!")

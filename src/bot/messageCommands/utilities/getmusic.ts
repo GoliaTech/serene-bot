@@ -7,7 +7,8 @@ import { embedBuilder } from "../../misc/builders";
 
 const getMusic: I_MessageCommand = {
 	data: {
-		name: "getmusic"
+		name: "getmusic",
+		description: "Get a random music.",
 	},
 	async execute(interaction) {
 		const embedReply = embedBuilder("Music List");
