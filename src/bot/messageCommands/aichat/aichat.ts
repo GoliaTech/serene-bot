@@ -12,7 +12,7 @@ const aichat: I_MessageCommand = {
 		cooldown: 30,
 	},
 	async execute(message: Message, content: string) {
-		if (message.author.bot) return;
+
 
 		// prefix is no longer needed here.
 		const { maxInputLength } = config;
@@ -34,12 +34,13 @@ const aichat: I_MessageCommand = {
 			return message.reply(`Input exceeds ${maxInputLength} characters!`);
 		}
 
+		const massage = await message.reply(`Processing...`);
 		try {
 			const response = await chatService.generateResponse(content);
-			message.reply(response);
+			massage.edit(response);
 		} catch (error) {
 			console.error("Error generating response:", error);
-			message.reply("Sorry, I encountered an error processing your request.");
+			massage.edit("Sorry, I encountered an error processing your request.");
 		}
 		// }
 		return;
