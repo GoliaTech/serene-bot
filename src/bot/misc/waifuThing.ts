@@ -3,11 +3,11 @@ import path from "path";
 import fs from "fs";
 import { Waifu } from "../../database/entity"
 import { Repository } from "typeorm";
-import { I_Waifu } from "../../utilities/interface";
-Canvas.registerFont(path.join(__dirname, "../../assets/waifu/misc", "Lato-Bold.ttf"), { family: "Open Sans", weight: "bold" });
-Canvas.registerFont(path.join(__dirname, "../../assets/waifu/misc", "Lato-Regular.ttf"), { family: "Open Sans" });
-// Canvas.registerFont(path.join(__dirname, "../assets", "Roboto-Bold.ttf"), { family: "Open Sans", weight: "bold" });
-// Canvas.registerFont(path.join(__dirname, "../assets", "Roboto-Regular.ttf"), { family: "Open Sans" });
+import { E_WaifuIcons, I_Waifu } from "../../utilities/interface";
+const assetsPath = path.join(__dirname, "../../../assets/waifu");
+Canvas.registerFont(path.join(__dirname, "../../../assets/waifu/misc", "Lato-Bold.ttf"), { family: "Open Sans", weight: "bold" });
+Canvas.registerFont(path.join(__dirname, "../../../assets/waifu/misc", "Lato-Regular.ttf"), { family: "Open Sans" });
+
 /**
  * Returns a random waifu from the database
  */
@@ -63,118 +63,250 @@ export function getAllRelevantImages(waifu: Waifu.Core, isChannelNSFW: boolean):
 	}
 }
 
-
-// We'll reuse our wrapText from earlier
+/**
+ * Wrap a single line of text into multiple lines, drawing each line to the canvas
+ * at the specified x, y coordinates, with a specified line height and maximum
+ * width. The text is split into words, and each word is added to the current line
+ * until the line exceeds the maximum width. Then, the current line is drawn to
+ * the canvas, and the next line is started.
+ *
+ * @param {Canvas.CanvasRenderingContext2D} ctx - The canvas context to draw to
+ * @param {string} text - The text to draw
+ * @param {number} x - The x coordinate of the top-left corner of the text
+ * @param {number} y - The y coordinate of the top-left corner of the text
+ * @param {number} maxWidth - The maximum width of a line of text
+ * @param {number} lineHeight - The height of each line of text
+ * @returns {number} - The y coordinate of the next line
+ */
 function wrapText(
 	ctx: Canvas.CanvasRenderingContext2D,
 	text: string,
 	x: number,
 	y: number,
 	maxWidth: number,
-	lineHeight: number
-) {
+	lineHeight: number = 10,
+	font: string = "20px 'Open Sans'",
+	fontStyle: string = "#000",
+	textAlign: CanvasTextAlign = "left"
+): number {
+	// splits the text into words.
 	const words = text.split(" ");
+	// sets the current line to an empty string.
 	let currentLine = "";
+	// sets the Y coordinate of the current line.
+	let lineY = y;
+	let lineCount = 1;
 
-	for (let i = 0; i < words.length; i++) {
-		const testLine = currentLine + words[i] + " ";
-		const metrics = ctx.measureText(testLine);
-		if (metrics.width > maxWidth && i > 0) {
-			// Render current line
-			ctx.fillText(currentLine, x, y);
-			// Move down
-			y += lineHeight;
-			// Start a new line
-			currentLine = words[i] + " ";
+	// Set our font
+	ctx.font = font;
+	ctx.fillStyle = fontStyle;
+	ctx.textAlign = textAlign;
+
+	// Iterate over each word in the text.
+	for (const word of words) {
+		// Create a test line by adding the current word to the current line.
+		const testLine = currentLine + word + " ";
+
+		// Measure the width of the test line.
+		const { width: testLineWidth } = ctx.measureText(testLine);
+
+		// If the test line exceeds the maximum width, draw the current line and
+		// start a new line with the current word.
+		if (testLineWidth > maxWidth && currentLine !== "") {
+			ctx.fillText(currentLine, x, lineY);
+			lineY += lineHeight;
+			lineCount++;
+			currentLine = word + " ";
 		} else {
+			// Otherwise, add the current word to the current line.
 			currentLine = testLine;
 		}
 	}
-	if (currentLine) {
-		ctx.fillText(currentLine, x, y);
+
+	// Draw the final line of text.
+	if (currentLine !== "") {
+		ctx.fillText(currentLine, x, lineY);
 	}
+	ctx.save();
+	// Dynamic saving.
+	return lineHeight * lineCount;
 }
 
-async function drawGlobe(
+async function drawIconAndText(
 	ctx: Canvas.CanvasRenderingContext2D,
-	location: string,
-	x: number,
-	y: number
+	x: number = 10,
+	y: number,
+	iconName: E_WaifuIcons | undefined,
+	text: string,
+	maxTextWidth: number,
+	font: string = "20px 'Open Sans'",
+	fontStyle: string = "#000",
+	lineGap: number = 10,
+	textAlign: CanvasTextAlign = "left"
 ) {
-	// Load or cache the icon depending on the gender
-	const iconPath = path.join(__dirname, "../../assets/waifu/misc", "wireframe-globe.svg");
-	const icon = await Canvas.loadImage(iconPath);
-	const iconSize = 28;
-	ctx.drawImage(icon, x, y - iconSize + 5, iconSize, iconSize);
+	// Apply alignment
+	ctx.textAlign = textAlign;
+	// Set basic icon stuff
+	let icon, iconSize = 28;
+	if (iconName) {
+		// Load icon
+		icon = await Canvas.loadImage(
+			path.join(assetsPath, "misc", iconName),
+		);
+		// set the size;
+		iconSize = 28;
+		// Draw the image
+		ctx.drawImage(icon, x, y - iconSize + 5, iconSize, iconSize);
+		// Apply correct margin depending on the alignment
+		let textMarginFromImage = x + iconSize + 10;
+		if (textAlign == "left") {
+			textMarginFromImage = x + iconSize + 10;
+		} else if (textAlign == "right") {
+			textMarginFromImage = x - iconSize - 10;
+		}
 
-	// Draw text next to it
-	// ctx.font = "28px Sans";
-	// ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
-	ctx.fillText(` ${location}`, x + iconSize + 10, y);
+		// Apply new Y based on text wrapping
+		y = wrapText(ctx,
+			text,
+			textMarginFromImage,
+			y,
+			maxTextWidth,
+			lineGap,
+			font,
+			fontStyle,
+			textAlign
+		);
+
+		// Return;
+		return y
+	}
+
+	// No icon
+	y = wrapText(ctx,
+		text,
+		x,
+		y,
+		maxTextWidth,
+		lineGap,
+		font,
+		fontStyle,
+		textAlign
+	);
+	return y
 }
 
+/**
+ * Draws a heart icon and the number of likes to the canvas at the specified location.
+ *
+ * @param {Canvas.CanvasRenderingContext2D} ctx - The canvas context to draw to
+ * @param {number} numberOfLikes - The number of likes to draw
+ * @param {number} iconXCoordinate - The x coordinate of the top-left corner of the icon
+ * @param {number} iconYCoordinate - The y coordinate of the top-left corner of the icon
+ */
 async function drawLikes(
 	ctx: Canvas.CanvasRenderingContext2D,
-	likes: number,
-	x: number,
-	y: number
+	numberOfLikes: number,
+	iconXCoordinate: number,
+	iconYCoordinate: number
 ) {
-	// Load or cache the icon depending on the gender
-	const iconPath = path.join(__dirname, "../../assets/waifu/misc", "heartburn.svg");
-	const icon = await Canvas.loadImage(iconPath);
-	const iconSize = 28;
-	ctx.drawImage(icon, x, y - iconSize + 5, iconSize, iconSize);
+	// Load the heart icon from the assets directory
+	const heartIconPath = path.join(assetsPath, "misc", "heartburn.svg");
+	const heartIcon = await Canvas.loadImage(heartIconPath);
 
-	// Draw text next to it
-	// ctx.font = "28px Sans";
-	// ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
-	ctx.fillText(` ${likes}`, x + iconSize + 10, y);
+	// Determine the size of the icon
+	const heartIconSize = 28;
+
+	// Calculate the coordinates for the icon and text
+	const textXCoordinate = iconXCoordinate + heartIconSize + 10;
+	const textYCoordinate = iconYCoordinate;
+
+	// Draw the icon at the specified location
+	ctx.drawImage(heartIcon, iconXCoordinate, iconYCoordinate - heartIconSize + 5, heartIconSize, heartIconSize);
+
+	// Draw the number of likes next to the icon
+	ctx.fillText(` ${numberOfLikes}`, textXCoordinate, textYCoordinate);
 }
 
+/**
+ * Draws a broken heart icon and the number of dislikes to the canvas at the specified location.
+ *
+ * @param {Canvas.CanvasRenderingContext2D} ctx - The canvas context to draw to
+ * @param {number} dislikeCount - The number of dislikes to draw
+ * @param {number} iconX - The x coordinate of the top-left corner of the icon
+ * @param {number} iconY - The y coordinate of the top-left corner of the icon
+ */
 async function drawDislikes(
 	ctx: Canvas.CanvasRenderingContext2D,
-	dislikes: number,
-	x: number,
-	y: number
+	dislikeCount: number,
+	iconX: number,
+	iconY: number
 ) {
-	// Load or cache the icon depending on the gender
-	const iconPath = path.join(__dirname, "../../assets/waifu/misc", "shattered-heart.svg");
+	// Load the icon from the assets directory
+	const iconPath = path.join(assetsPath, "misc", "shattered-heart.svg");
 	const icon = await Canvas.loadImage(iconPath);
-	const iconSize = 28;
-	ctx.drawImage(icon, x - iconSize, y - iconSize + 5, iconSize, iconSize);
 
-	// Draw text next to it
-	// ctx.font = "28px Sans";
-	// ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
-	ctx.fillText(`${dislikes} `, x - iconSize - 10, y);
+	// Determine the size of the icon
+	const iconSize = 28;
+
+	// Calculate the coordinates for the icon and text
+	// The icon is drawn on the right side of the text
+	const textX = iconX - iconSize;
+	// The text is drawn on the same line as the icon
+	const textY = iconY;
+
+	// Draw the icon at the specified location
+	// The icon is drawn with a slight offset from the top and left
+	ctx.drawImage(icon, iconX, iconY - iconSize + 5, iconSize, iconSize);
+
+	// Draw the dislike count to the left of the icon
+	// The text is drawn with a slight offset from the top and left
+	ctx.fillText(`${dislikeCount}`, textX, textY);
 }
 
-function measureInterestTag(
+/**
+ * Measure the width of a single interest "badge" based on its text and font.
+ *
+ * @param {CanvasRenderingContext2D} ctx - The canvas context to measure with
+ * @param {string} text - The text to measure the width of
+ * @param {string} font - The font to measure with (e.g. "20px 'Open Sans'")
+ * @param {number} [paddingX=10] - The horizontal padding to add to the width
+ * @param {number} [badgeHeight=24] - The height of the badge
+ * @returns {number} The measured width of the badge
+ */
+function measureInterestTagWidth(
 	ctx: CanvasRenderingContext2D,
 	text: string,
 	font: string,
 	paddingX = 10,
-	badgeHeight = 24
+	badgeHeight = 24,
 ): number {
+	// Set the font
 	ctx.font = font;
+	// Measure the text
 	const metrics = ctx.measureText(text);
-	// Tag width = text width + horizontal padding
+	// Width of one tag badge
 	const tagWidth = metrics.width + paddingX * 2;
-	// Return a numeric width
+	// return the width
 	return tagWidth;
 }
 
 /**
  * Draw a single interest "badge" with rounded corners, dark background,
- * and white text. 
- * 
- * @param ctx      Canvas 2D context
- * @param text     Interest name (e.g. "Gamer", "Cosplay")
- * @param x        X coordinate to place the badge
- * @param y        Y coordinate (top of the badge)
- * @param font     e.g. "20px 'Open Sans'"
- * @param bgColor  e.g. "#333" or "rgba(0,0,0,0.7)"
- * @param textColor e.g. "#fff"
+ * and white text.
+ *
+ * The badge is drawn with rounded corners, and the text is centered
+ * horizontally and vertically within the badge.
+ *
+ * @param {CanvasRenderingContext2D} ctx - The canvas context to draw to
+ * @param {string} text - The interest name to draw
+ * @param {number} x - The x coordinate of the top-left corner of the badge
+ * @param {number} y - The y coordinate of the top-left corner of the badge
+ * @param {string} font - The font to use for the text (e.g. "20px 'Open Sans'")
+ * @param {string} backgroundColor - The background color of the badge (e.g. "#333")
+ * @param {string} textColor - The color of the text (e.g. "#fff")
+ * @param {number} [paddingX=10] - The horizontal padding to add to the width
+ * @param {number} [badgeHeight=24] - The height of the badge
+ * @param {number} [cornerRadius=8] - The corner radius of the badge
  */
 function drawInterestTag(
 	ctx: CanvasRenderingContext2D,
@@ -182,32 +314,49 @@ function drawInterestTag(
 	x: number,
 	y: number,
 	font: string,
-	bgColor = "#333",
+	backgroundColor = "#333",
 	textColor = "#fff",
 	paddingX = 10,
 	badgeHeight = 24,
 	cornerRadius = 8
 ) {
+	// Set the font
 	ctx.font = font;
+	// Measure the text
 	const textMetrics = ctx.measureText(text);
+	// Width of one tag badge
 	const badgeWidth = textMetrics.width + paddingX * 2;
 
 	// Draw a rounded rect
 	ctx.beginPath();
 	roundedRectPath(ctx, x, y, badgeWidth, badgeHeight, cornerRadius);
-	ctx.fillStyle = bgColor;
+	// Fill with the background color
+	ctx.fillStyle = backgroundColor;
 	ctx.fill();
 
 	// Draw the text in white
 	ctx.fillStyle = textColor;
-	// approximate centering
+	// Calculate the x and y coordinates of the text
 	const textX = x + paddingX;
 	const textY = y + badgeHeight / 2 + textMetrics.actualBoundingBoxAscent / 2 - 2;
+	// Draw the text
 	ctx.fillText(text, textX, textY);
 }
 
 /**
- * Helper: create a rounded rectangle path
+ * Creates a rounded rectangle path on the given canvas context.
+ *
+ * The path is created by moving to the top-left corner of the rectangle, then
+ * drawing a line to the bottom-right corner. The corners are rounded by drawing
+ * a Bezier curve to the edge of the rectangle, and then drawing a line to the
+ * next corner.
+ *
+ * @param {CanvasRenderingContext2D} ctx - The canvas context to draw on.
+ * @param {number} x - The x-coordinate of the top-left corner of the rectangle.
+ * @param {number} y - The y-coordinate of the top-left corner of the rectangle.
+ * @param {number} width - The width of the rectangle.
+ * @param {number} height - The height of the rectangle.
+ * @param {number} radius - The corner radius of the rectangle.
  */
 function roundedRectPath(
 	ctx: CanvasRenderingContext2D,
@@ -217,64 +366,79 @@ function roundedRectPath(
 	height: number,
 	radius: number
 ) {
+	ctx.beginPath();
+	// Move to the top-left corner of the rectangle
 	ctx.moveTo(x + radius, y);
+	// Draw the top line
 	ctx.lineTo(x + width - radius, y);
-	ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+	// Draw the top-right rounded corner
+	ctx.bezierCurveTo(x + width, y, x + width, y + radius, x + width, y + radius);
+	// Draw the right line
 	ctx.lineTo(x + width, y + height - radius);
-	ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+	// Draw the bottom-right rounded corner
+	ctx.bezierCurveTo(x + width, y + height, x + width - radius, y + height, x + width - radius, y + height);
+	// Draw the bottom line
 	ctx.lineTo(x + radius, y + height);
-	ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+	// Draw the bottom-left rounded corner
+	ctx.bezierCurveTo(x, y + height, x, y + height - radius, x, y + height - radius);
+	// Draw the left line
 	ctx.lineTo(x, y + radius);
-	ctx.quadraticCurveTo(x, y, x + radius, y);
+	// Draw the top-left rounded corner
+	ctx.bezierCurveTo(x, y, x + radius, y, x + radius, y);
+	// Close the path
 	ctx.closePath();
 }
 
-async function drawInterestsRow(
-	ctx: any,
-	interests: string[],
-	x: number,
-	y: number
-) {
-	let currentX = x;
-	for (const interest of interests) {
-		drawInterestTag(ctx, interest, currentX, y, "20px 'Open Sans'", "#333", "#fff");
-
-		// measure how wide this tag was, so we know where to put the next one
-		const textWidth = ctx.measureText(interest).width;
-		const badgeWidth = textWidth + 20; // 2 * paddingX
-		currentX += badgeWidth + 10; // plus a gap
-	}
-}
-
 /**
- * Draw multiple interest badges, automatically wrapping to the next line
+ * Draws multiple interest badges, automatically wrapping to the next line
  * if the next badge doesn't fit within `maxRowWidth`.
+ *
+ * @param {CanvasRenderingContext2D} ctx - The canvas context to draw on.
+ * @param {string[]} interests - The list of interest tags to draw.
+ * @param {number} startX - The starting x-coordinate of the badges.
+ * @param {number} startY - The starting y-coordinate of the badges.
+ * @param {number} maxRowWidth - The maximum width of each row of badges.
+ * @param {string} [font="20px 'Open Sans'"] - The font to use for the badges.
+ * @param {number} [lineGap=10] - The vertical gap between rows of badges.
+ * @param {number} [horizontalGap=10] - The horizontal gap between badges.
+ * @returns {number} - The new Y-Coordinates,
+ *
+ * Draws each badge on a new line if the next badge would exceed the
+ * maximum row width. The starting x-coordinate will be reset to the
+ * `startX` value when a new line is started.
  */
 function drawInterestsWrapped(
 	ctx: any,
 	interests: string[],
-	xStart: number,
-	yStart: number,
+	startX: number,
+	startY: number,
 	maxRowWidth: number,
-	font = "20px 'Open Sans'",
-	lineGap = 10,      // vertical gap between rows
-	horizontalGap = 10 // horizontal gap between badges
+	font: string = "20px 'Open Sans'",
+	lineGap: number = 10,
+	horizontalGap: number = 10
 ) {
-	let currentX = xStart;
-	let currentY = yStart;
+	// Keep track of the current x and y coordinates
+	let currentX = startX;
+	let currentY = startY;
+	let lineCount = 1;
+	console.log(currentY)
 
+	// The height of each badge is the same, so only calculate it once
 	const badgeHeight = 28; // or 24, plus a bit for line spacing
+	// The horizontal padding is the same for all badges, so only calculate it once
 	const paddingX = 10;
 
+	// Loop through each interest tag and draw it
 	for (const interest of interests) {
 		// Measure how wide this badge will be
-		const tagWidth = measureInterestTag(ctx, interest, font, paddingX, badgeHeight);
+		const tagWidth = measureInterestTagWidth(ctx, interest, font, paddingX, badgeHeight);
 
 		// If adding this badge would exceed max width, move to next line
 		if (currentX + tagWidth > maxRowWidth) {
 			// Reset to new line
-			currentX = xStart;
+			currentX = startX;
 			currentY += badgeHeight + lineGap;
+			lineCount++;
 		}
 
 		// Draw the badge
@@ -293,180 +457,33 @@ function drawInterestsWrapped(
 		// Update currentX for the next badge (include horizontal gap)
 		currentX += tagWidth + horizontalGap;
 	}
+	console.log(currentY)
+	const returnal = currentY + (lineGap * lineCount) + badgeHeight + 20;
+	console.log("returnal: ", returnal)
+	return returnal;
 }
 
-/**
- * createFakeTinderCard
- * 
- * Generates a PNG where:
- *  - We add extra space at the top & bottom beyond the waifu image
- *  - Top area: black gradient -> Name, Age, Race, Location
- *  - Middle: actual waifu image
- *  - Bottom area: black gradient -> multiline description, plus an "artist" credit in the corner
- *
- * @param baseImagePath Path to the waifu image
- * @param waifu Data for the waifu (name, age, race, location, description, artist, etc.)
- */
-export async function createFakeTinderCard(
-	waifu: Waifu.Core,
-	imagePath: string,
-	index: number,
-	totalImages: number
-): Promise<Buffer> {
-
-	// 1) Load base image
-	const baseImage = await Canvas.loadImage(imagePath);
-	const w = baseImage.width;
-	const h = baseImage.height;
-
-	// 2) Decide how much space to add on top/bottom
-	const topMargin = 140;
-	const bottomMargin = 200;
-
-	// Final canvas size
-	const totalWidth = w;
-	const totalHeight = h + topMargin + bottomMargin;
-
-	// 3) Create the canvas
-	const canvas = Canvas.createCanvas(totalWidth, totalHeight);
-	const ctx = canvas.getContext("2d");
-
-	// Fill entire background with black (or your chosen color)
-	ctx.fillStyle = "#fff";
-	ctx.fillRect(0, 0, totalWidth, totalHeight);
-	// 5) Draw the base image starting below the top gradient
-	ctx.drawImage(baseImage, 0, topMargin);
-
-	// draw gradient over the top of the image
-	const imageTopGradient = ctx.createLinearGradient(0, topMargin, 0, (topMargin + h) * 0.35);
-	imageTopGradient.addColorStop(0, "rgb(0, 0, 0)"); // fully black at top
-	imageTopGradient.addColorStop(1, "rgba(0,0,0,0)"); // transparent by the time we reach the image
-	ctx.fillStyle = imageTopGradient;
-	ctx.fillRect(0, topMargin, totalWidth, (topMargin + h) * 0.35);
-
-
-
-	// 6) Draw a bottom gradient (transparent near base image, fully black at bottom)
-	const bottomStartY = topMargin + h - 0; // just below the bottom of the base image
-
-	// draw gradient over the bottom of the image
-	const imageBottomGradient = ctx.createLinearGradient(0, topMargin + bottomStartY - 300, 0, bottomStartY);
-	imageBottomGradient.addColorStop(0, "rgba(0, 0, 0, 0)"); // fully black at top
-	imageBottomGradient.addColorStop(1, "rgb(0, 0, 0)"); // transparent by the time we reach the image
-	ctx.fillStyle = imageBottomGradient;
-	ctx.fillRect(0, bottomStartY - 300, totalWidth, 300);
-
-	// 7) Text at the top: Big name & age, smaller sub-lines (gender/race/location)
-	ctx.fillStyle = "#000";
-	ctx.textAlign = "left";
-
-	// Big name + age
-	ctx.font = "bold 36px 'Open Sans'";
-	const topTextX = 20;
-	const lineGap = 36; // space between lines
-	let textY = 50; // about ~1/3 into the topMargin
-
-	ctx.fillText(`${waifu.name}, ${waifu.age}`, topTextX, textY);
-
-	// Additional lines
-	ctx.font = "28px 'Open Sans'";
-	textY += lineGap;
-
-	ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
-	ctx.fillText(`${waifu.gender}, ${waifu.race}`, topTextX, textY);
-	textY += lineGap;
-	if (waifu.location) {
-		// ctx.fillText(`Location: ${waifu.location}`, topTextX, textY);
-		await drawGlobe(ctx, waifu.location, topTextX, textY);
-		textY += lineGap;
-	}
-	if (waifu.job) {
-		// ctx.fillText(`Location: ${waifu.location}`, topTextX, textY);
-		// ctx.fillText("Princess", topTextX, textY);
-		await drawBriefcase(ctx, waifu.job, topTextX, textY);
-		textY += lineGap;
-	}
-
-
-
-	ctx.save();
-	const startX = 20;
-	const startY = bottomStartY + 10; // for example, just above your description
-	const gap = 10;     // spacing between badges horizontally
-	const maxRowWidth = canvas.width - 40; // leave 20px margin on right as well
-
-
-	// If your waifu has an interests array
-	if (waifu.interests && waifu.interests.length > 0) {
-		// await drawInterestsRow(ctx, waifu.interests, startX, startY);
-		await drawInterestsWrapped(ctx, waifu.interests, startX, startY, maxRowWidth);
-	}
-	ctx.restore();
-	// 8) Description at the bottom
-	const descX = 20;
-	const descY = topMargin + h + 100; // some padding from the bottom image edge
-	const descMaxWidth = w - 40;
-	const descLineHeight = 30;
-	ctx.font = "24px 'Open Sans'";
-	ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-	wrapText(
-		ctx,
-		waifu.description ||
-		"No description available. She is a mysterious figure from a distant land…",
-		descX,
-		descY,
-		descMaxWidth,
-		descLineHeight
-	);
-
-	// 9) Artist credit in bottom-right corner
-	ctx.textAlign = "right";
-	ctx.font = "14px 'Open Sans'";
-	ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-	ctx.fillText(
-		// `Art: ${waifu.artist || "Unknown"}`,
-		`Art: ${"Unknown"}`,
-		w - 10,
-		topMargin + 20
-	);
-
-	// create page numbering, for amount of images and which image (in index) we are on.
-	ctx.textAlign = "center";
-	ctx.font = "20px 'Open Sans'";
-	ctx.fillStyle = "#FFFFFF";
-	ctx.fillText(
-		`${index + 1}/${totalImages}`,
-		w / 2,
-		totalHeight - bottomMargin - 20
-	);
-
-	ctx.textAlign = "left";
-	await drawLikes(ctx, waifu.likes || 0, 10, totalHeight - bottomMargin - 20);
-	ctx.textAlign = "right";
-	await drawDislikes(ctx, waifu.dislikes || 0, w - 10, totalHeight - bottomMargin - 20);
-
-	// 10) Export final PNG
-	return canvas.toBuffer("image/png");
-}
-
-async function drawBriefcase(
-	ctx: Canvas.CanvasRenderingContext2D,
-	location: string,
-	x: number,
-	y: number
+function drawFactsWrapped(
+	ctx: any,
+	facts: string[],
+	startX: number,
+	startY: number,
+	maxRowWidth: number,
+	font: string = "20px 'Open Sans'",
+	lineGap: number = 10,
+	horizontalGap: number = 10
 ) {
-	// Load or cache the icon depending on the gender
-	const iconPath = path.join(__dirname, "../../assets/waifu/misc", "briefcase.svg");
-	const icon = await Canvas.loadImage(iconPath);
-	const iconSize = 32;
-	ctx.drawImage(icon, x, y - iconSize + 5, iconSize, iconSize);
+	// Keep track of the current x and y coordinates
+	let currentX = startX;
+	let currentY = startY;
+	let lineCount = 1;
 
-	// Draw text next to it
-	// ctx.font = "28px Sans";
-	// ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
-	ctx.fillText(` ${location}`, x + iconSize + 10, y);
+	const paddingY = 10;
+	const paddingX = 10;
+	// for (const fact of facts) {
+	// 	if(currentX + )
+	// }
 }
-
 
 /**
  * createFakeTinderCard
@@ -481,22 +498,19 @@ async function drawBriefcase(
  * @param waifu Data for the waifu (name, age, race, location, description, artist, etc.)
  */
 export async function createFakeTinderCardHorizontal(
+	baseImagePath: string,
 	waifu: Waifu.Core,
-	imagePath: string,
-	index: number,
-	totalImages: number
+	index: number, totalImages: number
 ): Promise<Buffer> {
 
 	// 1) Load base image
-	const baseImage = await Canvas.loadImage(imagePath);
+	const baseImage = await Canvas.loadImage(baseImagePath);
+	// Convert baseImage.width and .height to simple params
 	const w = baseImage.width;
 	const h = baseImage.height;
 
-	// 2) Decide how much space to add on top/bottom
-
-	// 2) Decide how much space to add on top/bottom
+	// 2) Decide the extra space to the left of the image
 	const leftMargin = 500;
-	// const bottomMargin = 200;
 
 	// Final canvas size
 	const totalWidth = w + leftMargin;
@@ -506,117 +520,176 @@ export async function createFakeTinderCardHorizontal(
 	const canvas = Canvas.createCanvas(totalWidth, totalHeight);
 	const ctx = canvas.getContext("2d");
 
-	// Fill entire background with black (or your chosen color)
+	// 4) Fill entire background with white
 	ctx.fillStyle = "#fff";
 	ctx.fillRect(0, 0, totalWidth, totalHeight);
-	// 5) Draw the base image starting below the top gradient
+
+	// 5) Draw the base image
 	ctx.drawImage(baseImage, leftMargin, 0);
 
-	// draw gradient over the top of the image
+	// For testing this stuff, we dont need to see the image;
+	// ctx.fillStyle = "#fff";
+	// ctx.fillRect(leftMargin, 0, baseImage.width, baseImage.height);
+
+	// 6) Draw gradient over the top of the image
 	const imageTopGradient = ctx.createLinearGradient(0, 0, 0, h * 0.15);
 	imageTopGradient.addColorStop(0, "rgb(0, 0, 0)"); // fully black at top
-	imageTopGradient.addColorStop(1, "rgba(0,0,0,0)"); // transparent by the time we reach the image
+	imageTopGradient.addColorStop(1, "rgba(0, 0, 0, 0)"); // transparent
+	// Draw the gradient
 	ctx.fillStyle = imageTopGradient;
+	// Which part of the gradient to display
 	ctx.fillRect(leftMargin, 0, totalWidth - leftMargin, h * 0.15);
 
-
-
-	// 6) Draw a bottom gradient (transparent near base image, fully black at bottom)
-	// const bottomStartY = topMargin + h - 0; // just below the bottom of the base image
-
-	// draw gradient over the bottom of the image
-	const imageBottomGradient = ctx.createLinearGradient(0, totalHeight - 150, 0, totalHeight);
-	imageBottomGradient.addColorStop(0, "rgba(0, 0, 0, 0)"); // fully black at top
-	imageBottomGradient.addColorStop(1, "rgb(0, 0, 0)"); // transparent by the time we reach the image
+	// 7) Draw gradient over the bottom of the image
+	const imageBottomGradient = ctx.createLinearGradient(0, totalHeight - 100, 0, totalHeight);
+	imageBottomGradient.addColorStop(0, "rgba(0, 0, 0, 0)"); // Transparent
+	imageBottomGradient.addColorStop(1, "rgb(0, 0, 0)"); // Fully black at the bottom
 	ctx.fillStyle = imageBottomGradient;
-	ctx.fillRect(leftMargin, totalHeight - 150, totalWidth, 300);
-
-	// 7) Text at the top: Big name & age, smaller sub-lines (gender/race/location)
-	ctx.fillStyle = "#000";
-	ctx.textAlign = "left";
-
-	// Big name + age
-	ctx.font = "bold 36px 'Open Sans'";
-	const topTextX = 20;
-	const lineGap = 36; // space between lines
-	let textY = 50; // about ~1/3 into the topMargin
-
-	ctx.fillText(`${waifu.name}, ${waifu.age}`, topTextX, textY);
-
-	// Additional lines
-	ctx.font = "28px 'Open Sans'";
-	textY += lineGap;
-
-	ctx.fillStyle = "rgba(0, 0, 0, 0.66)";
-	ctx.fillText(`${waifu.gender}, ${waifu.race}`, topTextX, textY);
-	textY += lineGap;
-	if (waifu.location) {
-		// ctx.fillText(`Location: ${waifu.location}`, topTextX, textY);
-		await drawGlobe(ctx, waifu.location, topTextX, textY);
-		textY += lineGap;
-	}
-	if (waifu.job) {
-		// ctx.fillText(`Location: ${waifu.location}`, topTextX, textY);
-		// ctx.fillText("Princess", topTextX, textY);
-		await drawBriefcase(ctx, waifu.job, topTextX, textY);
-		textY += lineGap;
-	}
+	ctx.fillRect(leftMargin, totalHeight - 100, totalWidth, 300);
 	ctx.save();
 
+	// 8) Draw text
+	ctx.fillStyle = "#000";
+	ctx.textAlign = "left";
+	const textMarginLeft = 20;
+	// For wrapping text
+	const maxTextWidth = leftMargin - 20;
+	// Y-coordinate for text, changes dynamically.
+	let textY = 40;
+	// Space between lines
+	let lineGap = 30;
 
-	const startX = 20;
-	const startY = (h / 2) * 0.4; // for example, just above your description
-	const gap = 10;     // spacing between badges horizontally
-	const maxRowWidth = leftMargin - 40; // leave 20px margin on right as well
+	// Name and age
+	lineGap = 40
+	textY += wrapText(ctx,
+		`${waifu.name}, ${waifu.age}`,
+		textMarginLeft,
+		textY,
+		maxTextWidth,
+		lineGap,
+		"bold 30px 'Open Sans'"
+	);
+	ctx.save();
 
-	// If your waifu has an interests array
+	// Gender and race
+	textY += wrapText(ctx,
+		`${waifu.gender}, ${waifu.race}`,
+		textMarginLeft,
+		textY,
+		maxTextWidth,
+		lineGap,
+		"22px 'Open Sans'",
+		"rgba(0, 0, 0, 0.65)"
+	);
+	ctx.save();
+
+	// Location
+	lineGap = 30;
+	textY += await drawIconAndText(ctx,
+		textMarginLeft,
+		textY,
+		E_WaifuIcons.location,
+		waifu.location,
+		maxTextWidth,
+		"26px 'Open Sans'",
+		"#000",
+		lineGap
+	);
+	ctx.save();
+
+	// Job
+	lineGap = 40
+	textY += await drawIconAndText(ctx,
+		textMarginLeft,
+		textY,
+		E_WaifuIcons.job,
+		waifu.job,
+		maxTextWidth,
+		"26px 'Open Sans'",
+		"#000",
+		lineGap
+	);
+	ctx.save();
+
+	// Tagline
+	lineGap = 30
+	textY += wrapText(ctx,
+		waifu.tagline || "Swipe right for a magical connection! ✨📖",
+		textMarginLeft,
+		textY,
+		maxTextWidth,
+		lineGap,
+		"22px 'Open Sans'",
+		"rgba(0, 0, 0, 0.65)"
+	);
+	ctx.save();
+
+	// If your waifu has interests
 	if (waifu.interests && waifu.interests.length > 0) {
-		// await drawInterestsRow(ctx, waifu.interests, startX, startY);
-		await drawInterestsWrapped(ctx, waifu.interests, startX, startY, maxRowWidth);
+		textY = drawInterestsWrapped(ctx,
+			waifu.interests,
+			textMarginLeft,
+			textY,
+			maxTextWidth
+		);
+		ctx.save();
 	}
-	ctx.restore();
-	// 8) Description at the bottom
-	const descX = 20;
-	const descY = (h / 2) * 0.7; // some padding from the bottom image edge
-	const descMaxWidth = leftMargin - 40;
-	const descLineHeight = 30;
-	ctx.font = "24px 'Open Sans'";
-	ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-	wrapText(
+
+	// Description
+	console.log(textY);
+	textY += wrapText(
 		ctx,
 		waifu.description ||
 		"No description available. She is a mysterious figure from a distant land…",
-		descX,
-		descY,
-		descMaxWidth,
-		descLineHeight
+		textMarginLeft,
+		textY,
+		maxTextWidth,
+		lineGap,
+		"24px 'Open Sans'",
+		"rgba(0, 0, 0, 0.75)"
 	);
+	ctx.save();
 
-	// 9) Artist credit in bottom-right corner
+	// 8) Fun facts
+	if (waifu.funFacts) {
+		lineGap = 30
+		textY += lineGap
+		ctx.font = "bold 28px 'Open Sans'"
+		ctx.fillText("FUN FACTS", textMarginLeft, textY)
+		// Render each fun fact with text wrapping
+		textY += lineGap + lineGap;
+		lineGap = 20
+		waifu.funFacts.forEach((fact, index) => {
+			textY += wrapText(ctx, `• ${fact}`, textMarginLeft, textY, maxTextWidth, lineGap, "20px 'Open Sans'", "#333", "left") + 10;
+		});
+	}
+
+	// 9) Text over the image
+	// Artist credit in top-right corner
 	ctx.textAlign = "right";
 	ctx.font = "14px 'Open Sans'";
 	ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
 	ctx.fillText(
-		`Art: ${"Unknown"}`,
+		`Art: ${"Placeholder AI image"}`,
 		totalWidth - 10,
 		20
 	);
 
-	// create page numbering, for amount of images and which image (in index) we are on.
+	// Create page numbering, for amount of images and which image (in index) we are on.
 	ctx.textAlign = "center";
 	ctx.font = "20px 'Open Sans'";
 	ctx.fillStyle = "#FFFFFF";
 	ctx.fillText(
 		`${index + 1}/${totalImages}`,
 		(w / 2) + leftMargin,
-		totalHeight - 20
+		totalHeight - 60
 	);
 
 	// likes and dislikes
 	ctx.textAlign = "left";
 	await drawLikes(ctx, waifu.likes, leftMargin + 20, totalHeight - 20);
 	ctx.textAlign = "right";
-	await drawDislikes(ctx, waifu.dislikes, totalWidth - 20, totalHeight - 20);
+	await drawDislikes(ctx, waifu.dislikes, totalWidth - 50, totalHeight - 20);
 
 	// 10) Export final PNG
 	return canvas.toBuffer("image/png");

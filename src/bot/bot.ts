@@ -6,6 +6,7 @@ import { AppDataSource } from "../database/datasource";
 import { logError, logInfo } from "../utilities/utilities";
 import { uploadSongs } from "./uploadsongs";
 import { uploadWaifus } from "./uploadwaifus";
+import { startPancakeDayEventScheduler } from "./misc/pancakedayScheduler";
 
 // For quick testing if commands or events load. I don't want to login every time you see.
 const login: boolean = true;
@@ -100,6 +101,7 @@ async function bot() {
 			// I don't think we need a try here, but it is probably a smart idea to do it anyway.
 			try {
 				await discordClient.login(process.env.TOKEN);
+				await startPancakeDayEventScheduler(AppDataSource, discordClient)
 				logInfo(`We started the bot for: [ ${process.env.NODE_ENV} ]`);
 			} catch (err) {
 				logError(`unable to login to client!!!${err}`);

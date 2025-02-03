@@ -9,13 +9,24 @@ export interface I_Waifu {
 	gender: string;
 	description: string;
 	interests: string[];
-	sfw_images: string;
-	nsfw_imagepath: string;
+	tagline: string;
+	funFacts: string[];
+	sfwImages: string;
+	nsfwImagepath: string;
 	likes?: number;
 	dislikes?: number;
 	id?: number;
 	artist?: string;
 }
+export enum E_WaifuIcons {
+	job = "briefcase.svg",
+	location = "wireframe-globe.svg",
+	female = "female.svg",
+	male = "male.svg",
+	like = "heartburn.svg",
+	dislike = "shattered-heart.svg"
+}
+
 /**
  * This takes a prompt and returns a response as a Promise.
  *

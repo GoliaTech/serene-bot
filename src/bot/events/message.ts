@@ -115,7 +115,7 @@ const messageCommandsEvent: I_BotEvent = {
 		}
 
 
-
+		// if the command has a cooldown, and the author is not US.
 		if (command.options?.cooldown && message.author.id !== process.env.OWNER_ID) {
 			const cooldownKey: string = `${message.author.id}-${commandName}`;
 			const cooldownAmount: number = command.options.cooldown * 1000;

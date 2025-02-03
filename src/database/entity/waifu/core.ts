@@ -22,7 +22,13 @@ export class Waifu {
 	@Column()
 	race!: string;
 
-	@Column({ length: 320 })
+	@Column({ nullable: false, name: "tagline" })
+	tagline!: string;
+
+	@Column({ name: "fun_facts", array: true, type: "varchar" })
+	funFacts!: string[];
+
+	@Column({ length: 400 })
 	description!: string;
 
 	// Postgres-specific array column to store up to 5 interests

@@ -19,8 +19,8 @@
     "deletecommands": "ts-node src/utilities/manageCommands.ts -P --delete",
     "getcommands": "ts-node src/utilities/manageCommands.ts -P --get",
     "putcommands": "ts-node src/utilities/manageCommands.ts -P --deploy",
-    "uninstallpackages": "npm uninstall discord.js dotenv nodemon pg pg-hstore reflect-metadata typeorm typeorm-naming-strategies @types/jest @types/node @types/pg @types/sequelize jest ts-jest ts-node tsup tsx typescript",
-    "installpackages": "npm i --save discord.js dotenv nodemon pg pg-hstore reflect-metadata typeorm typeorm-naming-strategies && npm i -D @types/jest @types/node @types/pg @types/sequelize jest ts-jest ts-node tsup tsx typescript",
+    "uninstallpackages": "npm uninstall axios canvas cheerio discord.js dotenv nodemon pg pg-hstore reflect-metadata typeorm typeorm-naming-strategies @types/jest @types/node @types/pg @types/sequelize jest ts-jest ts-node tsup tsx typescript",
+    "installpackages": "npm i --save axios canvas cheerio discord.js dotenv nodemon pg pg-hstore reflect-metadata typeorm typeorm-naming-strategies && npm i -D @types/jest @types/node @types/pg @types/sequelize jest ts-jest ts-node tsup tsx typescript",
     "updatepackages": "npm run installpackages",
     "upgradepackages": "npm run uninstallpackages && npm run installpackages"
   },

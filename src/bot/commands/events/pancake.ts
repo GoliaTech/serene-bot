@@ -6,8 +6,17 @@ import { AppDataSource } from "../../../database/datasource";
 import { addIngredients, addPancakes, deductIngredients, getPancakes } from "../../../database/dao/pancakes";
 import { commandBuilder, embedBuilder } from "../../misc/builders";
 
+export const pancakeCommandNames = {
+	collect: "pcollect",
+	check: "pcheck",
+	flip: "pflip",
+	answer: "panswer",
+	bake: "pbake",
+	leaderboard: "pleaderboard",
+}
+
 const collectCommand: I_Command = {
-	data: commandBuilder("pancakecollect", "Collect a random amount of pancake ingredients."),
+	data: commandBuilder(pancakeCommandNames.collect, "Collect a random amount of pancake ingredients."),
 	options: {
 		cooldown: 15
 	},
@@ -57,7 +66,7 @@ const collectCommand: I_Command = {
 };
 
 const checkCommand: I_Command = {
-	data: commandBuilder("pancakecheck", "Check how many ingredients and pancakes you have."),
+	data: commandBuilder(pancakeCommandNames.check, "Check how many ingredients and pancakes you have."),
 	async execute(interaction) {
 		// const user = await findOrCreateUser(interaction.user.id);
 		const user = await getPancakes(interaction.user.id);
@@ -124,7 +133,7 @@ function generateArithmeticPuzzle() {
 }
 
 const bakeCommand: I_Command = {
-	data: commandBuilder("pancakebake", "Start baking a pancake."),
+	data: commandBuilder(pancakeCommandNames.bake, "Start baking a pancake."),
 	options: {
 		cooldown: 30,
 	},
@@ -222,7 +231,7 @@ const bakeCommand: I_Command = {
 
 // ----- /flip -----
 const flipCommand: I_Command = {
-	data: commandBuilder("pancakeflip", "Flip the pancake."),
+	data: commandBuilder(pancakeCommandNames.flip, "Flip the pancake."),
 	async execute(interaction) {
 		const session = activeBakingSessions.get(interaction.user.id);
 		if (!session) {
@@ -266,7 +275,7 @@ const flipCommand: I_Command = {
 // ----- /answer -----
 // This command is used to answer the puzzle. If correct, user’s pancake is worth double.
 const answerCommand: I_Command = {
-	data: commandBuilder("pancakeanswer", "Answer the baking puzzle.")
+	data: commandBuilder(pancakeCommandNames.answer, "Answer the baking puzzle.")
 		.addNumberOption(input => input.setName("value").setDescription("The answer to the puzzle.").setRequired(true)),
 	async execute(interaction) {
 		const userId = interaction.user.id;
@@ -290,7 +299,7 @@ const answerCommand: I_Command = {
 
 
 const leaderboardCommand: I_Command = {
-	data: commandBuilder("pancakeleaderboard", "This will show the top 10 users who have baked the most pancakes.", {
+	data: commandBuilder(pancakeCommandNames.leaderboard, "This will show the top 10 users who have baked the most pancakes.", {
 		dm: false,
 	}),
 	async execute(interaction) {

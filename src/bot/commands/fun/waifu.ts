@@ -2,16 +2,16 @@ import { AppDataSource } from "../../../database/datasource"; // Import your dat
 import { Waifu } from "../../../database/entity";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, TextChannel } from "discord.js";
 import { createFakeTinderCardHorizontal, getAllRelevantImages, getRandomWaifu } from "../../misc/waifuThing";
-import { I_MessageCommand } from "../../../utilities/interface";
+import { I_Command, I_MessageCommand } from "../../../utilities/interface";
+import { commandBuilder } from "../../misc/builders";
 
-const waifuCommand: I_MessageCommand = {
-	data: {
-		name: "waifu",
-	},
-	options: {
-		disabled: true,
-	},
-	async execute(interaction: Message) {
+const waifuCommand: I_Command = {
+	data: commandBuilder(
+		"waifu",
+		"This will get a random waifu, you can like/dislike!", {
+		dm: true,
+	}),
+	async execute(interaction) {
 		try {
 			// Get the repositories.
 			const waifuRepo = AppDataSource.getRepository(Waifu.Core);
@@ -26,7 +26,7 @@ const waifuCommand: I_MessageCommand = {
 			const images = getAllRelevantImages(waifu, isChannelNSFW);
 			// If we have no images, what is the point?
 			if (images.length === 0) {
-				interaction.reply({ content: `No images available for this waifu: ${waifu.name}.`, options: { ephemeral: true } });
+				interaction.reply({ content: `No images available for this waifu: ${waifu.name}.`, ephemeral: true });
 				return;
 			}
 
@@ -83,10 +83,8 @@ const waifuCommand: I_MessageCommand = {
 			const message = await interaction.reply({
 				embeds: [embed],
 				files: [{ attachment: compositeImageBuffer, name: "waifu.png" }],
-				components: [await buttons(interaction.author.id), imageButtons()],
-				options: {
-					ephemeral: true
-				}
+				components: [await buttons(interaction.user.id), imageButtons()],
+				ephemeral: true
 				// fetchReply: true,
 			});
 
@@ -101,7 +99,7 @@ const waifuCommand: I_MessageCommand = {
 			collector.on("collect", async (i) => {
 				// We collect interaction only from the user who called it.
 				// This can be changed later however.
-				if (i.user.id !== interaction.author.id) {
+				if (i.user.id !== interaction.user.id) {
 					i.reply({ content: "This interaction is not for you!", ephemeral: true });
 					return;
 				}
