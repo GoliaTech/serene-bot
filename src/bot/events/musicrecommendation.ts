@@ -190,14 +190,14 @@ function validateSongs(songs: Music[]): void {
 
 const musicLinks: I_BotEvent = {
 	name: Events.ClientReady,
-	disabled: true,
+	disabled: false,
 	/**
 	 * This will do things when the bot is ready to launch. Run it once.
 	 * @param {Client} client - The client.
 	 */
 	async execute(client: Client) {
 		if (process.env.NODE_ENV === "production") {
-			setInterval(async () => await musicRecommendations(client), 4 * 60 * 60 * 1000);
+			setInterval(async () => await musicRecommendations(client), 5 * 60 * 60 * 1000);
 		} else {
 			setInterval(async () => await musicRecommendations(client), 2 * 60 * 1000);
 		}
