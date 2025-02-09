@@ -1,0 +1,43 @@
+To create the farming experience, we will utilise SlashCommandBuilder, to create a slash command.
+Whilst using Slash Commands, we will utilise the provided options to easily manage the plots of land.
+A command should look like this:
+/farm [option 1] [option 2]
+
+Option 1: Plots (from 1-9).
+Option 2: check, buy, plant, harvest, water, fertilise, till.
+
+If check: 
+    - if the plot is not purchased, we get the option to buy it. A response is sent with the price. The user has about 5 minutes to accept/decline/timeout the offer.
+    - if the plot is purchased, we get a reply telling us:
+        - If something is planted, it tells us what is planted, if it has been watered and fertilised, how much time remains, and expected yield (between x and y, no guaranteed).
+        - If nothing is planted:
+            - And the soil is not tilled, it will tell us how long it will take to till (usually 15 minutes).
+            - And the soil is being tilled, it will tell us how much time is remaining.
+            - And the soil is tilled, it will tell us that it's ready for planting.
+
+If buy:
+    - We check if the user has purchased this plot.
+        - If they have already purchased, we tell them so.
+    - We check if user has enough money.
+        - If they don't we simply cancel.
+        - If they do, we simply purchase and deduct correct amount.
+
+If Till:
+    - We check if the plot is occupied by a plant.
+    - If it is:
+        - We send the user a confirmation, that they do want to do this.
+        - If they accept, we begin tilling, destroying their previous crop.
+        - If they cancel, we cancel the interaction.
+    - If the plot is already being tilled, simply send the user time remaining.
+    - If it has been already tilled and nothing is planted, we tell the user the plot is ready to be seeded.
+    - If it has not been tilled, we start tilling and tell the user how much time it will take.
+
+If plant:
+    -We check if the plot is tilled or occupied.
+        - If it has been tilled, we reply the user with a selection of plant seeds they have in their inventory to plant with.
+        - If it is occupied, we reply the user that they cannot plant a seed there, as it is already occupied by another plant.
+        - If it has not been tilled, we tell the user they have to till it first.
+    - If user can plant the seed:
+        - We give the user the option to select seeds to plant with. We display for them which seeds they have, as string options cannot selectively display seeds that user has in their inventory.
+        - If the user has no seeds of the selected type, we cancel the interaction and inform the user that they do not have this seed.
+        - 
