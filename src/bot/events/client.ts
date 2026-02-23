@@ -1,4 +1,4 @@
-import {  Client, Events } from "discord.js";
+import { Client, Events } from "discord.js";
 import { I_BotEvent } from "../../utilities/interface";
 import { logError, logGeneral } from "../../utilities/utilities";
 import { randomInt } from "crypto";
