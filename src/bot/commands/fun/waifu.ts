@@ -5,15 +5,20 @@ import { createFakeTinderCardHorizontal, getAllRelevantImages, getRandomWaifu } 
 import { I_Command, I_MessageCommand } from "../../../utilities/interface";
 import { commandBuilder } from "../../misc/builders";
 
+// thanks to canvas 2.0 on my stupid debian machine, unable to install canvas 3.0, this doesn't work properly... YET.
 const waifuCommand: I_Command = {
 	data: commandBuilder(
 		"waifu",
 		"This will get a random waifu, you can like/dislike!", {
 		dm: true,
 	}),
+	options: {
+		disabled: true,
+	},
 	async execute(interaction) {
 		try {
 			// Get the repositories.
+			// this should be moved to a different part of the code, but whatever.
 			const waifuRepo = AppDataSource.getRepository(Waifu.Core);
 			const interactionRepo = AppDataSource.getRepository(Waifu.Vote);
 			const waifu = await getRandomWaifu(waifuRepo);

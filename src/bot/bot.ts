@@ -99,13 +99,9 @@ async function bot() {
 		// await DAO_GetSongs();
 		if (login) {
 			// I don't think we need a try here, but it is probably a smart idea to do it anyway.
-			try {
-				await discordClient.login(process.env.TOKEN);
-				await startPancakeDayEventScheduler(AppDataSource, discordClient)
-				logInfo(`We started the bot for: [ ${process.env.NODE_ENV} ]`);
-			} catch (err) {
-				logError(`unable to login to client!!!${err}`);
-			}
+			await discordClient.login(process.env.TOKEN);
+			startPancakeDayEventScheduler(AppDataSource, discordClient)
+			logInfo(`We started the bot for: [ ${process.env.NODE_ENV} ]`);
 		} else {
 			process.exit(1);
 		}

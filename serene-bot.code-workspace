@@ -17,6 +17,8 @@
 		"typescript.inlayHints.variableTypes.enabled": true,
 		"typescript.referencesCodeLens.enabled": true,
 		"typescript.referencesCodeLens.showOnAllFunctions": true,
+		"typescript.autoClosingTags": true,
+		"typescript.format.enable": true,
 		"typescript.suggest.completeFunctionCalls": true,
 		"typescript.updateImportsOnFileMove.enabled": "always",
 		"javascript.inlayHints.enumMemberValues.enabled": true,
